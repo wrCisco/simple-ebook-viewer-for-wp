@@ -1,0 +1,282 @@
+<?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+use Kucrut\Vite;
+
+class SIMEBV_Viewer {
+    public static function init() {
+        // add_filter('wp_handle_uploads', [self::class, 'handle_epub_uploads']);
+        add_shortcode('simebv_viewer', [self::class, 'render_ebook_viewer']);
+        add_action('wp_enqueue_scripts', [self::class, 'conditionally_enqueue_assets']);
+        // add_action('enqueue_block_editor_assets', [self::class, 'enqueue_block_editor_assets']);
+    }
+
+    // public static function initializeFS() {
+    //     $creds = request_filesystem_credentials(trailingslashit(SIMEBV_PLUGIN_URL) . 'books', '', false, SIMEBV_PLUGIN_DIR . 'books');
+    //     if (!WP_Filesystem($creds)) {
+    //         return false;
+    //     }
+    //     return true;
+    // }
+
+    public static function writeLog($msg) {
+        if (WP_DEBUG === true) {
+            error_log($msg);
+        }
+    }
+
+    public static function conditionally_enqueue_assets() {
+        if (!is_singular()) {
+            return;
+        }
+
+        global $post;
+        if (has_shortcode($post->post_content, 'simebv_viewer')) {
+            Vite\enqueue_asset(
+                SIMEBV_PLUGIN_DIR . '/dist',
+                'src/js/simebv-viewer.js',
+                [
+                    'handle' => 'simebv-viewer-lib',
+                ]
+            );
+        }
+    }
+
+    public static function render_ebook_viewer($atts) {
+        // add default value for attributes in the shortcode
+        $atts = shortcode_atts(
+            [
+                'book' => '',
+                'height' => '',
+                'width' => '',
+                'max-height' => '',
+                'max-width' => '',
+                'border' => '',
+                'style' => '',
+                'top-color' => '',
+                'top-bg-color' => '',
+                'top-padding' => '',
+                'top-border' => '',
+                'top-style' => '',
+                'sidebar-color' => '',
+                'sidebar-bg-color' => '',
+                'sidebar-padding' => '',
+                'sidebar-border' => '',
+                'sidebar-style' => '',
+            ],
+            $atts,
+            'simebv_viewer'
+        );
+
+        // if the 'book' attribute of the shortcode is a valid url that points
+        // to a file in the uploads directory, use it directly as url.
+        // Otherwise, use it to do a query in the db as the value for
+        // the 'simebv_ebook_slug' posts metadata.
+        $file_url = wp_http_validate_url($atts['book']);
+        if ($file_url) {
+            $escaped_url = esc_url($file_url);
+            if (!str_starts_with($escaped_url, wp_upload_dir()['baseurl']) || str_contains($escaped_url, '../')) {
+                $file_url = '';
+            }
+        }
+        if (!$file_url) {
+            $args = array(
+                'post_type' => 'attachment',
+                // 'post_mime_type' => 'application/epub+zip',
+                'post_status' => 'inherit',
+                'meta_query' => array(
+                    'key' => 'simebv_ebook_slug',
+                    'value' => trim($atts['book']),
+                    'compare' => '=',
+                ),
+            );
+            $query = new WP_Query($args);
+            if ($query->have_posts()) {
+                $query->the_post();  // used to bump to the next post retrieved by the query, usually used in a loop e.g. while ($query->have_posts()) { $query->the_post(); ... }
+                $attachment_ID = get_the_ID();
+                wp_reset_postdata();
+                $file_url = wp_get_attachment_url($attachment_ID);
+            }
+        }
+        if (empty($file_url)) {
+            return '<p style="color: red;">No Web Publication file provided.</p>';
+        }
+
+        $styles = self::setup_styles($atts);
+
+        ob_start(); ?>
+<section
+    id="simebv-reader-container"
+    data-ebook-path="<?php echo esc_url($file_url); ?>"
+    <?php echo $styles['container']; ?>
+    tabindex="0"
+    aria-label="Ebook reader"
+>
+    <div
+        id="simebv-loading-overlay"
+        class="simebv-show"
+    >Loading...</div>
+    <div id="simebv-dimming-overlay" aria-hidden="true"></div>
+    <div id="simebv-header-bar" class="simebv-toolbar" <?php echo $styles['header']; ?>>
+        <div class="simebv-left-side-buttons">
+            <button id="simebv-side-bar-button" aria-label="Show sidebar">
+                <svg class="simebv-icon" width="24" height="24" aria-hidden="true">
+                    <path d="M 4 6 h 16 M 4 12 h 16 M 4 18 h 16"/>
+                </svg>
+            </button>
+        </div>
+        <header id="simebv-headline-container" class="simebv-reader-headline">
+            <h1 id="simebv-book-header" aria-label="Publication title">No title</h1>
+        </header>
+        <div class="simebv-right-side-buttons">
+            <div id="simebv-menu-button" class="simebv-menu-container">
+                <button aria-label="Show settings" aria-haspopup="true">
+                    <svg class="simebv-icon" width="24" height="24" aria-hidden="true">
+                        <path d="M5 12.7a7 7 0 0 1 0-1.4l-1.8-2 2-3.5 2.7.5a7 7 0 0 1 1.2-.7L10 3h4l.9 2.6 1.2.7 2.7-.5 2 3.4-1.8 2a7 7 0 0 1 0 1.5l1.8 2-2 3.5-2.7-.5a7 7 0 0 1-1.2.7L14 21h-4l-.9-2.6a7 7 0 0 1-1.2-.7l-2.7.5-2-3.4 1.8-2Z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="simebv-right-side-button-container">
+                <button id="full-screen-button" aria-label="Full screen">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="simebv-icon" aria-hidden="true" viewBox="-4 -4 24 24">
+                        <path d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707m4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707m0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707m-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    <section id="simebv-side-bar" <?php echo $styles['sidebar']; ?>>
+        <div id="simebv-side-bar-header">
+            <img id="simebv-side-bar-cover">
+            <div>
+                <h2 id="simebv-side-bar-title"></h2>
+                <p id="simebv-side-bar-author"></p>
+            </div>
+        </div>
+        <div id="simebv-toc-view"></div>
+    </section>
+    <div id="simebv-nav-bar" class="simebv-toolbar">
+        <button id="simebv-left-button" aria-label="Go left">
+            <svg class="simebv-icon" width="24" height="24" aria-hidden="true">
+                <path d="M 15 6 L 9 12 L 15 18"/>
+            </svg>
+        </button>
+        <input id="simebv-progress-slider" type="range" min="0" max="1" step="any" list="simebv-tick-marks">
+        <datalist id="simebv-tick-marks"></datalist>
+        <button id="simebv-right-button" aria-label="Go right">
+            <svg class="simebv-icon" width="24" height="24" aria-hidden="true">
+                <path d="M 9 6 L 15 12 L 9 18"/>
+            </svg>
+        </button>
+    </div>
+</section>
+        <?php
+        return ob_get_clean();
+    }
+
+    public static function setup_styles($attrs) {
+        $style_container = 'style="';
+        if (
+            strlen($attrs['height']) !== 0
+            || strlen($attrs['width']) !== 0
+            || strlen($attrs['max-height']) !== 0
+            || strlen($attrs['max-width']) !== 0
+            || strlen($attrs['border']) !== 0
+            || strlen($attrs['style']) !== 0
+        ) {
+            if (strlen($attrs['height']) !== 0) {
+                $style_container .= "height:" . esc_attr($attrs['height']) . ";";
+            }
+            if (strlen($attrs['width']) !== 0) {
+                $style_container .= "width:" . esc_attr($attrs['width']) . ";";
+            }
+            if (strlen($attrs['max-height']) !== 0) {
+                $style_container .= "max-height:" . esc_attr($attrs['max-height']) . ";";
+            }
+            if (strlen($attrs['max-width']) !== 0) {
+                $style_container .= "max-width:" . esc_attr($attrs['max-width']) . ";";
+            }
+            if (strlen($attrs['border']) !== 0) {
+                $style_container .= "border:" . esc_attr($attrs['border']) . ";";
+            }
+            if (strlen($attrs['style']) !== 0) {
+                $style_container .= esc_attr(trim($attrs['style']));
+                if (!str_ends_with($style_container, ';')) {
+                    $style_container .= ';';
+                }
+            }
+        }
+        if (strlen($attrs['max-height'] === 0 && strlen($attrs['height']) === 0)) {
+            $style_container .= "max-height:95vh;";
+        }
+        $style_container .= '"';
+
+        $style_top = '';
+        if (
+            strlen($attrs['top-color']) !== 0
+            || strlen($attrs['top-bg-color']) !== 0
+            || strlen($attrs['top-padding']) !== 0
+            || strlen($attrs['top-border']) !== 0
+            || strlen($attrs['top-style']) !== 0
+        ) {
+            $style_top = 'style="';
+            if (strlen($attrs['top-color']) !== 0) {
+                $style_top .= 'color:' . esc_attr($attrs['top-color']) . ";";
+            }
+            if (strlen($attrs['top-bg-color']) !== 0) {
+                $style_top .= 'background-color:' . esc_attr($attrs['top-bg-color']) . ";";
+            }
+            if (strlen($attrs['top-padding']) !== 0) {
+                $style_top .= 'padding:' . esc_attr($attrs['top-padding']) . ";";
+            }
+            if (strlen($attrs['top-border']) !== 0) {
+                $style_top .= 'border:' . esc_attr($attrs['top-border']) . ";";
+            }
+            if (strlen($attrs['top-style']) !== 0) {
+                $style_top .= esc_attr(trim($attrs['top-style']));
+                if (!str_ends_with($style_top, ';')) {
+                    $style_top .= ';';
+                }
+            }
+            $style_top .= '"';
+        }
+
+        $style_sidebar = 'style="display:none;';
+        if (
+            strlen($attrs['sidebar-color']) !== 0
+            || strlen($attrs['sidebar-bg-color']) !== 0
+            || strlen($attrs['sidebar-padding']) !== 0
+            || strlen($attrs['sidebar-border']) !== 0
+            || strlen($attrs['sidebar-style']) !== 0
+        ) {
+            if (strlen($attrs['sidebar-color']) !== 0) {
+                $style_sidebar .= 'color:' . esc_attr($attrs['sidebar-color']) . ";";
+            }
+            if (strlen($attrs['sidebar-bg-color']) !== 0) {
+                $style_sidebar .= 'background-color:' . esc_attr($attrs['sidebar-bg-color']) . ";";
+            }
+            if (strlen($attrs['sidebar-padding']) !== 0) {
+                $style_sidebar .= 'padding:' . esc_attr($attrs['sidebar-padding']) . ";";
+            }
+            if (strlen($attrs['sidebar-border']) !== 0) {
+                $style_sidebar .= 'border:' . esc_attr($attrs['sidebar-border']) . ";";
+            }
+            if (strlen($attrs['sidebar-style']) !== 0) {
+                $style_sidebar .= esc_attr(trim($attrs['sidebar-style']));
+                if (!str_ends_with($style_sidebar, ';')) {
+                    $style_sidebar .= ';';
+                }
+            }
+        }
+        $style_sidebar .= '"';
+        return [
+            'container' => $style_container,
+            'header' => $style_top,
+            'sidebar' => $style_sidebar,
+        ];
+    }
+
+}

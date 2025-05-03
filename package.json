@@ -1,0 +1,14 @@
+{
+  "name": "Simple Ebook Viewer",
+  "version": "0.1.0",
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@kucrut/vite-for-wp": "^0.11.5",
+    "vite": "^6.3.4"
+  }
+}
