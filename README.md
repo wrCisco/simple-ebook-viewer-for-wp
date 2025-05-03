@@ -14,3 +14,7 @@ You can add css styles for the viewer container, the topbar and the sidebar by a
 * sidebar-style
 
 For example: `[simebv_viewer book="MY_EBOOK_SLUG_HERE" style="height:30em;"]`.
+
+### Warning
+
+Ebooks can contain scripted content that might be executed on your webpage: don't display ebooks from untrusted sources and/or check your ebooks before uploading and displaying them.
