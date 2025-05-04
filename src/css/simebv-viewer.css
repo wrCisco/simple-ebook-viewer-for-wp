@@ -1,18 +1,25 @@
 :root {
     --active-bg: rgba(0, 0, 0, .05);
+    color-scheme: light dark;
 }
 @supports (color-scheme: light dark) {
     @media (prefers-color-scheme: dark) {
         :root {
             --active-bg: rgba(255, 255, 255, .1);
         }
+        a:link {
+            color: lightblue;
+        }
     }
 }
 .simebv-icon {
     display: block;
     fill: none;
-    stroke: currentcolor;
+    stroke: CanvasText;
     stroke-width: 2px;
+}
+.simebv-icon:active {
+    stroke: CanvasText;
 }
 .simebv-toolbar {
     box-sizing: border-box;
@@ -28,13 +35,14 @@
     padding: 6px;
     transition: opacity 250ms ease;
     visibility: hidden;
+    color: CanvasText;
 }
 .simebv-toolbar button {
     padding: 3px;
     border-radius: 6px;
     background: none;
     border: 0;
-    color: GrayText;
+/*    color: GrayText;*/
 }
 .simebv-toolbar button:hover {
     background: rgba(0, 0, 0, .1);
@@ -64,6 +72,20 @@
     margin: 0 12px;
     visibility: hidden;
 }
+#simebv-progress-percent {
+    flex-grow: 1;
+    margin: 0 12px;
+    display: none;
+    text-align: center;
+}
+@media screen and (max-width: 420px) {
+    #simebv-progress-slider {
+        display: none;
+    }
+    #simebv-progress-percent {
+        display: block;
+    }
+}
 #simebv-side-bar {
     visibility: hidden;
     box-sizing: border-box;
@@ -73,6 +95,7 @@
     left: 0;
     height: 100%;
     width: 320px;
+    max-width: 85%;
     transform: translateX(-320px);
     display: flex;
     flex-direction: column;
@@ -220,6 +243,12 @@
     width: 100vw !important;
     max-width: 100vw !important;
     min-width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 100dvh !important;
+    width: 100dvw !important;
+    max-width: 100dvw !important;
+    min-width: 100dvw !important;
     position: fixed;
     top: 0;
     left: 0;

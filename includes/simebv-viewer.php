@@ -166,6 +166,7 @@ class SIMEBV_Viewer {
         </button>
         <input id="simebv-progress-slider" type="range" min="0" max="1" step="any" list="simebv-tick-marks">
         <datalist id="simebv-tick-marks"></datalist>
+        <div id="simebv-progress-percent"></div>
         <button id="simebv-right-button" aria-label="Go right">
             <svg class="simebv-icon" width="24" height="24" aria-hidden="true">
                 <path d="M 9 6 L 15 12 L 9 18"/>

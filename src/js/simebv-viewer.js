@@ -250,6 +250,8 @@ class Reader {
         slider.style.visibility = 'visible'
         slider.value = fraction
         slider.title = `${percent} · ${loc}`
+        const writtenPercent = $('#simebv-progress-percent')
+        writtenPercent.innerText = percent
         if (tocItem?.href) this.#tocView?.setCurrentHref?.(tocItem.href)
     }
 }
