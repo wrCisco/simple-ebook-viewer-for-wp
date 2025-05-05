@@ -4,6 +4,8 @@ Simple plugin for WordPress that enables you to upload various ebook formats (ep
 
 Every new uploaded ebook will have an "ebook slug" (by default it will be the ebook name) that you can edit in the Edit Media page from the Admin Panel.
 
+The "viewer" part of the plugin is mainly a wrapper around the [foliate-js](https://github.com/johnfactotum/foliate-js) library by John Factotum.
+
 ### Usage
 
 Insert the shortcode `[simebv_viewer book="MY_EBOOK_SLUG_HERE"]` in one (or many) of your posts.
