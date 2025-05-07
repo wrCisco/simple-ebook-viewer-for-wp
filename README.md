@@ -18,7 +18,7 @@ The "viewer" part of the plugin is mainly a wrapper around the [foliate-js](http
 
 ### Usage
 
-Insert the shortcode `[simebv_viewer book="MY_EBOOK_SLUG_HERE"]` in one (or many) of your posts.
+Insert the shortcode `[simebv_viewer book="MY_EBOOK_SLUG_HERE"]` in any one of your posts.
 
 You can add css styles for the viewer container, the topbar and the sidebar by adding these attributes to the shortcode:
 * style
