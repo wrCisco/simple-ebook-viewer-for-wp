@@ -6,6 +6,16 @@ Every new uploaded ebook will have an "ebook slug" (by default it will be the eb
 
 The "viewer" part of the plugin is mainly a wrapper around the [foliate-js](https://github.com/johnfactotum/foliate-js) library by John Factotum.
 
+### Installation
+
+* download the zip file of the latest release of the plugin;
+* open the Admin panel of your site;
+* on the sidebar click on Plugins -> Add New Plugin;
+* click on the "Upload Plugin" button at the top of the page, next to the title;
+* click on the "Choose File" button and select the zip file you downloaded;
+* click on the "Install Now" button;
+* at the end of the installation process, click on the "Activate Plugin" button.
+
 ### Usage
 
 Insert the shortcode `[simebv_viewer book="MY_EBOOK_SLUG_HERE"]` in one (or many) of your posts.
