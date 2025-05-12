@@ -1,6 +1,7 @@
 // vite.config.js
 import { defineConfig } from 'vite'
 import { v4wp } from '@kucrut/vite-for-wp';
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 export default defineConfig({
     plugins: [
@@ -10,6 +11,9 @@ export default defineConfig({
             },
             outDir: 'dist',
         } ),
+        nodePolyfills({
+            include: ['fs', 'http', 'https'],
+        }),
     ],
     server: {
         cors: {

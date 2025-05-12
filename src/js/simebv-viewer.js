@@ -1,9 +1,9 @@
 import '../css/simebv-viewer.css';
 
-import '../vendor/foliate-js/foliate.js'
-import { createTOCView } from '../vendor/foliate-js/ui/tree.js'
-import { createMenu } from '../vendor/foliate-js/ui/menu.js'
-import { Overlayer, CFI } from '../vendor/foliate-js/foliate.js'
+import '../../vendor/foliate-js/view.js'
+import { createTOCView } from '../../vendor/foliate-js/ui/tree.js'
+import { createMenu } from '../../vendor/foliate-js/ui/menu.js'
+import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
 
 const getCSS = ({ spacing, justify, hyphenate }) => `
     @namespace epub "http://www.idpf.org/2007/ops";
@@ -168,9 +168,10 @@ class Reader {
         // load and show highlights embedded in the file by Calibre
         const bookmarks = await book.getCalibreBookmarks?.()
         if (bookmarks) {
+            const { fromCalibreHighlight } = await import('../../vendor/foliate-js/epubcfi.js')
             for (const obj of bookmarks) {
                 if (obj.type === 'highlight') {
-                    const value = CFI.fromCalibreHighlight(obj)
+                    const value = fromCalibreHighlight(obj)
                     const color = obj.style.which
                     const note = obj.notes
                     const annotation = { value, color, note }
