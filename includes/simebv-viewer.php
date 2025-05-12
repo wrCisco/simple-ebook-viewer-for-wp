@@ -86,11 +86,13 @@ class SIMEBV_Viewer {
                 'post_type' => 'attachment',
                 // 'post_mime_type' => 'application/epub+zip',
                 'post_status' => 'inherit',
-                'meta_query' => array(
-                    'key' => 'simebv_ebook_slug',
-                    'value' => trim($atts['book']),
-                    'compare' => '=',
-                ),
+                'meta_query' => [
+                    [
+                        'key' => 'simebv_ebook_slug',
+                        'value' => trim($atts['book']),
+                        'compare' => '=',
+                    ],
+                ],
             );
             $query = new WP_Query($args);
             if ($query->have_posts()) {
