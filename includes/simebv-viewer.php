@@ -116,65 +116,9 @@ class SIMEBV_Viewer {
     tabindex="0"
     aria-label="Ebook reader"
 >
-    <div
-        id="simebv-loading-overlay"
-        class="simebv-show"
-    >Loading...</div>
-    <div id="simebv-dimming-overlay" aria-hidden="true"></div>
-    <div id="simebv-header-bar" class="simebv-toolbar" <?php echo $styles['header']; ?>>
-        <div class="simebv-left-side-buttons">
-            <button id="simebv-side-bar-button" aria-label="Show sidebar">
-                <svg class="simebv-icon" width="24" height="24" aria-hidden="true">
-                    <path d="M 4 6 h 16 M 4 12 h 16 M 4 18 h 16"/>
-                </svg>
-            </button>
-        </div>
-        <header id="simebv-headline-container" class="simebv-reader-headline">
-            <h1 id="simebv-book-header" aria-label="Publication title">No title</h1>
-        </header>
-        <div class="simebv-right-side-buttons">
-            <div id="simebv-menu-button" class="simebv-menu-container">
-                <button aria-label="Show settings" aria-haspopup="true">
-                    <svg class="simebv-icon" width="24" height="24" aria-hidden="true">
-                        <path d="M5 12.7a7 7 0 0 1 0-1.4l-1.8-2 2-3.5 2.7.5a7 7 0 0 1 1.2-.7L10 3h4l.9 2.6 1.2.7 2.7-.5 2 3.4-1.8 2a7 7 0 0 1 0 1.5l1.8 2-2 3.5-2.7-.5a7 7 0 0 1-1.2.7L14 21h-4l-.9-2.6a7 7 0 0 1-1.2-.7l-2.7.5-2-3.4 1.8-2Z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="simebv-right-side-button-container">
-                <button id="full-screen-button" aria-label="Full screen">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="simebv-icon" aria-hidden="true" viewBox="-4 -4 24 24">
-                        <path d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707m4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707m0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707m-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </div>
-    <section id="simebv-side-bar" <?php echo $styles['sidebar']; ?>>
-        <div id="simebv-side-bar-header">
-            <img id="simebv-side-bar-cover">
-            <div>
-                <h2 id="simebv-side-bar-title"></h2>
-                <p id="simebv-side-bar-author"></p>
-            </div>
-        </div>
-        <div id="simebv-toc-view"></div>
-    </section>
-    <div id="simebv-nav-bar" class="simebv-toolbar">
-        <button id="simebv-left-button" aria-label="Go left">
-            <svg class="simebv-icon" width="24" height="24" aria-hidden="true">
-                <path d="M 15 6 L 9 12 L 15 18"/>
-            </svg>
-        </button>
-        <input id="simebv-progress-slider" type="range" min="0" max="1" step="any" list="simebv-tick-marks">
-        <datalist id="simebv-tick-marks"></datalist>
-        <div id="simebv-progress-percent"></div>
-        <button id="simebv-right-button" aria-label="Go right">
-            <svg class="simebv-icon" width="24" height="24" aria-hidden="true">
-                <path d="M 9 6 L 15 12 L 9 18"/>
-            </svg>
-        </button>
-    </div>
+    <noscript>
+        It seems that JavaScript is not enabled in your browser, you need to enable it in order to use the Ebook Viewer.
+    </noscript>
 </section>
         <?php
         return ob_get_clean();

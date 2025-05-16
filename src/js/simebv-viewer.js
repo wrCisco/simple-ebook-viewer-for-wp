@@ -1,19 +1,30 @@
-import '../css/simebv-viewer.css';
-
 import '../../vendor/foliate-js/view.js'
 import { createTOCView } from '../../vendor/foliate-js/ui/tree.js'
 import { createMenu } from '../../vendor/foliate-js/ui/menu.js'
 import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
+import { storageAvailable, addCSPMeta, removeInlineScripts } from './simebv-utils.js'
+import { searchDialog } from './simebv-search-dialog.js'
 
-const getCSS = ({ spacing, justify, hyphenate }) => `
+// Import css for the Viewer's container element, as static asset
+import '../css/simebv-container.css'
+// Import css for the Viewer's UI, as string
+import viewerUiCss from '../css/simebv-viewer.css?raw'
+// CSS to inject in iframe
+const getCSS = ({ spacing, justify, hyphenate, fontSize, colorScheme, bgColor }) => `
     @namespace epub "http://www.idpf.org/2007/ops";
-    html {
-        color-scheme: light dark;
+    :root {
+        color-scheme: ${colorScheme} !important;
+        font-size: ${fontSize}px;
+        background-color: ${bgColor}
     }
     /* https://github.com/whatwg/html/issues/5426 */
-    @media (prefers-color-scheme: dark) {
+    @media all and (prefers-color-scheme: dark) {
         a:link {
-            color: lightblue;
+            color: ${colorScheme.includes('dark') ? 'lightblue' : 'LinkText'};
+        }
+        ${!colorScheme.includes('dark')
+            ? '[epub|type~="se:image.color-depth.black-on-transparent"] { filter: none !important; }'
+            : ''
         }
     }
     p, li, blockquote, dd {
@@ -44,8 +55,6 @@ const getCSS = ({ spacing, justify, hyphenate }) => `
     }
 `
 
-const $ = document.querySelector.bind(document)
-
 const locales = 'en'
 const percentFormat = new Intl.NumberFormat(locales, { style: 'percent' })
 const listFormat = new Intl.ListFormat(locales, { style: 'short', type: 'conjunction' })
@@ -65,31 +74,78 @@ const formatContributor = contributor => Array.isArray(contributor)
     : formatOneContributor(contributor)
 
 class Reader {
+    #root
+    #rootDiv
     #tocView
+    #sideBar
+    #sideBarButton
+    #overlay
+    #menuButton
+    #fullscreenButton
+    #searchDialog
+    #currentSearch
+    #currentSearchQuery
+    #currentSearchResult = []
+    #currentSearchResultIndex = -1
+    #lastReadPage
     style = {
         spacing: 1.4,
         justify: true,
         hyphenate: true,
+        fontSize: 1,
+        colorScheme: 'light dark',
+        bgColor: 'transparent',
     }
     annotations = new Map()
     annotationsByValue = new Map()
-    container = document.body
-    closeSideBar() {
-        $('#simebv-dimming-overlay').classList.remove('simebv-show')
-        $('#simebv-side-bar').classList.remove('simebv-show')
-        this.container.focus()
+    container
+    menu
+
+    closeMenus() {
+        let focusTo
+        if (this.#sideBar.classList.contains('simebv-show')) {
+            focusTo = this.#sideBarButton
+        }
+        this.#overlay.classList.remove('simebv-show')
+        this.#sideBar.classList.remove('simebv-show')
+        this.menu.element.hide()
+        if (focusTo) {
+            focusTo.focus()
+        }
     }
+
     constructor(container) {
-        $('#simebv-side-bar-button').addEventListener('click', () => {
-            $('#simebv-side-bar').style.display = null;
+        this.container = container ?? document.body
+        this.#root = this.container.attachShadow({ mode: 'open' })
+        this.#root.innerHTML = readerMarkup
+        this.#rootDiv = this.#root.querySelector('#simebv-reader-root')
+        this.#sideBar = this.#root.querySelector('#simebv-side-bar')
+        this.#sideBarButton = this.#root.querySelector('#simebv-side-bar-button')
+        this.#overlay = this.#root.querySelector('#simebv-dimming-overlay')
+        this.#menuButton = this.#root.querySelector('#simebv-menu-button')
+        this.#fullscreenButton = this.#root.querySelector('#full-screen-button')
+
+        this.#sideBarButton.addEventListener('click', () => {
+            this.#sideBar.style.display = null;
             setTimeout(() => {
-                $('#simebv-dimming-overlay').classList.add('simebv-show')
-                $('#simebv-side-bar').classList.add('simebv-show')
+                this.#overlay.classList.add('simebv-show')
+                this.#sideBar.classList.add('simebv-show')
+                this.#tocView.getCurrentItem()?.focus()
             }, 20)
         })
-        $('#simebv-dimming-overlay').addEventListener('click', () => this.closeSideBar())
+        this.#overlay.addEventListener('click', () => {
+            this.closeMenus()
+        })
+        this.#sideBar.addEventListener('click', () => {
+            this.#tocView.getCurrentItem()?.focus()
+        })
+        this.#root.addEventListener('closeMenu', () => {
+            if (!this.#sideBar.classList.contains('simebv-show')) {
+                this.#overlay.classList.remove('simebv-show')
+            }
+        })
 
-        const menu = createMenu([
+        this.menu = createMenu([
             {
                 name: 'layout',
                 label: 'Layout',
@@ -99,70 +155,274 @@ class Reader {
                     ['Scrolled', 'scrolled'],
                 ],
                 onclick: value => {
+                    if (value === 'scrolled') {
+                        this.menu.groups.maxPages.enable(false)
+                        this.menu.groups.margins.enable(false)
+                    }
+                    else {
+                        this.menu.groups.maxPages.enable(true)
+                        this.menu.groups.margins.enable(true)
+                    }
                     this.view?.renderer.setAttribute('flow', value)
+                    this.#savePreference('layout', value)
                 },
+                horizontal: false,
+            },
+            {
+                name: 'maxPages',
+                label: 'Max pages per view',
+                type: 'radio',
+                items: [
+                    ['1', 1], ['2', 2], ['3', 3],
+                ],
+                onclick: value => {
+                    this.view?.renderer.setAttribute('max-column-count', value)
+                    this.#savePreference('maxPages', value)
+                },
+                horizontal: true,
+            },
+            {
+                name: 'fontSize',
+                label: 'Font Size',
+                type: 'radio',
+                items: [
+                    ['Small', 14], ['Medium', 18], ['Large', 22], ['X-Large', 26],
+                ],
+                onclick: value => {
+                    this.style.fontSize = value
+                    this.view?.renderer.setStyles?.(getCSS(this.style))
+                    this.#savePreference('fontSize', value)
+                },
+                horizontal: false,
+            },
+            {
+                name: 'margins',
+                label: 'Page Margins',
+                type: 'radio',
+                items: [
+                    ['Small', '4%'], ['Medium', '8%'], ['Large', '12%'],
+                ],
+                onclick: value => {
+                    this.view?.renderer.setAttribute('gap', value)
+                    this.view?.renderer.setAttribute('max-block-size', `calc(100% - ${value.slice(0, -1) * 2}%)`)
+                    this.#savePreference('margins', value)
+                },
+                horizontal: false,
+            },
+            {
+                name: 'colors',
+                label: 'Colors',
+                type: 'radio',
+                items: [
+                    ['Auto', 'auto'], ['Sepia', 'simebv-sepia'],
+                ],
+                onclick: value => {
+                    if (value === 'simebv-sepia') {
+                        this.#rootDiv.classList.add(value)
+                        this.container.classList.add(value)
+                        this.style.colorScheme = 'only light'
+                        this.style.bgColor = '#f9f1cc'
+                        this.view?.renderer.setStyles?.(getCSS(this.style))
+                    }
+                    else {
+                        this.#rootDiv.classList.remove('simebv-sepia')
+                        this.container.classList.remove('simebv-sepia')
+                        this.style.colorScheme = 'light dark'
+                        this.style.bgColor = 'transparent'
+                        this.view?.renderer.setStyles?.(getCSS(this.style))
+                    }
+                    this.#savePreference('colors', value)
+                },
+                horizontal: true,
+            },
+            {
+                name: 'search',
+                label: 'Search...',
+                shortcut: 'Ctrl+F',
+                type: 'action',
+                onclick: () => this.openSearchDialog(),
             },
         ])
-        menu.element.classList.add('simebv-menu')
+        this.menu.element.classList.add('simebv-menu')
+        this.menu.element.addEventListener('click', (e) => e.stopPropagation())
 
-        $('#simebv-menu-button').append(menu.element)
-        $('#simebv-menu-button > button').addEventListener('click', () =>
-            menu.element.classList.toggle('simebv-show'))
-        menu.groups.layout.select('paginated')
-        if (container) {
-            this.container = container
-        }
-        $('#full-screen-button').addEventListener('click', this.#toggleFullViewport.bind(this))
+        this.#menuButton.append(this.menu.element)
+        this.#menuButton.querySelector('button').addEventListener('click', (e) => {
+            if (!this.menu.element.classList.contains('simebv-show')) {
+                this.menu.element.show(this.#menuButton.querySelector('button'))
+                this.#overlay.classList.add('simebv-show')
+            }
+            else {
+                this.closeMenus()
+            }
+        })
+        this.#loadMenuPreferences([
+            ['fontSize', 18],
+            ['colors', 'auto'],
+        ])
+
+        this.#fullscreenButton.addEventListener('click', this.#toggleFullViewport.bind(this))
     }
+
+    openSearchDialog() {
+        if (!this.#searchDialog) {
+            this.#searchDialog = searchDialog(
+                this.boundDoSearch,
+                this.boundPrevMatch,
+                this.boundNextMatch,
+                this.boundSearchCleanUp,
+                this.container
+            )
+            this.#searchDialog.id = 'simebv-search-dialog'
+            this.#rootDiv.append(this.#searchDialog)
+        }
+        this.#searchDialog.show()
+        this.#searchDialog.classList.add('simebv-show')
+    }
+
+    async doSearch(str) {
+        if (this.#currentSearch && this.#currentSearchQuery === str) {
+            await this.nextMatch()
+            return
+        }
+        this.#currentSearchQuery = str
+        this.#currentSearch = await this.view?.search({query: str})
+        await this.nextMatch()
+    }
+    boundDoSearch = this.doSearch.bind(this)
+
+    async nextMatch() {
+        if (!this.#currentSearch) {
+            return
+        }
+        if (this.#currentSearchResult
+                && this.#currentSearchResult.length > 0
+                && this.#currentSearchResultIndex < this.#currentSearchResult.length - 1
+        ) {
+            this.#currentSearchResultIndex++
+            await this.view.goTo(this.#currentSearchResult[this.#currentSearchResultIndex].cfi)
+            return
+        }
+        let result = await this.#currentSearch.next()
+        if (result.value === 'done' || result.done === true) {
+            return
+        }
+        if (result.value?.subitems) {
+            this.#currentSearchResult.push(...result.value.subitems)
+            this.#currentSearchResultIndex++
+            await this.view.goTo(this.#currentSearchResult[this.#currentSearchResultIndex].cfi)
+            return
+        }
+        else {
+            await this.nextMatch()
+        }
+    }
+    boundNextMatch = this.nextMatch.bind(this)
+
+    async prevMatch() {
+        if (!this.#currentSearch) {
+            return
+        }
+        if (this.#currentSearchResult
+                && this.#currentSearchResult.length > 0
+                && this.#currentSearchResultIndex > 0
+        ) {
+            this.#currentSearchResultIndex--
+            await this.view.goTo(this.#currentSearchResult[this.#currentSearchResultIndex].cfi)
+            return
+        }
+    }
+    boundPrevMatch = this.prevMatch.bind(this)
+
+    async searchCleanUp() {
+        this.#currentSearch = undefined
+        this.#currentSearchResult = []
+        this.#currentSearchResultIndex = -1
+        this.view.clearSearch()
+        this.view.deselect()
+    }
+    boundSearchCleanUp = this.searchCleanUp.bind(this)
+
     async open(file) {
         this.view = document.createElement('foliate-view')
-        this.container.append(this.view)
+        this.#rootDiv.append(this.view)
         await this.view.open(file)
         this.view.addEventListener('load', this.#onLoad.bind(this))
         this.view.addEventListener('relocate', this.#onRelocate.bind(this))
+        this.#lastReadPage = this.getLastReadPage()
 
         const { book } = this.view
         book.transformTarget?.addEventListener('data', ({ detail }) => {
-            detail.data = Promise.resolve(detail.data).catch(e => {
-                console.error(new Error(`Failed to load ${detail.name}`, { cause: e }))
-                return ''
-            })
+            detail.data = Promise
+                .resolve(detail.data)
+                .then(data => {
+                    switch(detail.type) {
+                        case 'application/xhtml+xml':
+                        case 'text/html':
+                            return addCSPMeta(data, detail.type)
+                        case 'image/svg+xml':
+                        case 'application/xml':
+                            return removeInlineScripts(data, detail.type)
+                        default:
+                            return data
+                    }
+                })
+                .catch(e => {
+                    console.error(new Error(`Failed to load ${detail.name}`, { cause: e }))
+                    return ''
+                })
         })
+
+        if (this.#lastReadPage != null) {
+            try {
+                if (typeof this.#lastReadPage === 'string') {
+                    await this.view.init({lastLocation: this.#lastReadPage})
+                }
+                else if (this.#lastReadPage <= 1 && this.#lastReadPage >= 0) {
+                    await this.view.init({lastLocation: { fraction: this.#lastReadPage }})
+                }
+            }
+            catch (e) {
+                this.#lastReadPage = null
+                console.error('Cannot load last read page:', e)
+            }
+        }
+
         this.view.renderer.setStyles?.(getCSS(this.style))
-        this.view.renderer.next()
+        if (!this.#lastReadPage) this.view.renderer.next()
 
-        $('#simebv-header-bar').style.visibility = 'visible'
-        $('#simebv-nav-bar').style.visibility = 'visible'
-        $('#simebv-left-button').addEventListener('click', () => this.view.goLeft())
-        $('#simebv-right-button').addEventListener('click', () => this.view.goRight())
+        this.#root.querySelector('#simebv-header-bar').style.visibility = 'visible'
+        this.#root.querySelector('#simebv-nav-bar').style.visibility = 'visible'
+        this.#root.querySelector('#simebv-left-button').addEventListener('click', () => this.view.goLeft())
+        this.#root.querySelector('#simebv-right-button').addEventListener('click', () => this.view.goRight())
 
-        const slider = $('#simebv-progress-slider')
+        const slider = this.#root.querySelector('#simebv-progress-slider')
         slider.dir = book.dir
         slider.addEventListener('input', e =>
             this.view.goToFraction(parseFloat(e.target.value)))
         for (const fraction of this.view.getSectionFractions()) {
             const option = document.createElement('option')
             option.value = fraction
-            $('#simebv-tick-marks').append(option)
+            this.#root.querySelector('#simebv-tick-marks').append(option)
         }
 
         this.container.addEventListener('keydown', this.#handleKeydown.bind(this))
 
         const title = formatLanguageMap(book.metadata?.title) || 'Untitled Book'
         document.title = title
-        $('#simebv-book-header').innerText = title
-        $('#simebv-side-bar-title').innerText = title
-        $('#simebv-side-bar-author').innerText = formatContributor(book.metadata?.author)
+        this.#root.querySelector('#simebv-book-header').innerText = title
+        this.#root.querySelector('#simebv-side-bar-title').innerText = title
+        this.#root.querySelector('#simebv-side-bar-author').innerText = formatContributor(book.metadata?.author)
         Promise.resolve(book.getCover?.())?.then(blob =>
-            blob ? $('#simebv-side-bar-cover').src = URL.createObjectURL(blob) : null)
+            blob ? this.#root.querySelector('#simebv-side-bar-cover').src = URL.createObjectURL(blob) : null)
 
         const toc = book.toc
         if (toc) {
             this.#tocView = createTOCView(toc, href => {
                 this.view.goTo(href).catch(e => console.error(e))
-                this.closeSideBar()
+                this.closeMenus()
             })
-            $('#simebv-toc-view').append(this.#tocView.element)
+            this.#root.querySelector('#simebv-toc-view').append(this.#tocView.element)
         }
 
         // load and show highlights embedded in the file by Calibre
@@ -197,6 +457,13 @@ class Reader {
                 if (annotation.note) alert(annotation.note)
             })
         }
+
+        // these preferences need to be set after the renderer has loaded
+        this.#loadMenuPreferences([
+            ['maxPages', 2],
+            ['margins', '8%'],
+            ['layout', 'paginated'],  // the 'scrolled' layout disables the other preferences, so this is at the end
+        ])
     }
 
     #toggleFullScreen() {
@@ -219,48 +486,189 @@ class Reader {
     #handleKeydown(e) {
         const k = e.key
         switch (k) {
+            case 'PageUp':
+                e.preventDefault()
+                this.view.prev()
+                break
+            case 'PageDown':
+                e.preventDefault()
+                this.view.next()
+                break
             case 'ArrowLeft':
-            case 'h':
                 this.view.goLeft()
-                break;
+                break
             case 'ArrowRight':
-            case 'l':
                 this.view.goRight()
-                break;
+                break
+            case 'Tab':
+                if (this.menu.element.classList.contains('simebv-show')
+                        || this.#root.querySelector('#simebv-side-bar')?.classList.contains('simebv-show')) {
+                    this.closeMenus()
+                }
+                break
             case 'Escape':
-                if (this.container.classList.contains('simebv-view-fullscreen')) {
+                if (this.menu.element.classList.contains('simebv-show')
+                        || this.#root.querySelector('#simebv-side-bar')?.classList.contains('simebv-show')
+                        || this.#searchDialog?.classList.contains('simebv-show')) {
+                    this.closeMenus()
+                }
+                else if (this.container.classList.contains('simebv-view-fullscreen')) {
                     this.container.classList.remove('simebv-view-fullscreen')
                 }
-                break;
+                break
+            case 'f':
+                if (e.ctrlKey) {
+                    this.openSearchDialog()
+                    e.preventDefault()
+                }
+                break
         }
     }
+
     #onLoad({ detail: { doc } }) {
-        const loadingOverlay = document.getElementById('simebv-loading-overlay');
+        const loadingOverlay = this.#root.getElementById('simebv-loading-overlay');
         if (loadingOverlay) {
             loadingOverlay.classList.remove('simebv-show');
         }
         doc.addEventListener('keydown', this.#handleKeydown.bind(this))
     }
+
     #onRelocate({ detail }) {
         const { fraction, location, tocItem, pageItem } = detail
+        this.#savePreference(
+            (this.getBookIdentifier() ?? this.getCurrentTitle()) + '_LastPage', detail.cfi ?? fraction
+        )
         const percent = percentFormat.format(fraction)
         const loc = pageItem
             ? `Page ${pageItem.label}`
-            : `Loc ${location.current}`
-        const slider = $('#simebv-progress-slider')
+            : `Loc ${location.current}/${location.total}`
+        const slider = this.#root.querySelector('#simebv-progress-slider')
         slider.style.visibility = 'visible'
         slider.value = fraction
         slider.title = `${percent} · ${loc}`
-        const writtenPercent = $('#simebv-progress-percent')
+        const writtenPercent = this.#root.querySelector('#simebv-progress-percent')
         writtenPercent.innerText = percent
         if (tocItem?.href) this.#tocView?.setCurrentHref?.(tocItem.href)
     }
+
+    getBookIdentifier() {
+        return this.view?.book?.metadata?.identifier || null
+    }
+
+    getCurrentTitle() {
+        return formatLanguageMap(this.view?.book?.metadata?.title) || 'Untitled Book'
+    }
+
+    getLastReadPage() {
+        const iden = this.getBookIdentifier() ?? this.getCurrentTitle()
+        return this.#loadPreference(iden + '_LastPage')
+    }
+
+    #savePreferences(prefs) {
+        if (!storageAvailable('localStorage')) {
+            return
+        }
+        for (const [name, value] of prefs) {
+            this.#savePreference(name, value)
+        }
+    }
+
+    #savePreference(name, value) {
+        if (!storageAvailable('localStorage')) {
+            return
+        }
+        localStorage.setItem('simebv-' + name, JSON.stringify(value))
+    }
+
+    #loadPreference(name) {
+        if (!storageAvailable('localStorage')) {
+            return
+        }
+        return JSON.parse(localStorage.getItem('simebv-' + name))
+    }
+
+    #loadMenuPreferences(values) {
+        if (!this.menu || !storageAvailable('localStorage')) {
+            return
+        }
+        for (const [name, defVal] of values) {
+            const savedVal = JSON.parse(localStorage.getItem('simebv-' + name)) ?? defVal
+            this.menu.groups[name].select(savedVal)
+        }
+    }
 }
 
+const readerMarkup = `
+<style>
+${viewerUiCss}
+</style>
+<div id="simebv-reader-root">
+    <div id="simebv-loading-overlay" class="simebv-show"><p>Loading...</p></div>
+    <div id="simebv-dimming-overlay"></div>
+    <div id="simebv-header-bar" class="simebv-toolbar">
+        <div class="simebv-left-side-buttons">
+            <button id="simebv-side-bar-button" aria-label="Show sidebar">
+                <svg class="simebv-icon" width="24" height="24" aria-hidden="true">
+                    <path d="M 4 6 h 16 M 4 12 h 16 M 4 18 h 16"/>
+                </svg>
+            </button>
+        </div>
+        <header id="simebv-headline-container" class="simebv-reader-headline">
+            <h1 id="simebv-book-header" aria-label="Publication title">No title</h1>
+        </header>
+        <div class="simebv-right-side-buttons">
+            <div id="simebv-menu-button" class="simebv-menu-container">
+                <button aria-label="Show settings" aria-haspopup="true">
+                    <svg class="simebv-icon" width="24" height="24" aria-hidden="true">
+                        <path d="M5 12.7a7 7 0 0 1 0-1.4l-1.8-2 2-3.5 2.7.5a7 7 0 0 1 1.2-.7L10 3h4l.9 2.6 1.2.7 2.7-.5 2 3.4-1.8 2a7 7 0 0 1 0 1.5l1.8 2-2 3.5-2.7-.5a7 7 0 0 1-1.2.7L14 21h-4l-.9-2.6a7 7 0 0 1-1.2-.7l-2.7.5-2-3.4 1.8-2Z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="simebv-right-side-button-container">
+                <button id="full-screen-button" aria-label="Full screen">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" class="simebv-icon" aria-hidden="true" viewBox="-4 -4 24 24">
+                        <path d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707m4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707m0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707m-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    <section id="simebv-side-bar">
+        <div id="simebv-side-bar-header">
+            <img id="simebv-side-bar-cover">
+            <div>
+                <h2 id="simebv-side-bar-title"></h2>
+                <p id="simebv-side-bar-author"></p>
+            </div>
+        </div>
+        <div id="simebv-toc-view"></div>
+    </section>
+    <div id="simebv-nav-bar" class="simebv-toolbar">
+        <button id="simebv-left-button" aria-label="Go left">
+            <svg class="simebv-icon" width="24" height="24" aria-hidden="true">
+                <path d="M 15 6 L 9 12 L 15 18"/>
+            </svg>
+        </button>
+        <input id="simebv-progress-slider" type="range" min="0" max="1" step="any" list="simebv-tick-marks">
+        <datalist id="simebv-tick-marks"></datalist>
+        <div id="simebv-progress-percent"></div>
+        <button id="simebv-right-button" aria-label="Go right">
+            <svg class="simebv-icon" width="24" height="24" aria-hidden="true">
+                <path d="M 9 6 L 15 12 L 9 18"/>
+            </svg>
+        </button>
+    </div>
+</div>
+`
+
 const open = async file => {
-    const container = document.getElementById('simebv-reader-container') ?? document.body
+    let container = document.getElementById('simebv-reader-container')
+    if (!container) {
+        container = document.createElement('section')
+        container.id = 'simebv-reader-container'
+    }
     const reader = new Reader(container)
-    globalThis.reader = reader
     await reader.open(file)
 }
 
