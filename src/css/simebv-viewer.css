@@ -35,6 +35,7 @@
 #simebv-reader-root {
     height: 100%;
     width: 100%;
+    font-size: 16px;
     background-color: var(--reader-bg);
 }
 #simebv-reader-root.simebv-sepia {
@@ -433,4 +434,5 @@
     color: CanvasText;
     flex: auto 1 1;
     min-inline-size: 15ch;
+    font-size: max(16px, 1rem);
 }
