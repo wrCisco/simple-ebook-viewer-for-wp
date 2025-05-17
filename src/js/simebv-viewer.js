@@ -606,8 +606,13 @@ class Reader {
             return
         }
         for (const [name, defVal] of values) {
-            const savedVal = JSON.parse(localStorage.getItem('simebv-' + name)) ?? defVal
-            this.menu.groups[name].select(savedVal)
+            const savedVal = JSON.parse(localStorage.getItem('simebv-' + name))
+            this.menu.groups[name].validate(savedVal)
+                ? this.menu.groups[name].select(savedVal)
+                : (
+                    this.menu.groups[name].select(defVal),
+                    console.warn(`Invalid value for menu ${name}: ${savedVal}, setting default...`)
+                )
         }
     }
 
