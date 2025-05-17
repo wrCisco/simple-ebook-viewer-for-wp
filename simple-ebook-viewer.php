@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Simple Ebook Viewer
  * Description: A plugin to embed and display Ebooks
- * Version: 0.1.2
+ * Version: 0.2.0
  * Author: Francesco Martini
  * License: GPL-2.0+
  * Text Domain:simple-ebook-viewer
