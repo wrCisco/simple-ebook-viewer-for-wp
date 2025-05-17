@@ -10,6 +10,7 @@ class SIMEBV_Viewer {
         // add_filter('wp_handle_uploads', [self::class, 'handle_epub_uploads']);
         add_shortcode('simebv_viewer', [self::class, 'render_ebook_viewer']);
         add_action('wp_enqueue_scripts', [self::class, 'conditionally_enqueue_assets']);
+        add_action('wp_enqueue_scripts', [self::class, 'register_javascript_translations'], 100);
         // add_action('enqueue_block_editor_assets', [self::class, 'enqueue_block_editor_assets']);
     }
 
@@ -27,6 +28,12 @@ class SIMEBV_Viewer {
         }
     }
 
+    public static function register_javascript_translations() {
+        wp_set_script_translations(
+            'simebv-viewer-lib', 'simple-ebook-viewer', SIMEBV_PLUGIN_DIR . 'languages/'
+        );
+    }
+
     public static function conditionally_enqueue_assets() {
         if (!is_singular()) {
             return;
@@ -39,9 +46,12 @@ class SIMEBV_Viewer {
                 'src/js/simebv-viewer.js',
                 [
                     'handle' => 'simebv-viewer-lib',
+                    'dependencies' => ['wp-i18n'],
+                    'in-footer' => true,
                 ]
             );
         }
+
     }
 
     public static function render_ebook_viewer($atts) {
@@ -103,7 +113,7 @@ class SIMEBV_Viewer {
             }
         }
         if (empty($file_url)) {
-            return '<p style="color: red;">No Web Publication file provided.</p>';
+            return '<p style="color: red;">' . esc_html__("No Web Publication file provided.", 'simple-ebook-viewer') . '</p>';
         }
 
         $styles = self::setup_styles($atts);
@@ -117,7 +127,7 @@ class SIMEBV_Viewer {
     aria-label="Ebook reader"
 >
     <noscript>
-        It seems that JavaScript is not enabled in your browser, you need to enable it in order to use the Ebook Viewer.
+        <?php esc_html_e("It seems that JavaScript is not enabled in your browser, you need to enable it in order to use the Ebook Viewer.", 'simple-ebook-viewer'); ?>
     </noscript>
 </section>
         <?php

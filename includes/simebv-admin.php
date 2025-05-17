@@ -69,7 +69,13 @@ class SIMEBV_Admin {
             $html .= ' name="simebv_ebook_slug"';
             $html .= ' value="' . esc_attr($val) . '" ';
             $html .= ' style="width: 100%;" />';
-            $html .= '<p>Use this slug in the shortcode "simebv_viewer" to view the ebook in your pages (e.g. [simebv_viewer book="' . esc_attr($val) . '"]). If left empty, the value of post_name will be used instead.</p>';
+            $html .= '<p>';
+            $html .= printf(
+                /* translators: %s: example of an ebook slug based on the opened ebook */
+                esc_html__('Use this slug in the shortcode "simebv_viewer" to view the ebook in your pages (e.g. [simebv_viewer book="$s"]). If left empty, the value of post_name will be used instead.', 'simple-ebook-viewer'),
+                esc_attr($val)
+            );
+            $html .= '</p>';
             $html .= '</div>';
             $form_fields['simebv_ebook_slug'] = array(
                 'label' => 'Ebook slug',

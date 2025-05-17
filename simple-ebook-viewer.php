@@ -6,6 +6,7 @@
  * Author: Francesco Martini
  * License: GPL-2.0+
  * Text Domain:simple-ebook-viewer
+ * Domain Path: /languages
  */
 
 if (!defined('ABSPATH')) {
@@ -18,9 +19,25 @@ define('SIMEBV_PLUGIN_NAME', 'Simple Ebook Viewer');
 define('SIMEBV_PLUGIN_DIR', plugin_dir_path( __FILE__ ));
 define('SIMEBV_PLUGIN_URL', plugin_dir_url( __FILE__ ));
 
+add_action('init', 'simebv_load_textdomain');
+add_filter('load_textdomain_mofile', 'my_plugin_load_my_own_textdomain', 10, 2);
+
 require_once SIMEBV_PLUGIN_DIR . 'includes/vite-for-wp.php';
 require_once SIMEBV_PLUGIN_DIR . 'includes/simebv-viewer.php';
 require_once SIMEBV_PLUGIN_DIR . 'includes/simebv-admin.php';
 
 add_action('plugins_loaded', ['SIMEBV_Viewer', 'init']);
 add_action('plugins_loaded', ['SIMEBV_Admin', 'init']);
+
+
+function simebv_load_textdomain() {
+    load_plugin_textdomain('simple-ebook-viewer', false, dirname(plugin_basename(__FILE__)) . '/languages');
+}
+
+function my_plugin_load_my_own_textdomain($mofile, $domain) {
+	if ('simple-ebook-viewer' === $domain && false !== strpos($mofile, WP_LANG_DIR . '/plugins/')) {
+		$locale = apply_filters('plugin_locale', determine_locale(), $domain);
+		$mofile = dirname(plugin_basename(__FILE__)) . '/languages/' . $domain . '-' . $locale . '.mo';
+	}
+	return $mofile;
+}

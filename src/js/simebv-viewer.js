@@ -4,6 +4,7 @@ import { createMenu } from '../../vendor/foliate-js/ui/menu.js'
 import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
 import { storageAvailable, addCSPMeta, removeInlineScripts } from './simebv-utils.js'
 import { searchDialog } from './simebv-search-dialog.js'
+const { __, _x, _n, sprintf } = wp.i18n;
 
 // Import css for the Viewer's container element, as static asset
 import '../css/simebv-container.css'
@@ -119,6 +120,7 @@ class Reader {
         this.#root = this.container.attachShadow({ mode: 'open' })
         this.#root.innerHTML = readerMarkup
         this.#rootDiv = this.#root.querySelector('#simebv-reader-root')
+        this.setLocalizedDefaultInterface(this.#root)
         this.#sideBar = this.#root.querySelector('#simebv-side-bar')
         this.#sideBarButton = this.#root.querySelector('#simebv-side-bar-button')
         this.#overlay = this.#root.querySelector('#simebv-dimming-overlay')
@@ -148,11 +150,11 @@ class Reader {
         this.menu = createMenu([
             {
                 name: 'layout',
-                label: 'Layout',
+                label: __('Layout', 'simple-ebook-viewer'),
                 type: 'radio',
                 items: [
-                    ['Paginated', 'paginated'],
-                    ['Scrolled', 'scrolled'],
+                    [__('Paginated', 'simple-ebook-viewer'), 'paginated'],
+                    [__('Scrolled', 'simple-ebook-viewer'), 'scrolled'],
                 ],
                 onclick: value => {
                     if (value === 'scrolled') {
@@ -170,7 +172,7 @@ class Reader {
             },
             {
                 name: 'maxPages',
-                label: 'Max pages per view',
+                label: __('Max pages per view', 'simple-ebook-viewer'),
                 type: 'radio',
                 items: [
                     ['1', 1], ['2', 2], ['3', 3],
@@ -183,10 +185,13 @@ class Reader {
             },
             {
                 name: 'fontSize',
-                label: 'Font Size',
+                label: __('Font Size', 'simple-ebook-viewer'),
                 type: 'radio',
                 items: [
-                    ['Small', 14], ['Medium', 18], ['Large', 22], ['X-Large', 26],
+                    [_x('Small', 'Font Size', 'simple-ebook-viewer'), 14],
+                    [_x('Medium', 'Font Size', 'simple-ebook-viewer'), 18],
+                    [_x('Large', 'Font Size', 'simple-ebook-viewer'), 22],
+                    [_x('X-Large', 'Font Size', 'simple-ebook-viewer'), 26],
                 ],
                 onclick: value => {
                     this.style.fontSize = value
@@ -197,10 +202,12 @@ class Reader {
             },
             {
                 name: 'margins',
-                label: 'Page Margins',
+                label: __('Page Margins', 'simple-ebook-viewer'),
                 type: 'radio',
                 items: [
-                    ['Small', '4%'], ['Medium', '8%'], ['Large', '12%'],
+                    [_x('Small', 'Margins', 'simple-ebook-viewer'), '4%'],
+                    [_x('Medium', 'Margins', 'simple-ebook-viewer'), '8%'],
+                    [_x('Large', 'Margins', 'simple-ebook-viewer'), '12%'],
                 ],
                 onclick: value => {
                     this.view?.renderer.setAttribute('gap', value)
@@ -211,10 +218,11 @@ class Reader {
             },
             {
                 name: 'colors',
-                label: 'Colors',
+                label: __('Colors', 'simple-ebook-viewer'),
                 type: 'radio',
                 items: [
-                    ['Auto', 'auto'], ['Sepia', 'simebv-sepia'],
+                    [_x('Auto', 'Theme color', 'simple-ebook-viewer'), 'auto'],
+                    [_x('Sepia', 'Theme color', 'simple-ebook-viewer'), 'simebv-sepia'],
                 ],
                 onclick: value => {
                     if (value === 'simebv-sepia') {
@@ -237,7 +245,7 @@ class Reader {
             },
             {
                 name: 'search',
-                label: 'Search...',
+                label: __('Search...', 'simple-ebook-viewer'),
                 shortcut: 'Ctrl+F',
                 type: 'action',
                 onclick: () => this.openSearchDialog(),
@@ -540,8 +548,14 @@ class Reader {
         )
         const percent = percentFormat.format(fraction)
         const loc = pageItem
-            ? `Page ${pageItem.label}`
-            : `Loc ${location.current}/${location.total}`
+            ? sprintf(
+                /* translators: %1s: page number */
+                __('Page %1$s', 'simple-ebook-viewer'), pageItem.label
+            )
+            : sprintf(
+                /* translators: Loc: contraction for 'Location' in the book, followed by a numerical fraction */
+                __('Loc %1$s/%2$s', 'simple-ebook-viewer'), location.current, location.total
+            )
         const slider = this.#root.querySelector('#simebv-progress-slider')
         slider.style.visibility = 'visible'
         slider.value = fraction
@@ -596,6 +610,35 @@ class Reader {
             this.menu.groups[name].select(savedVal)
         }
     }
+
+    setLocalizedDefaultInterface(root) {
+        root.getElementById('simebv-loading-overlay-text').innerText = __('Loading...', 'simple-ebook-viewer')
+        const sideBarButton = root.getElementById('simebv-side-bar-button')
+        const sideBarButtonLabel = __('Show sidebar', 'simple-ebook-viewer')
+        sideBarButton.setAttribute('aria-label', sideBarButtonLabel)
+        sideBarButton.title = sideBarButtonLabel
+
+        const header = root.getElementById('simebv-book-header').innerText = __('No title', 'simple-ebook-viewer')
+        const settingsButton = root.querySelector('#simebv-menu-button button')
+        const settingsButtonLabel = __('Show settings', 'simple-ebook-viewer')
+        settingsButton.setAttribute('aria-label', settingsButtonLabel)
+        settingsButton.title = settingsButtonLabel
+
+        const fullScreenButton = root.getElementById('full-screen-button')
+        const fullScreenButtonLabel = __('Full screen', 'simple-ebook-viewer')
+        fullScreenButton.setAttribute('aria-label', fullScreenButtonLabel)
+        fullScreenButton.title = fullScreenButtonLabel
+
+        const leftButton = root.getElementById('simebv-left-button')
+        const leftButtonLabel = __('Go left', 'simple-ebook-viewer')
+        leftButton.setAttribute('aria-label', leftButtonLabel)
+        leftButton.title = leftButtonLabel
+
+        const rightButton = root.getElementById('simebv-right-button')
+        const rightButtonLabel = __('Go right', 'simple-ebook-viewer')
+        rightButton.setAttribute('aria-label', rightButtonLabel)
+        rightButton.title = rightButtonLabel
+    }
 }
 
 const readerMarkup = `
@@ -603,7 +646,9 @@ const readerMarkup = `
 ${viewerUiCss}
 </style>
 <div id="simebv-reader-root">
-    <div id="simebv-loading-overlay" class="simebv-show"><p>Loading...</p></div>
+    <div id="simebv-loading-overlay" class="simebv-show">
+        <p id="simebv-loading-overlay-text">Loading...</p>
+    </div>
     <div id="simebv-dimming-overlay"></div>
     <div id="simebv-header-bar" class="simebv-toolbar">
         <div class="simebv-left-side-buttons">
@@ -614,7 +659,7 @@ ${viewerUiCss}
             </button>
         </div>
         <header id="simebv-headline-container" class="simebv-reader-headline">
-            <h1 id="simebv-book-header" aria-label="Publication title">No title</h1>
+            <h1 id="simebv-book-header">No title</h1>
         </header>
         <div class="simebv-right-side-buttons">
             <div id="simebv-menu-button" class="simebv-menu-container">
