@@ -70,9 +70,9 @@ class SIMEBV_Admin {
             $html .= ' value="' . esc_attr($val) . '" ';
             $html .= ' style="width: 100%;" />';
             $html .= '<p>';
-            $html .= printf(
+            $html .= sprintf(
                 /* translators: %s: example of an ebook slug based on the opened ebook */
-                esc_html__('Use this slug in the shortcode "simebv_viewer" to view the ebook in your pages (e.g. [simebv_viewer book="$s"]). If left empty, the value of post_name will be used instead.', 'simple-ebook-viewer'),
+                esc_html__('Use this slug in the shortcode "simebv_viewer" to view the ebook in your pages (e.g. [simebv_viewer book="%s"]). If left empty, the value of post_name will be used instead.', 'simple-ebook-viewer'),
                 esc_attr($val)
             );
             $html .= '</p>';
