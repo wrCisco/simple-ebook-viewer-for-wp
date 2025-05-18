@@ -104,4 +104,32 @@ class SIMEBV_Admin {
         return $post;
     }
 
+    public static function add_ebook_slug_to_all_ebooks() {
+        $args = array(
+            'post_type' => 'attachment',
+            'post_status' => 'inherit',
+        );
+        $query = new WP_Query($args);
+        while ($query->have_posts()) {
+            $query->the_post();
+            $attachment_ID = get_the_ID();
+            $type = get_post_mime_type($attachment_ID);
+            if (!in_array($type, array_values(self::$ebook_mimetypes))) {
+                continue;
+            }
+            $metadata = get_post_meta($attachment_ID);
+            if (!isset($metadata['simebv_ebook_slug'])) {
+                $slug = sanitize_text_field($metadata['post_name']);
+                if (!empty($slug)) {
+                    update_post_meta(
+                        $attachment_ID,
+                        'simebv_ebook_slug',
+                        $slug
+                    );
+                }
+            }
+        }
+        wp_reset_postdata();
+    }
+
 }

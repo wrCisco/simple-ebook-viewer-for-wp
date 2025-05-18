@@ -30,6 +30,8 @@ require_once SIMEBV_PLUGIN_DIR . 'includes/simebv-admin.php';
 add_action('plugins_loaded', ['SIMEBV_Viewer', 'init']);
 add_action('plugins_loaded', ['SIMEBV_Admin', 'init']);
 
+register_activation_hook(__FILE__, ['SIMEBV_Admin', 'add_ebook_slug_to_all_ebooks']);
+
 
 function simebv_load_textdomain() {
     load_plugin_textdomain('simple-ebook-viewer', false, dirname(plugin_basename(__FILE__)) . '/languages');
