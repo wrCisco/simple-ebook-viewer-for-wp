@@ -14,6 +14,7 @@ class SIMEBV_Admin {
         'fb2.zip' => 'application/x-zip-compressed-fb2',
         'mobi' => 'application/x-mobipocket-ebook',
         'azw' => 'application/vnd.amazon.ebook',
+        'azw3' => 'application/vnd.amazon.ebook',
     ];
 
     public static function init() {
@@ -21,7 +22,16 @@ class SIMEBV_Admin {
         add_action('add_attachment', [self::class, 'handle_ebook_uploads'], 10, 1);
         add_filter('attachment_fields_to_edit', [self::class, 'add_media_custom_field'], 10, 2);
         add_filter('attachment_fields_to_save', [self::class, 'save_media_custom_field'], 10, 2);
-        // add_filter('wp_generate_attachment_metadata', [self::class, 'add_media_custom_metadata'], 10, 3);
+        add_filter('wp_check_filetype_and_ext', [self::class, 'allow_azw_uploads'], 100, 5);
+    }
+
+    public static function allow_azw_uploads($types, $file, $filename, $mimes, $real_mime) {
+        $wp_filetype = wp_check_filetype($filename, $mimes);
+        if (in_array($wp_filetype['ext'], ['azw', 'azw3', 'fb2', 'fbz'])) {
+            $types['ext'] = $wp_filetype['ext'];
+            $types['type'] = $wp_filetype['type'];
+        }
+        return $types;
     }
 
     public static function allow_ebook_uploads($mimes) {
