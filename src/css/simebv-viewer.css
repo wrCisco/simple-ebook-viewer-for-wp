@@ -44,6 +44,20 @@
     --menu-bg: var(--reader-bg);
     --sidebar-bg: var(--reader-bg);
 }
+#simebv-book-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+#simebv-book-container.simebv-fxd-layout {
+    height: calc(100% - var(--header-height) * 2);
+    top: var(--header-height);
+}
+input {
+    font-size: max(16px, 1rem);
+}
 .simebv-icon {
     display: block;
     fill: none;
@@ -288,11 +302,12 @@
     box-shadow: var(--menu-box-shadow);
     padding: 6px;
     cursor: default;
-    inline-size: 18ch;
+    inline-size: 20ch;
     max-inline-size: 50vw;
     max-block-size: 80vh;
     overflow: auto;
     scrollbar-width: thin;
+    user-select: none;
 }
 .simebv-menu.simebv-show {
     visibility: visible;
@@ -305,6 +320,9 @@
     padding-inline-start: 24px;
     border-radius: 6px;
 }
+.simebv-menu .simebv-action-menu-item {
+    padding-inline-start: 6px;
+}
 .simebv-menu p[role^=menuitem] {
     padding: 6px 12px;
     border-radius: 6px;
@@ -315,7 +333,8 @@
     background-color: var(--active-bg);
     cursor: pointer;
 }
-.simebv-menu [aria-disabled="true"] li:hover {
+.simebv-menu [aria-disabled="true"] li:hover,
+.simebv-menu li[aria-disabled="true"]:hover {
     background-color: transparent;
     cursor: default;
 }
@@ -434,5 +453,12 @@
     color: CanvasText;
     flex: auto 1 1;
     min-inline-size: 15ch;
-    font-size: max(16px, 1rem);
+}
+#simebv-zoom-numeric {
+    inline-size: 5ch;
+    margin-inline-end: .2em;
+}
+#simebv-zoom-numeric-container {
+    white-space: pre;
+    margin-inline-start: .5em;
 }

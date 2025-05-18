@@ -10,7 +10,7 @@ const { __, _x, _n, sprintf } = wp.i18n;
 import '../css/simebv-container.css'
 // Import css for the Viewer's UI, as string
 import viewerUiCss from '../css/simebv-viewer.css?raw'
-// CSS to inject in iframe
+// CSS to inject in iframe of reflowable ebooks
 const getCSS = ({ spacing, justify, hyphenate, fontSize, colorScheme, bgColor }) => `
     @namespace epub "http://www.idpf.org/2007/ops";
     :root {
@@ -77,6 +77,7 @@ const formatContributor = contributor => Array.isArray(contributor)
 class Reader {
     #root
     #rootDiv
+    #bookContainer
     #tocView
     #sideBar
     #sideBarButton
@@ -121,6 +122,7 @@ class Reader {
         this.#root.innerHTML = readerMarkup
         this.#rootDiv = this.#root.querySelector('#simebv-reader-root')
         this.setLocalizedDefaultInterface(this.#root)
+        this.#bookContainer = this.#root.querySelector('#simebv-book-container')
         this.#sideBar = this.#root.querySelector('#simebv-side-bar')
         this.#sideBarButton = this.#root.querySelector('#simebv-side-bar-button')
         this.#overlay = this.#root.querySelector('#simebv-dimming-overlay')
@@ -148,6 +150,39 @@ class Reader {
         })
 
         this.menu = createMenu([
+            {
+                name: 'search',
+                label: __('Search...', 'simple-ebook-viewer'),
+                shortcut: 'Ctrl+F',
+                type: 'action',
+                onclick: () => this.openSearchDialog(),
+                attrs: [
+                    ['aria-haspopup', 'dialog'],
+                ],
+            },
+            {
+                name: 'history',
+                label: __('History', 'simple-ebook-viewer'),
+                type: 'group',
+                items: [
+                    {
+                        name: 'previous',
+                        label: __('Previous', 'simple-ebook-viewer'),
+                        classList: ['simebv-action-menu-item'],
+                        onclick: () => {
+                            this.view?.history?.back()
+                        }
+                    },
+                    {
+                        name: 'next',
+                        label: __('Next', 'simple-ebook-viewer'),
+                        classList: ['simebv-action-menu-item'],
+                        onclick: () => {
+                            this.view?.history?.forward()
+                        }
+                    }
+                ]
+            },
             {
                 name: 'layout',
                 label: __('Layout', 'simple-ebook-viewer'),
@@ -244,12 +279,46 @@ class Reader {
                 horizontal: true,
             },
             {
-                name: 'search',
-                label: __('Search...', 'simple-ebook-viewer'),
-                shortcut: 'Ctrl+F',
-                type: 'action',
-                onclick: () => this.openSearchDialog(),
-            },
+                name: 'zoom',
+                label: __('Zoom', 'simple-ebook-viewer'),
+                type: 'radio',
+                items: [
+                    [__('Fit page', 'simple-ebook-viewer'), 'fit-page'],
+                    [__('Fit width', 'simple-ebook-viewer'), 'fit-width'],
+                    [__('Custom', 'simple-ebook-viewer'), {
+                        val: 'custom',
+                        type: 'number',
+                        attrs: {
+                            id: 'simebv-zoom-numeric',
+                            max: 400,
+                            min: 10,
+                            step: 10,
+                            value: 100,
+                        },
+                        onchange: () => {
+                            this.menu.groups.zoom.select('custom')
+                        },
+                        suffix: '%',
+                        prefix: '',
+                    }],
+                ],
+                onclick: (value) => {
+                    switch (value) {
+                        case 'fit-page':
+                        case 'fit-width':
+                            this.view?.renderer?.setAttribute('zoom', value)
+                            break
+                        default:
+                            let val = this.#root.getElementById('simebv-zoom-numeric').value / 100
+                            if (isNaN(val) || val < 0.1 || val > 4 ) {
+                                val = 1
+                            }
+                            this.view?.renderer?.setAttribute('zoom', val)
+                            this.#savePreference('custom-zoom', val)
+                    }
+                    this.#savePreference('zoom', value)
+                }
+            }
         ])
         this.menu.element.classList.add('simebv-menu')
         this.menu.element.addEventListener('click', (e) => e.stopPropagation())
@@ -264,10 +333,15 @@ class Reader {
                 this.closeMenus()
             }
         })
+        const customZoom = this.#loadPreference('custom-zoom')
+        if (customZoom && !isNaN(customZoom))
+            this.#root.getElementById('simebv-zoom-numeric').value = Math.round(customZoom * 100)
         this.#loadMenuPreferences([
             ['fontSize', 18],
             ['colors', 'auto'],
         ])
+        this.menu.groups.history.items.previous.enable(false)
+        this.menu.groups.history.items.next.enable(false)
 
         this.#fullscreenButton.addEventListener('click', this.#toggleFullViewport.bind(this))
     }
@@ -353,10 +427,31 @@ class Reader {
 
     async open(file) {
         this.view = document.createElement('foliate-view')
-        this.#rootDiv.append(this.view)
+        this.#bookContainer.append(this.view)
         await this.view.open(file)
+        if (this.view.isFixedLayout) {
+            this.#bookContainer.classList.add('simebv-fxd-layout')
+            this.menu.groups.layout.visible(false)
+            this.menu.groups.maxPages.visible(false)
+            this.menu.groups.fontSize.visible(false)
+            this.menu.groups.margins.visible(false)
+            this.menu.groups.zoom.visible(true)
+            // Ensure that the last element of the menu is visible (cosmetic hack)
+            this.menu.groups.zoom.element.parentNode.parentNode.append(this.menu.groups.zoom.element.parentNode)
+        }
+        else {
+            this.#bookContainer.classList.remove('simebv-fxd-layout')
+            this.menu.groups.layout.visible(true)
+            this.menu.groups.fontSize.visible(true)
+            this.menu.groups.maxPages.visible(true)
+            this.menu.groups.margins.visible(true)
+            this.menu.groups.zoom.visible(false)
+            // Ensure that the last element of the menu is visible (cosmetic hack)
+            this.menu.groups.colors.element.parentNode.parentNode.append(this.menu.groups.colors.element.parentNode)
+        }
         this.view.addEventListener('load', this.#onLoad.bind(this))
         this.view.addEventListener('relocate', this.#onRelocate.bind(this))
+        this.view.history.addEventListener('index-change', this.#updateHistoryMenuItems.bind(this))
         this.#lastReadPage = this.getLastReadPage()
 
         const { book } = this.view
@@ -415,7 +510,6 @@ class Reader {
         }
 
         this.container.addEventListener('keydown', this.#handleKeydown.bind(this))
-
         const title = formatLanguageMap(book.metadata?.title) || 'Untitled Book'
         document.title = title
         this.#root.querySelector('#simebv-book-header').innerText = title
@@ -466,12 +560,27 @@ class Reader {
             })
         }
 
-        // these preferences need to be set after the renderer has loaded
-        this.#loadMenuPreferences([
-            ['maxPages', 2],
-            ['margins', '8%'],
-            ['layout', 'paginated'],  // the 'scrolled' layout disables the other preferences, so this is at the end
-        ])
+        if (this.view.isFixedLayout) {
+            this.#loadMenuPreferences([
+                ['zoom', 'fit-page']
+            ])
+        }
+        else {
+            this.#loadMenuPreferences([
+                ['maxPages', 2],
+                ['margins', '8%'],
+                ['layout', 'paginated'],  // the 'scrolled' layout disables other preferences, so this is at the end
+            ])
+        }
+    }
+
+    #updateHistoryMenuItems() {
+        this.view?.history?.canGoBack
+            ? this.menu.groups.history.items.previous.enable(true)
+            : this.menu.groups.history.items.previous.enable(false)
+        this.view?.history?.canGoForward
+            ? this.menu.groups.history.items.next.enable(true)
+            : this.menu.groups.history.items.next.enable(false)
     }
 
     #toggleFullScreen() {
@@ -539,6 +648,16 @@ class Reader {
             loadingOverlay.classList.remove('simebv-show');
         }
         doc.addEventListener('keydown', this.#handleKeydown.bind(this))
+        if (this.view.isFixedLayout) {
+            doc.addEventListener('dblclick', () => {
+                if (['fit-page', 'fit-width'].includes(this.menu.groups.zoom.current())) {
+                    this.menu.groups.zoom.select('custom')
+                }
+                else {
+                    this.menu.groups.zoom.select('fit-page')
+                }
+            })
+        }
     }
 
     #onRelocate({ detail }) {
@@ -694,6 +813,7 @@ ${viewerUiCss}
         </div>
         <div id="simebv-toc-view"></div>
     </section>
+    <div id="simebv-book-container"></div>
     <div id="simebv-nav-bar" class="simebv-toolbar">
         <button id="simebv-left-button" aria-label="Go left">
             <svg class="simebv-icon" width="24" height="24" aria-hidden="true">
