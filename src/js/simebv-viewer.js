@@ -560,6 +560,21 @@ class Reader {
             })
         }
 
+        // Workaround for the stripping of search parameters
+        // from urls by the #handleLinks method of this.view
+        this.view.addEventListener('external-link', (e) => {
+            if (e.detail.a.href) {
+                try {
+                    globalThis.open(new URL(e.detail.a.href).href, '_blank')
+                    // with e.preventDefault(), the event emitter will return false,
+                    // so the method in view.js won't open the (wrong) url
+                    e.preventDefault()
+                } catch(e) {
+                    console.error(`Failed to open url: ${e.detail.a.href}\n`, e)
+                }
+            }
+        })
+
         if (this.view.isFixedLayout) {
             this.#loadMenuPreferences([
                 ['zoom', 'fit-page']
