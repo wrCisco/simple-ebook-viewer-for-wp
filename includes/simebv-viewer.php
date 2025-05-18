@@ -99,7 +99,7 @@ class SIMEBV_Viewer {
                 'meta_query' => [
                     [
                         'key' => 'simebv_ebook_slug',
-                        'value' => trim($atts['book']),
+                        'value' => sanitize_text_field($atts['book']),
                         'compare' => '=',
                     ],
                 ],
