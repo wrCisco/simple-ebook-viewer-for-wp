@@ -7,7 +7,6 @@ use Kucrut\Vite;
 
 class SIMEBV_Viewer {
     public static function init() {
-        // add_filter('wp_handle_uploads', [self::class, 'handle_epub_uploads']);
         add_shortcode('simebv_viewer', [self::class, 'render_ebook_viewer']);
         add_action('wp_enqueue_scripts', [self::class, 'conditionally_enqueue_assets']);
         add_action('wp_enqueue_scripts', [self::class, 'register_javascript_translations'], 100);
@@ -65,16 +64,7 @@ class SIMEBV_Viewer {
                 'max-width' => '',
                 'border' => '',
                 'style' => '',
-                'top-color' => '',
-                'top-bg-color' => '',
-                'top-padding' => '',
-                'top-border' => '',
-                'top-style' => '',
-                'sidebar-color' => '',
-                'sidebar-bg-color' => '',
-                'sidebar-padding' => '',
-                'sidebar-border' => '',
-                'sidebar-style' => '',
+                'class' => '',
             ],
             $atts,
             'simebv_viewer'
@@ -117,12 +107,14 @@ class SIMEBV_Viewer {
         }
 
         $styles = self::setup_styles($atts);
+        $classes = self::setup_classes($atts);
 
         ob_start(); ?>
 <section
     id="simebv-reader-container"
     data-ebook-path="<?php echo esc_url($file_url); ?>"
     <?php echo $styles['container']; ?>
+    <?php echo $classes ?>
     tabindex="0"
     aria-label="Ebook reader"
 >
@@ -132,6 +124,13 @@ class SIMEBV_Viewer {
 </section>
         <?php
         return ob_get_clean();
+    }
+
+    public static function setup_classes($attrs) {
+        if (strlen($attrs['class']) !== 0) {
+            return 'class="' . esc_attr($attrs['class']) . '"';
+        }
+        return '';
     }
 
     public static function setup_styles($attrs) {
@@ -170,69 +169,8 @@ class SIMEBV_Viewer {
             $style_container .= "max-height:95vh;";
         }
         $style_container .= '"';
-
-        $style_top = '';
-        if (
-            strlen($attrs['top-color']) !== 0
-            || strlen($attrs['top-bg-color']) !== 0
-            || strlen($attrs['top-padding']) !== 0
-            || strlen($attrs['top-border']) !== 0
-            || strlen($attrs['top-style']) !== 0
-        ) {
-            $style_top = 'style="';
-            if (strlen($attrs['top-color']) !== 0) {
-                $style_top .= 'color:' . esc_attr($attrs['top-color']) . ";";
-            }
-            if (strlen($attrs['top-bg-color']) !== 0) {
-                $style_top .= 'background-color:' . esc_attr($attrs['top-bg-color']) . ";";
-            }
-            if (strlen($attrs['top-padding']) !== 0) {
-                $style_top .= 'padding:' . esc_attr($attrs['top-padding']) . ";";
-            }
-            if (strlen($attrs['top-border']) !== 0) {
-                $style_top .= 'border:' . esc_attr($attrs['top-border']) . ";";
-            }
-            if (strlen($attrs['top-style']) !== 0) {
-                $style_top .= esc_attr(trim($attrs['top-style']));
-                if (!str_ends_with($style_top, ';')) {
-                    $style_top .= ';';
-                }
-            }
-            $style_top .= '"';
-        }
-
-        $style_sidebar = 'style="display:none;';
-        if (
-            strlen($attrs['sidebar-color']) !== 0
-            || strlen($attrs['sidebar-bg-color']) !== 0
-            || strlen($attrs['sidebar-padding']) !== 0
-            || strlen($attrs['sidebar-border']) !== 0
-            || strlen($attrs['sidebar-style']) !== 0
-        ) {
-            if (strlen($attrs['sidebar-color']) !== 0) {
-                $style_sidebar .= 'color:' . esc_attr($attrs['sidebar-color']) . ";";
-            }
-            if (strlen($attrs['sidebar-bg-color']) !== 0) {
-                $style_sidebar .= 'background-color:' . esc_attr($attrs['sidebar-bg-color']) . ";";
-            }
-            if (strlen($attrs['sidebar-padding']) !== 0) {
-                $style_sidebar .= 'padding:' . esc_attr($attrs['sidebar-padding']) . ";";
-            }
-            if (strlen($attrs['sidebar-border']) !== 0) {
-                $style_sidebar .= 'border:' . esc_attr($attrs['sidebar-border']) . ";";
-            }
-            if (strlen($attrs['sidebar-style']) !== 0) {
-                $style_sidebar .= esc_attr(trim($attrs['sidebar-style']));
-                if (!str_ends_with($style_sidebar, ';')) {
-                    $style_sidebar .= ';';
-                }
-            }
-        }
-        $style_sidebar .= '"';
         return [
             'container' => $style_container,
-            'header' => $style_top,
-            'sidebar' => $style_sidebar,
         ];
     }
 
