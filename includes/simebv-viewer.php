@@ -94,14 +94,13 @@ class SIMEBV_Viewer {
         }
 
         $styles = self::setup_styles($atts);
-        $classes = self::setup_classes($atts);
 
         ob_start(); ?>
 <section
     id="simebv-reader-container"
     data-ebook-id="<?php echo esc_attr($ebook_id); ?>"
-    <?php echo $styles['container']; ?>
-    <?php echo $classes ?>
+    <?php echo strlen($styles['container'] !== 0) ? 'style="' . esc_attr($styles['container']) . '"' : ''; ?>
+    <?php echo strlen($atts['class'] !== 0) ? 'class="' . esc_attr($atts['class']) . '"' : ''; ?>
     tabindex="0"
     aria-label="Ebook reader"
 >
@@ -113,15 +112,8 @@ class SIMEBV_Viewer {
         return ob_get_clean();
     }
 
-    public static function setup_classes($attrs) {
-        if (strlen($attrs['class']) !== 0) {
-            return 'class="' . esc_attr($attrs['class']) . '"';
-        }
-        return '';
-    }
-
     public static function setup_styles($attrs) {
-        $style_container = 'style="';
+        $style_container = '';
         if (
             strlen($attrs['height']) !== 0
             || strlen($attrs['width']) !== 0
@@ -131,22 +123,22 @@ class SIMEBV_Viewer {
             || strlen($attrs['style']) !== 0
         ) {
             if (strlen($attrs['height']) !== 0) {
-                $style_container .= "height:" . esc_attr($attrs['height']) . ";";
+                $style_container .= "height:" . $attrs['height'] . ";";
             }
             if (strlen($attrs['width']) !== 0) {
-                $style_container .= "width:" . esc_attr($attrs['width']) . ";";
+                $style_container .= "width:" . $attrs['width'] . ";";
             }
             if (strlen($attrs['max-height']) !== 0) {
-                $style_container .= "max-height:" . esc_attr($attrs['max-height']) . ";";
+                $style_container .= "max-height:" . $attrs['max-height'] . ";";
             }
             if (strlen($attrs['max-width']) !== 0) {
-                $style_container .= "max-width:" . esc_attr($attrs['max-width']) . ";";
+                $style_container .= "max-width:" . $attrs['max-width'] . ";";
             }
             if (strlen($attrs['border']) !== 0) {
-                $style_container .= "border:" . esc_attr($attrs['border']) . ";";
+                $style_container .= "border:" . $attrs['border'] . ";";
             }
             if (strlen($attrs['style']) !== 0) {
-                $style_container .= esc_attr(trim($attrs['style']));
+                $style_container .= trim($attrs['style']);
                 if (!str_ends_with($style_container, ';')) {
                     $style_container .= ';';
                 }
@@ -155,7 +147,6 @@ class SIMEBV_Viewer {
         if (strlen($attrs['max-height'] === 0 && strlen($attrs['height']) === 0)) {
             $style_container .= "max-height:95vh;";
         }
-        $style_container .= '"';
         return [
             'container' => $style_container,
         ];

@@ -185,13 +185,11 @@ function inject_react_refresh_preamble_script( object $manifest ): void {
 
 	$react_refresh_script_src = generate_development_asset_src( $manifest, '@react-refresh' );
 	$script_position = 'after';
-	$script = <<< EOS
-import RefreshRuntime from "{$react_refresh_script_src}";
-RefreshRuntime.injectIntoGlobalHook(window);
-window.\$RefreshReg$ = () => {};
-window.\$RefreshSig$ = () => (type) => type;
-window.__vite_plugin_react_preamble_installed__ = true;
-EOS;
+	$script = "import RefreshRuntime from \"{$react_refresh_script_src}\"\n";
+	$script .= "RefreshRuntime.injectIntoGlobalHook(window);\n";
+	$script .= "window.\$RefreshReg$ = () => {};\n";
+	$script .= "window.\$RefreshSig$ = () => (type) => type;\n";
+	$script .= "window.__vite_plugin_react_preamble_installed__ = true;\n";
 
 	wp_add_inline_script( VITE_CLIENT_SCRIPT_HANDLE, $script, $script_position );
 	add_filter(
