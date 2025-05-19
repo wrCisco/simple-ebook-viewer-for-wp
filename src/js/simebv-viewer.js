@@ -23,6 +23,10 @@ const getCSS = ({ spacing, justify, hyphenate, fontSize, colorScheme, bgColor })
         a:link {
             color: ${colorScheme.includes('dark') ? 'lightblue' : 'LinkText'};
         }
+        ${colorScheme.includes('dark')
+          ? 'a:visited { color: VisitedText; }'
+          : ''
+        }
         ${!colorScheme.includes('dark')
             ? '[epub|type~="se:image.color-depth.black-on-transparent"] { filter: none !important; }'
             : ''
@@ -300,6 +304,7 @@ class Reader {
                         },
                         suffix: '%',
                         prefix: '',
+                        labelID: 'simebv-zoom-label',
                     }],
                 ],
                 onclick: (value) => {
