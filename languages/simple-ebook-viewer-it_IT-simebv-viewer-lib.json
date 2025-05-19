@@ -88,6 +88,27 @@
             "Theme color\u0004Sepia": [
                 "Seppia"
             ],
+            "History": [
+                "Cronologia"
+            ],
+            "Previous": [
+                "Precedente"
+            ],
+            "Next": [
+                "Successivo"
+            ],
+            "Zoom": [
+                "Zoom"
+            ],
+            "Fit page": [
+                "Adatta alla pagina"
+            ],
+            "Fit width": [
+                "Adatta alla larghezza"
+            ],
+            "Custom": [
+                "Personalizzato"
+            ],
             "Search": [
                 "Cerca"
             ],
