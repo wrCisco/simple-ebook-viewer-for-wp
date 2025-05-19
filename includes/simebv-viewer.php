@@ -21,12 +21,6 @@ class SIMEBV_Viewer {
     //     return true;
     // }
 
-    public static function writeLog($msg) {
-        if (WP_DEBUG === true) {
-            error_log($msg);
-        }
-    }
-
     public static function register_javascript_translations() {
         wp_set_script_translations(
             'simebv-viewer-lib', 'simple-ebook-viewer', SIMEBV_PLUGIN_DIR . 'languages/'
