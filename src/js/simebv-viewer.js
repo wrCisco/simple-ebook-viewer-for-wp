@@ -214,7 +214,7 @@ class Reader {
                 label: __('Max pages per view', 'simple-ebook-viewer'),
                 type: 'radio',
                 items: [
-                    ['1', 1], ['2', 2], ['3', 3],
+                    ['1', 1], ['2', 2], ['3', 3], ['4', 4],
                 ],
                 onclick: value => {
                     this.view?.renderer.setAttribute('max-column-count', value)
