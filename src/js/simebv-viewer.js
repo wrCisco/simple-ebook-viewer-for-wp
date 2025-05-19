@@ -326,6 +326,7 @@ class Reader {
             }
         ])
         this.menu.element.classList.add('simebv-menu')
+        this.menu.element.style.maxHeight = Math.round(this.containerHeight - 62) + 'px'
         this.menu.element.addEventListener('click', (e) => e.stopPropagation())
 
         this.#menuButton.append(this.menu.element)
@@ -349,6 +350,10 @@ class Reader {
         this.menu.groups.history.items.next.enable(false)
 
         this.#fullscreenButton.addEventListener('click', this.#toggleFullViewport.bind(this))
+    }
+
+    get containerHeight() {
+        return this.container.getBoundingClientRect().height
     }
 
     openSearchDialog() {
@@ -617,6 +622,9 @@ class Reader {
     #toggleFullViewport() {
         if (this.container) {
             this.container.classList.toggle('simebv-view-fullscreen');
+            if (this.menu) {
+                this.menu.element.style.maxHeight = Math.round(this.containerHeight - 62) + 'px'
+            }
         }
     }
 
