@@ -109,6 +109,12 @@
             "Custom": [
                 "Personalizzato"
             ],
+            "Error: I couldn't retrieve the book to display.": [
+                "Errore: non ho potuto recuperare il libro da mostrare."
+            ],
+            "Resource not found on the server": [
+                "Risorsa non trovata nel server"
+            ],
             "Search": [
                 "Cerca"
             ],
