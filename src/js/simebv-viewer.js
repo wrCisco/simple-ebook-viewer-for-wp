@@ -873,17 +873,37 @@ const dropHandler = e => {
     }
 }
 
+async function get_ebook_url(id) {
+    await wp.api.loadPromise
+    let media = new wp.api.models.Media({ id: id })
+    let res = await media.fetch()
+    return new URL(res.source_url).href
+}
+
 const ebook_path_el = document.getElementById('simebv-reader-container');
 if (ebook_path_el) {
-    const ebook_path = ebook_path_el.getAttribute('data-ebook-path');
-    if (ebook_path) {
-        let url;
-        try {
-            url = new URL(ebook_path);
+    let url
+    try {
+        url = await get_ebook_url(ebook_path_el.getAttribute('data-ebook-id'))
+    } catch (e) {
+        if (url) url = undefined
+        ebook_path_el.style.textAlign = 'center'
+        ebook_path_el.style.padding = '12px'
+        ebook_path_el.innerText = ''
+        const msg = __('Error: I couldn\'t retrieve the book to display.', 'simple-ebook-viewer')
+        ebook_path_el.append(msg)
+        console.error(e)
+        if (e.status === 404) {
+            ebook_path_el.append(
+                document.createElement('br'),
+                __('Resource not found on the server', 'simple-ebook-viewer')
+            )
         }
-        catch (e) {
-            url = new URL(window.location.href).origin + '/' + ebook_path.replace(/^\//, '');
+        else if (e.responseJSON?.message) {
+            ebook_path_el.append(document.createElement('br'), e.responseJSON.message)
         }
-        open(url.href).catch(e => console.error(e));
+    }
+    if (url) {
+        open(url).catch(e => console.error(e));
     }
 }

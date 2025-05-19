@@ -45,7 +45,7 @@ class SIMEBV_Viewer {
                 'src/js/simebv-viewer.js',
                 [
                     'handle' => 'simebv-viewer-lib',
-                    'dependencies' => ['wp-i18n'],
+                    'dependencies' => ['wp-i18n', 'wp-api'],
                     'in-footer' => true,
                 ]
             );
@@ -70,39 +70,26 @@ class SIMEBV_Viewer {
             'simebv_viewer'
         );
 
-        // if the 'book' attribute of the shortcode is a valid url that points
-        // to a file in the uploads directory, use it directly as url.
-        // Otherwise, use it to do a query in the db as the value for
-        // the 'simebv_ebook_slug' posts metadata.
-        $file_url = wp_http_validate_url($atts['book']);
-        if ($file_url) {
-            $escaped_url = esc_url($file_url);
-            if (!str_starts_with($escaped_url, wp_upload_dir()['baseurl']) || str_contains($escaped_url, '../')) {
-                $file_url = '';
-            }
-        }
-        if (!$file_url) {
-            $args = array(
-                'post_type' => 'attachment',
-                // 'post_mime_type' => 'application/epub+zip',
-                'post_status' => 'inherit',
-                'meta_query' => [
-                    [
-                        'key' => 'simebv_ebook_slug',
-                        'value' => sanitize_text_field($atts['book']),
-                        'compare' => '=',
-                    ],
+        $ebook_id = '';
+        $args = array(
+            'post_type' => 'attachment',
+            // 'post_mime_type' => 'application/epub+zip',
+            'post_status' => 'inherit',
+            'meta_query' => [
+                [
+                    'key' => 'simebv_ebook_slug',
+                    'value' => sanitize_text_field($atts['book']),
+                    'compare' => '=',
                 ],
-            );
-            $query = new WP_Query($args);
-            if ($query->have_posts()) {
-                $query->the_post();  // used to bump to the next post retrieved by the query, usually used in a loop e.g. while ($query->have_posts()) { $query->the_post(); ... }
-                $attachment_ID = get_the_ID();
-                wp_reset_postdata();
-                $file_url = wp_get_attachment_url($attachment_ID);
-            }
+            ],
+        );
+        $query = new WP_Query($args);
+        if ($query->have_posts()) {
+            $query->the_post();  // used to bump to the next post retrieved by the query, usually used in a loop e.g. while ($query->have_posts()) { $query->the_post(); ... }
+            $ebook_id = get_the_ID();
+            wp_reset_postdata();
         }
-        if (empty($file_url)) {
+        if (empty($ebook_id)) {
             return '<p style="color: red;">' . esc_html__("No Web Publication file provided.", 'simple-ebook-viewer') . '</p>';
         }
 
@@ -112,7 +99,7 @@ class SIMEBV_Viewer {
         ob_start(); ?>
 <section
     id="simebv-reader-container"
-    data-ebook-path="<?php echo esc_url($file_url); ?>"
+    data-ebook-id="<?php echo esc_attr($ebook_id); ?>"
     <?php echo $styles['container']; ?>
     <?php echo $classes ?>
     tabindex="0"
@@ -172,6 +159,46 @@ class SIMEBV_Viewer {
         return [
             'container' => $style_container,
         ];
+    }
+
+    /**
+     * Old method used to inject the ebook url in the HTML, superseded
+     * by the use of the wp-api: now I inject in the HTML only the ebook's id.
+     */
+    private static function retrieve_book_url($atts) {
+        // if the 'book' attribute of the shortcode is a valid url that points
+        // to a file in the uploads directory, use it directly as url.
+        // Otherwise, use it to do a query in the db as the value for
+        // the 'simebv_ebook_slug' posts metadata.
+        $file_url = wp_http_validate_url($atts['book']);
+        if ($file_url) {
+            $escaped_url = esc_url($file_url);
+            if (!str_starts_with($escaped_url, wp_upload_dir()['baseurl']) || str_contains($escaped_url, '../')) {
+                $file_url = '';
+            }
+        }
+        if (!$file_url) {
+            $args = array(
+                'post_type' => 'attachment',
+                // 'post_mime_type' => 'application/epub+zip',
+                'post_status' => 'inherit',
+                'meta_query' => [
+                    [
+                        'key' => 'simebv_ebook_slug',
+                        'value' => sanitize_text_field($atts['book']),
+                        'compare' => '=',
+                    ],
+                ],
+            );
+            $query = new WP_Query($args);
+            if ($query->have_posts()) {
+                $query->the_post();  // used to bump to the next post retrieved by the query, usually used in a loop e.g. while ($query->have_posts()) { $query->the_post(); ... }
+                $attachment_ID = get_the_ID();
+                wp_reset_postdata();
+                $file_url = wp_get_attachment_url($attachment_ID);
+            }
+        }
+        return $file_url;
     }
 
 }
