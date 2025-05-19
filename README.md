@@ -54,3 +54,17 @@ Some examples:
 ### Warning
 
 Ebooks can contain scripted content that might be executed on your webpage. The plugin does its best to forbid script execution from inside the loaded content, but it can't guarantee 100% safety. Don't display ebooks from untrusted sources and/or check your ebooks before uploading and displaying them. If you can, provide a strict Content Security Policy for your site.
+
+### Credits
+
+This plugin embeds a slightly modified version of the foliate-js library
+by John Factotum (https://github.com/johnfactotum/foliate-js),
+which is distributed under the MIT license.
+
+The foliate-js library embeds other three libraries:
+* zip.js (https://github.com/gildas-lormeau/zip.js), licensed under the BSD-3-Clause;
+* fflate (https://github.com/101arrowz/fflate), MIT licensed;
+* PDF.js (https://github.com/mozilla/pdf.js), licensed under the Apache v2.0 license.
+
+This plugin also embeds vite-for-wp by Dzikri Aziz (https://github.com/kucrut/vite-for-wp),
+licensed under the GPL v2.0 license.
