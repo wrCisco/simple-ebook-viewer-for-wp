@@ -11,7 +11,6 @@ class SIMEBV_Admin {
         'cbz' => 'application/vnd.comicbook+zip',
         'fb2' => 'application/x-fictionbook+xml',
         'fbz' => 'application/x-zip-compressed-fb2',
-        'fb2.zip' => 'application/x-zip-compressed-fb2',
         'mobi' => 'application/x-mobipocket-ebook',
         'azw' => 'application/vnd.amazon.ebook',
         'azw3' => 'application/vnd.amazon.ebook',
