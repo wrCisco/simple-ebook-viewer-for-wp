@@ -20,9 +20,11 @@ export function storageAvailable(type) {
 
 
 export function addCSPMeta(data, type) {
-    const parser = new DOMParser()
     try {
-        const doc = parser.parseFromString(data, type)
+        let doc
+        typeof data === 'string'
+            ? doc = new DOMParser().parseFromString(data, type)
+            : doc = data
         const meta = doc.createElement('meta')
         meta.setAttribute('http-equiv', 'content-security-policy')
         meta.setAttribute('content', "script-src 'none'; script-src-attr 'none'; script-src-elem 'none'")
@@ -34,9 +36,11 @@ export function addCSPMeta(data, type) {
 }
 
 export function removeInlineScripts(data, type) {
-    const parser = new DOMParser()
     try {
-        const doc = parser.parseFromString(data, type)
+        let doc
+        typeof data === 'string'
+            ? doc = new DOMParser().parseFromString(data, type)
+            : doc = data
         doc.querySelectorAll('script').forEach(el => el.remove())
         return doc.documentElement.outerHTML
     }
