@@ -346,7 +346,13 @@ class Reader {
             }
         ])
         this.menu.element.classList.add('simebv-menu')
-        this.menu.element.style.maxBlockSize = Math.round(this.containerHeight - 62) + 'px'
+        this.menu.element.style.maxBlockSize = 'min(85svh, ' + Math.round(this.containerHeight - 62) + 'px)'
+        if (screen?.orientation) {
+            screen.orientation.addEventListener('change', () => {
+                console.log('orientatin changed')
+                this.menu.element.style.maxBlockSize = 'min(85svh, ' + Math.round(this.containerHeight - 62) + 'px)'
+            })
+        }
         this.menu.element.addEventListener('click', (e) => e.stopPropagation())
 
         this.#menuButton.append(this.menu.element)
@@ -675,7 +681,7 @@ class Reader {
             this.#fullscreenButton.querySelector('#simebv-icon-exit-fullscreen').classList.remove('simebv-icon-hidden')
         }
         if (this.menu) {
-            this.menu.element.style.maxBlockSize = Math.round(this.containerHeight - 62) + 'px'
+            this.menu.element.style.maxBlockSize = 'min(85svh, ' + Math.round(this.containerHeight - 62) + 'px)'
         }
     }
 
