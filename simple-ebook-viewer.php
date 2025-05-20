@@ -23,7 +23,7 @@ define('SIMEBV_PLUGIN_URL', plugin_dir_url( __FILE__ ));
 add_action('init', 'simebv_load_textdomain');
 add_filter('load_textdomain_mofile', 'simebv_load_textdomain_mofile', 10, 2);
 
-require_once SIMEBV_PLUGIN_DIR . 'includes/vite-for-wp.php';
+require_once SIMEBV_PLUGIN_DIR . 'vendor/vite-for-wp/vite-for-wp.php';
 require_once SIMEBV_PLUGIN_DIR . 'includes/simebv-viewer.php';
 require_once SIMEBV_PLUGIN_DIR . 'includes/simebv-admin.php';
 
