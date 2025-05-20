@@ -63,10 +63,14 @@ input {
     display: block;
     fill: none;
     stroke: CanvasText;
-    stroke-width: 2px;
+    stroke-width: 1.5px;
 }
 .simebv-icon:active {
     stroke: CanvasText;
+    transform: scale(0.95);
+}
+.simebv-icon-hidden {
+    display: none;
 }
 .simebv-toolbar {
     box-sizing: border-box;

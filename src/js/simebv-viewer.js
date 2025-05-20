@@ -620,11 +620,18 @@ class Reader {
     }
 
     #toggleFullViewport() {
-        if (this.container) {
-            this.container.classList.toggle('simebv-view-fullscreen');
-            if (this.menu) {
-                this.menu.element.style.maxHeight = Math.round(this.containerHeight - 62) + 'px'
-            }
+        if (this.container.classList.contains('simebv-view-fullscreen')) {
+            this.container.classList.remove('simebv-view-fullscreen')
+            this.#fullscreenButton.querySelector('#simebv-icon-enter-fullscreen').classList.remove('simebv-icon-hidden')
+            this.#fullscreenButton.querySelector('#simebv-icon-exit-fullscreen').classList.add('simebv-icon-hidden')
+        }
+        else {
+            this.container.classList.add('simebv-view-fullscreen')
+            this.#fullscreenButton.querySelector('#simebv-icon-enter-fullscreen').classList.add('simebv-icon-hidden')
+            this.#fullscreenButton.querySelector('#simebv-icon-exit-fullscreen').classList.remove('simebv-icon-hidden')
+        }
+        if (this.menu) {
+            this.menu.element.style.maxHeight = Math.round(this.containerHeight - 62) + 'px'
         }
     }
 
@@ -816,7 +823,7 @@ ${viewerUiCss}
         <div class="simebv-right-side-buttons">
             <div id="simebv-menu-button" class="simebv-menu-container">
                 <button aria-label="Show settings" aria-haspopup="true">
-                    <svg class="simebv-icon" width="32" height="32" viewBox="0 0 24 24" aria-hidden="true">
+                    <svg class="simebv-icon" width="32" height="32" viewBox="0 0 24 24" aria-hidden="true" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 12.7a7 7 0 0 1 0-1.4l-1.8-2 2-3.5 2.7.5a7 7 0 0 1 1.2-.7L10 3h4l.9 2.6 1.2.7 2.7-.5 2 3.4-1.8 2a7 7 0 0 1 0 1.5l1.8 2-2 3.5-2.7-.5a7 7 0 0 1-1.2.7L14 21h-4l-.9-2.6a7 7 0 0 1-1.2-.7l-2.7.5-2-3.4 1.8-2Z"/>
                         <circle cx="12" cy="12" r="3"/>
                     </svg>
@@ -824,8 +831,14 @@ ${viewerUiCss}
             </div>
             <div class="simebv-right-side-button-container">
                 <button id="full-screen-button" aria-label="Full screen">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" class="simebv-icon" aria-hidden="true" viewBox="-4 -4 24 24">
-                        <path d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707m4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707m0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707m-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707"/>
+                    <svg width="32" height="32" viewBox="-2 -2 28 28" class="simebv-icon" id="simebv-icon-enter-fullscreen" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 2H4C2.89543 2 2 2.89543 2 4V8" stroke-width="1.8"/>
+                        <path d="M22 8L22 4C22 2.89543 21.1046 2 20 2H16" stroke-width="1.8"/>
+                        <path d="M16 22L20 22C21.1046 22 22 21.1046 22 20L22 16" stroke-width="1.8"/>
+                        <path d="M8 22L4 22C2.89543 22 2 21.1046 2 20V16" stroke-width="1.8"/>
+                    </svg>
+                    <svg class="simebv-icon simebv-icon-hidden" id="simebv-icon-exit-fullscreen" width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 12 L12 12 12 4 M20 4 L20 12 28 12 M4 20 L12 20 12 28 M28 20 L20 20 20 28" stroke-width="1.8" />
                     </svg>
                 </button>
             </div>
