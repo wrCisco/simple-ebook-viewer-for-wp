@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-05-19T14:03:09+00:00\n"
+"POT-Creation-Date: 2025-05-20T19:05:20+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: simple-ebook-viewer\n"
@@ -30,17 +30,41 @@ msgid "Francesco Martini"
 msgstr ""
 
 #. translators: %s: example of an ebook slug based on the opened ebook
-#: includes/simebv-admin.php:85
+#: includes/simebv-admin.php:84
 #, php-format
 msgid "Use this slug in the shortcode \"simebv_viewer\" to view the ebook in your pages (e.g. [simebv_viewer book=\"%s\"]). If left empty, the value of post_name will be used instead."
 msgstr ""
 
-#: includes/simebv-viewer.php:93
+#: includes/simebv-viewer.php:87
 msgid "No Web Publication file provided."
 msgstr ""
 
-#: includes/simebv-viewer.php:109
+#: includes/simebv-viewer.php:102
 msgid "It seems that JavaScript is not enabled in your browser, you need to enable it in order to use the Ebook Viewer."
+msgstr ""
+
+#: src/js/simebv-filters-dialog.js:15
+msgid "Activate color filters"
+msgstr ""
+
+#: src/js/simebv-filters-dialog.js:31
+msgid "Invert colors:"
+msgstr ""
+
+#: src/js/simebv-filters-dialog.js:44
+msgid "Rotate hues:"
+msgstr ""
+
+#: src/js/simebv-filters-dialog.js:55
+msgid "Transparent background:"
+msgstr ""
+
+#: src/js/simebv-filters-dialog.js:66
+msgid "Background color:"
+msgstr ""
+
+#: src/js/simebv-filters-dialog.js:72
+msgid "OK"
 msgstr ""
 
 #: src/js/simebv-search-dialog.js:8
@@ -60,156 +84,160 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: src/js/simebv-viewer.js:159
+#: src/js/simebv-viewer.js:168
 msgid "Search..."
 msgstr ""
 
-#: src/js/simebv-viewer.js:169
+#: src/js/simebv-viewer.js:178
 msgid "History"
 msgstr ""
 
-#: src/js/simebv-viewer.js:174
+#: src/js/simebv-viewer.js:183
 msgid "Previous"
 msgstr ""
 
-#: src/js/simebv-viewer.js:182
+#: src/js/simebv-viewer.js:191
 msgid "Next"
 msgstr ""
 
-#: src/js/simebv-viewer.js:192
+#: src/js/simebv-viewer.js:201
 msgid "Layout"
 msgstr ""
 
-#: src/js/simebv-viewer.js:195
+#: src/js/simebv-viewer.js:204
 msgid "Paginated"
 msgstr ""
 
-#: src/js/simebv-viewer.js:196
+#: src/js/simebv-viewer.js:205
 msgid "Scrolled"
 msgstr ""
 
-#: src/js/simebv-viewer.js:214
+#: src/js/simebv-viewer.js:223
 msgid "Max pages per view"
 msgstr ""
 
-#: src/js/simebv-viewer.js:227
+#: src/js/simebv-viewer.js:236
 msgid "Font Size"
 msgstr ""
 
-#: src/js/simebv-viewer.js:230
+#: src/js/simebv-viewer.js:239
 msgctxt "Font Size"
 msgid "Small"
 msgstr ""
 
-#: src/js/simebv-viewer.js:231
+#: src/js/simebv-viewer.js:240
 msgctxt "Font Size"
 msgid "Medium"
 msgstr ""
 
-#: src/js/simebv-viewer.js:232
+#: src/js/simebv-viewer.js:241
 msgctxt "Font Size"
 msgid "Large"
 msgstr ""
 
-#: src/js/simebv-viewer.js:233
+#: src/js/simebv-viewer.js:242
 msgctxt "Font Size"
 msgid "X-Large"
 msgstr ""
 
-#: src/js/simebv-viewer.js:244
+#: src/js/simebv-viewer.js:253
 msgid "Page Margins"
 msgstr ""
 
-#: src/js/simebv-viewer.js:247
+#: src/js/simebv-viewer.js:256
 msgctxt "Margins"
 msgid "Small"
 msgstr ""
 
-#: src/js/simebv-viewer.js:248
+#: src/js/simebv-viewer.js:257
 msgctxt "Margins"
 msgid "Medium"
 msgstr ""
 
-#: src/js/simebv-viewer.js:249
+#: src/js/simebv-viewer.js:258
 msgctxt "Margins"
 msgid "Large"
 msgstr ""
 
-#: src/js/simebv-viewer.js:260
+#: src/js/simebv-viewer.js:269
 msgid "Colors"
 msgstr ""
 
-#: src/js/simebv-viewer.js:263
+#: src/js/simebv-viewer.js:272
 msgctxt "Theme color"
 msgid "Auto"
 msgstr ""
 
-#: src/js/simebv-viewer.js:264
+#: src/js/simebv-viewer.js:273
 msgctxt "Theme color"
 msgid "Sepia"
 msgstr ""
 
-#: src/js/simebv-viewer.js:287
+#: src/js/simebv-viewer.js:298
+msgid "Color filter..."
+msgstr ""
+
+#: src/js/simebv-viewer.js:307
 msgid "Zoom"
 msgstr ""
 
-#: src/js/simebv-viewer.js:290
+#: src/js/simebv-viewer.js:310
 msgid "Fit page"
 msgstr ""
 
-#: src/js/simebv-viewer.js:291
+#: src/js/simebv-viewer.js:311
 msgid "Fit width"
 msgstr ""
 
-#: src/js/simebv-viewer.js:292
+#: src/js/simebv-viewer.js:312
 msgid "Custom"
 msgstr ""
 
 #. translators: %1s: page number
-#: src/js/simebv-viewer.js:692
+#: src/js/simebv-viewer.js:754
 #, js-format
 msgid "Page %1$s"
 msgstr ""
 
 #. translators: Loc: contraction for 'Location' in the book, followed by a numerical fraction
-#: src/js/simebv-viewer.js:696
+#: src/js/simebv-viewer.js:758
 #, js-format
 msgid "Loc %1$s/%2$s"
 msgstr ""
 
-#: src/js/simebv-viewer.js:759
+#: src/js/simebv-viewer.js:830
 msgid "Loading..."
 msgstr ""
 
-#: src/js/simebv-viewer.js:761
+#: src/js/simebv-viewer.js:832
 msgid "Show sidebar"
 msgstr ""
 
-#: src/js/simebv-viewer.js:765
+#: src/js/simebv-viewer.js:836
 msgid "No title"
 msgstr ""
 
-#: src/js/simebv-viewer.js:767
+#: src/js/simebv-viewer.js:838
 msgid "Show settings"
 msgstr ""
 
-#: src/js/simebv-viewer.js:772
+#: src/js/simebv-viewer.js:843
 msgid "Full screen"
 msgstr ""
 
-#: src/js/simebv-viewer.js:777
+#: src/js/simebv-viewer.js:848
 msgid "Go left"
 msgstr ""
 
-#: src/js/simebv-viewer.js:782
+#: src/js/simebv-viewer.js:853
 msgid "Go right"
 msgstr ""
 
-#: src/js/simebv-viewer.js:893
+#: src/js/simebv-viewer.js:970
 msgid "Error: I couldn't retrieve the book to display."
 msgstr ""
 
-#: src/js/simebv-viewer.js:899
+#: src/js/simebv-viewer.js:976
 msgid "Resource not found on the server"
 msgstr ""
 

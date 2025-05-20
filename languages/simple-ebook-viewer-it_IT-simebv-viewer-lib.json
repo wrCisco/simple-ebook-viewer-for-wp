@@ -115,6 +115,9 @@
             "Resource not found on the server": [
                 "Risorsa non trovata nel server"
             ],
+            "Color filter...": [
+                "Filtro colore..."
+            ],
             "Search": [
                 "Cerca"
             ],
@@ -126,6 +129,24 @@
             ],
             "Close": [
                 "Chiudi"
+            ],
+            "Activate color filters": [
+                "Attiva i filtri colore"
+            ],
+            "Invert colors:": [
+                "Inverti colori:"
+            ],
+            "Rotate hues:": [
+                "Ruota tonalit\u00e0:"
+            ],
+            "Transparent background:": [
+                "Sfondo trasparente:"
+            ],
+            "Background color:": [
+                "Colore di sfondo:"
+            ],
+            "OK": [
+                "OK"
             ]
         }
     }
