@@ -4,6 +4,7 @@ import { createMenu } from '../../vendor/foliate-js/ui/menu.js'
 import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
 import { storageAvailable, addCSPMeta, removeInlineScripts } from './simebv-utils.js'
 import { searchDialog } from './simebv-search-dialog.js'
+import { colorFiltersDialog } from './simebv-filters-dialog.js'
 const { __, _x, _n, sprintf } = wp.i18n;
 
 // Import css for the Viewer's container element, as static asset
@@ -88,12 +89,20 @@ class Reader {
     #overlay
     #menuButton
     #fullscreenButton
+    #colorsFilterDialog
     #searchDialog
     #currentSearch
     #currentSearchQuery
     #currentSearchResult = []
     #currentSearchResultIndex = -1
     #lastReadPage
+    #appliedFilter = {
+        activateColorFilter: false,
+        invertColorsFilter: 0,
+        rotateColorsFilter: 0,
+        bgFilterTransparent: true,
+        bgColorsFilter: '#FFFFFF',
+    }
     style = {
         spacing: 1.4,
         justify: true,
@@ -267,6 +276,7 @@ class Reader {
                     if (value === 'simebv-sepia') {
                         this.#rootDiv.classList.add(value)
                         this.container.classList.add(value)
+                        this.#rootDiv.classList.remove('simebv-supports-dark')
                         this.style.colorScheme = 'only light'
                         this.style.bgColor = '#f9f1cc'
                         this.view?.renderer.setStyles?.(getCSS(this.style))
@@ -274,6 +284,7 @@ class Reader {
                     else {
                         this.#rootDiv.classList.remove('simebv-sepia')
                         this.container.classList.remove('simebv-sepia')
+                        this.#rootDiv.classList.add('simebv-supports-dark')
                         this.style.colorScheme = 'light dark'
                         this.style.bgColor = 'transparent'
                         this.view?.renderer.setStyles?.(getCSS(this.style))
@@ -281,6 +292,15 @@ class Reader {
                     this.#savePreference('colors', value)
                 },
                 horizontal: true,
+            },
+            {
+                name: 'colorFilter',
+                label: __('Color filter...', 'simple-ebook-viewer'),
+                type: 'action',
+                onclick: () => this.openFilterDialog(this.#bookContainer),
+                attrs: [
+                    ['aria-haspopup', 'dialog'],
+                ],
             },
             {
                 name: 'zoom',
@@ -326,7 +346,7 @@ class Reader {
             }
         ])
         this.menu.element.classList.add('simebv-menu')
-        this.menu.element.style.maxHeight = Math.round(this.containerHeight - 62) + 'px'
+        this.menu.element.style.maxBlockSize = Math.round(this.containerHeight - 62) + 'px'
         this.menu.element.addEventListener('click', (e) => e.stopPropagation())
 
         this.#menuButton.append(this.menu.element)
@@ -344,7 +364,6 @@ class Reader {
             this.#root.getElementById('simebv-zoom-numeric').value = Math.round(customZoom * 100)
         this.#loadMenuPreferences([
             ['fontSize', 18],
-            ['colors', 'auto'],
         ])
         this.menu.groups.history.items.previous.enable(false)
         this.menu.groups.history.items.next.enable(false)
@@ -354,6 +373,26 @@ class Reader {
 
     get containerHeight() {
         return this.container.getBoundingClientRect().height
+    }
+
+    createFilterDialog(bookContainer) {
+        if (!this.#colorsFilterDialog) {
+            this.#colorsFilterDialog = colorFiltersDialog(bookContainer, this.#appliedFilter)
+            this.#colorsFilterDialog.id = 'simebv-colors-filter-dialog'
+            this.#rootDiv.append(this.#colorsFilterDialog)
+            this.#colorsFilterDialog.addEventListener('close', () => {
+                for (const prop in this.#appliedFilter) {
+                    this.#savePreference(prop, this.#appliedFilter[prop])
+                }
+            })
+        }
+    }
+
+    openFilterDialog(bookContainer) {
+        if (!this.#colorsFilterDialog) {
+            this.createFilterDialog(bookContainer)
+        }
+        this.#colorsFilterDialog.showModal()
     }
 
     openSearchDialog() {
@@ -457,7 +496,7 @@ class Reader {
             this.menu.groups.margins.visible(true)
             this.menu.groups.zoom.visible(false)
             // Ensure that the last element of the menu is visible (cosmetic hack)
-            this.menu.groups.colors.element.parentNode.parentNode.append(this.menu.groups.colors.element.parentNode)
+            this.menu.groups.colorFilter.element.parentNode.parentNode.append(this.menu.groups.colorFilter.element.parentNode)
         }
         this.view.addEventListener('load', this.#onLoad.bind(this))
         this.view.addEventListener('relocate', this.#onRelocate.bind(this))
@@ -585,6 +624,9 @@ class Reader {
             }
         })
 
+        this.#loadMenuPreferences([
+            ['colors', 'auto'],
+        ])
         if (this.view.isFixedLayout) {
             this.#loadMenuPreferences([
                 ['zoom', 'fit-page']
@@ -597,6 +639,8 @@ class Reader {
                 ['layout', 'paginated'],  // the 'scrolled' layout disables other preferences, so this is at the end
             ])
         }
+        this.#loadFilterPreferences()
+        this.createFilterDialog(this.#rootDiv)
     }
 
     #updateHistoryMenuItems() {
@@ -631,11 +675,14 @@ class Reader {
             this.#fullscreenButton.querySelector('#simebv-icon-exit-fullscreen').classList.remove('simebv-icon-hidden')
         }
         if (this.menu) {
-            this.menu.element.style.maxHeight = Math.round(this.containerHeight - 62) + 'px'
+            this.menu.element.style.maxBlockSize = Math.round(this.containerHeight - 62) + 'px'
         }
     }
 
     #handleKeydown(e) {
+        if (this.#colorsFilterDialog.open) {
+            return
+        }
         const k = e.key
         switch (k) {
             case 'PageUp':
@@ -738,6 +785,15 @@ class Reader {
         }
         for (const [name, value] of prefs) {
             this.#savePreference(name, value)
+        }
+    }
+
+    #loadFilterPreferences() {
+        if (!this.#appliedFilter || !storageAvailable('localStorage')) {
+            return
+        }
+        for (const prop in this.#appliedFilter) {
+            this.#appliedFilter[prop] = JSON.parse(localStorage.getItem('simebv-' + prop))
         }
     }
 

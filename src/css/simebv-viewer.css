@@ -14,10 +14,12 @@
     --disabled-dot: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23808080%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22%2F%3E%3C%2Fsvg%3E');
     --gray-text: GrayText;
     --header-height: 54px;
+    --book-colors-filter: invert(0);
+    --book-bg-color: transparent;
 }
 @supports (color-scheme: light dark) {
     @media all and (prefers-color-scheme: dark) {
-        #simebv-reader-root:not(.simebv-sepia) {
+        #simebv-reader-root.simebv-supports-dark {
             --active-bg: rgba(255, 255, 255, .1);
             --reader-bg: Canvas;
             --menu-group-separator-color: rgba(255, 255, 255, .3);
@@ -27,16 +29,21 @@
             --enabled-dot: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23FFFFFF%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22%2F%3E%3C%2Fsvg%3E');
             --gray-text: rgb(132, 132, 132);
         }
-        #simebv-reader-root:not(.simebv-sepia) a:link {
+        #simebv-reader-root.simebv-supports-dark a:link {
             color: lightblue;
         }
     }
+}
+foliate-view::part(filter) {
+    background-color: var(--book-bg-color);
+    filter: none; /*var(--book-colors-filter);*/
 }
 #simebv-reader-root {
     height: 100%;
     width: 100%;
     font-size: 16px;
     background-color: var(--reader-bg);
+    filter: var(--book-colors-filter)
 }
 #simebv-reader-root.simebv-sepia {
     color-scheme: only light;
@@ -55,7 +62,7 @@
     height: calc(100% - var(--header-height) * 2);
     top: var(--header-height);
 }
-input {
+input, button {
     font-family: inherit;
     font-size: max(16px, 1rem);
 }
@@ -308,7 +315,7 @@ input {
     padding: 6px;
     cursor: default;
     inline-size: 24ch;
-    max-inline-size: 50vw;
+    max-inline-size: 80vw;
     max-block-size: 80vh;
     overflow: auto;
     scrollbar-width: thin;
@@ -394,12 +401,19 @@ input {
 :disabled, [aria-disabled="true"] {
     color: var(--gray-text);
 }
-/* #simebv-search-dialog {
-    position: absolute;
-    top: 5%;
-    padding: 20px 16px;
-    border-radius: 6px;
-} */
+#simebv-colors-filter-dialog {
+    background-color: var(--menu-bg);
+    border: none;
+    box-shadow: var(--menu-box-shadow);
+    border-radius: 3px;
+}
+#simebv-colors-filter-dialog input {
+    vertical-align: middle;
+}
+#simebv-colors-filter-dialog button {
+    padding-inline: 12px;
+    padding-block: 3px;
+}
 #simebv-search-dialog {
     justify-content: space-between;
     align-items: center;
