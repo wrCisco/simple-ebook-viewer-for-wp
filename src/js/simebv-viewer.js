@@ -424,6 +424,7 @@ class Reader {
             await this.nextMatch()
             return
         }
+        this.searchCleanUp()
         this.#currentSearchQuery = str
         this.#currentSearch = await this.view?.search({query: str})
         await this.nextMatch()
