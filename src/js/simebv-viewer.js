@@ -244,6 +244,8 @@ class Reader {
                 onclick: value => {
                     this.style.fontSize = value
                     this.view?.renderer.setStyles?.(getCSS(this.style))
+                    const m = { 14: 16, 18: 16, 22: 17, 26: 18 }
+                    this.#rootDiv.style.setProperty('--font-size-base', (m[value] ?? 16) + 'px')
                     this.#savePreference('fontSize', value)
                 },
                 horizontal: false,

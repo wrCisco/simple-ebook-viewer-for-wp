@@ -16,6 +16,8 @@
     --header-height: 54px;
     --book-colors-filter: invert(0);
     --book-bg-color: transparent;
+    --font-size-base: 16px;
+    --font-size-input: max(var(--font-size-base), 16px);
 }
 @supports (color-scheme: light dark) {
     @media all and (prefers-color-scheme: dark) {
@@ -41,7 +43,7 @@ foliate-view::part(filter) {
 #simebv-reader-root {
     height: 100%;
     width: 100%;
-    font-size: 16px;
+    font-size: var(--font-size-base);
     background-color: var(--reader-bg);
     filter: var(--book-colors-filter)
 }
@@ -64,7 +66,7 @@ foliate-view::part(filter) {
 }
 input, button {
     font-family: inherit;
-    font-size: max(16px, 1rem);
+    font-size: max(var(--font-size-input), 1rem);
 }
 .simebv-icon {
     display: block;
@@ -154,7 +156,7 @@ input, button {
     top: 0;
     left: 0;
     height: 100%;
-    width: 320px;
+    width: 32ch;
     max-width: 85%;
     transform: translateX(-320px);
     display: flex;
@@ -228,7 +230,7 @@ input, button {
 }
 #simebv-side-bar-author {
     margin: .5rem 0;
-    font-size: small;
+    font-size: smaller;
     color: var(--gray-text);
 }
 #simebv-toc-view {
