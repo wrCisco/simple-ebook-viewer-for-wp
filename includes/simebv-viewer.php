@@ -65,6 +65,11 @@ class SIMEBV_Viewer {
                 'layout' => '',
                 'default-font-size' => '',
                 'page-margins' => '',
+                'activate-color-filter' => '',
+                'invert-color-filter' => '',
+                'rotate-color-filter' => '',
+                'bg-transparent-filter' => '',
+                'bg-color-filter' => '',
             ],
             $atts,
             'simebv_viewer'
@@ -108,6 +113,11 @@ class SIMEBV_Viewer {
         echo strlen($atts['layout']) !== 0 ? 'data-simebv-layout="' . esc_attr($atts['layout']) . '"' : '';
         echo strlen($atts['default-font-size']) !== 0 ? 'data-simebv-fontsize="' . esc_attr($atts['default-font-size']) . '"' : '';
         echo strlen($atts['page-margins']) !== 0 ? 'data-simebv-margins="' . esc_attr($atts['page-margins']) . '"' : '';
+        echo strlen($atts['activate-color-filter']) !== 0 ? 'data-simebv-activatecolorfilter="' . esc_attr($atts['activate-color-filter']) . '"' : '';
+        echo strlen($atts['invert-color-filter']) !== 0 ? 'data-simebv-invertcolorsfilter="' . esc_attr($atts['invert-color-filter']) . '"' : '';
+        echo strlen($atts['rotate-color-filter']) !== 0 ? 'data-simebv-rotatecolorsfilter="' . esc_attr($atts['rotate-color-filter']) . '"' : '';
+        echo strlen($atts['bg-transparent-filter']) !== 0 ? 'data-simebv-bgfiltertransparent="' . esc_attr($atts['bg-transparent-filter']) . '"' : '';
+        echo strlen($atts['bg-color-filter']) !== 0 ? 'data-simebv-bgcolorsfilter="' . esc_attr($atts['bg-color-filter']) . '"' : '';
     ?>
     tabindex="0"
     aria-label="Ebook reader"

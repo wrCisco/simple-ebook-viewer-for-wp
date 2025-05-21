@@ -797,11 +797,23 @@ class Reader {
     }
 
     #loadFilterPreferences() {
-        if (!this.#appliedFilter || !storageAvailable('localStorage')) {
+        if (!this.#appliedFilter) {
             return
         }
         for (const prop in this.#appliedFilter) {
-            this.#appliedFilter[prop] = JSON.parse(localStorage.getItem('simebv-' + prop))
+            let value = this.container.getAttribute('data-simebv-' + prop.toLowerCase())
+            value = Reader.#convertUserSettings(prop, value)
+            if (value != null) {
+                this.#appliedFilter[prop] = value
+            }
+        }
+        if (storageAvailable('localStorage')) {
+            for (const prop in this.#appliedFilter) {
+                let value = JSON.parse(localStorage.getItem('simebv-' + prop))
+                if (value != null) {
+                    this.#appliedFilter[prop] = value
+                }
+            }
         }
     }
 
@@ -834,7 +846,15 @@ class Reader {
                 medium: 18,
                 large: 22,
                 'x-large': 26,
-            }
+            },
+            activatecolorfilter: {
+                'true': true,
+                'false': false,
+            },
+            bgfiltertransparent: {
+                'true': true,
+                'false': false,
+            },
         }
         if (!isNaN(Number(value))) {
             value = Number(value)
