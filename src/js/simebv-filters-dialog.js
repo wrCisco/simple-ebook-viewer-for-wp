@@ -115,7 +115,6 @@ export function colorFiltersDialog(bookContainer, appliedFilters) {
 
     form.append(p1, p2, p3, p4, p5, closeButton)
     dlg.append(form)
-    dlg.id = 'simebv-colors-filter-dialog'
 
     updateEnabled()
     updateFilter()
