@@ -817,11 +817,52 @@ class Reader {
         return JSON.parse(localStorage.getItem('simebv-' + name))
     }
 
+    static #convertUserSettings(name, value) {
+        const converter = {
+            colors: {
+                sepia: 'simebv-sepia',
+            },
+            margins: {
+                small: '4%',
+                medium: '8%',
+                large: '12%',
+            },
+            fontsize: {
+                small: 14,
+                medium: 18,
+                large: 22,
+                'x-large': 26,
+            }
+        }
+        if (!isNaN(Number(value))) {
+            value = Number(value)
+        }
+        return converter[name.toLowerCase()]?.[value] ?? value
+    }
+
     #loadMenuPreferences(values) {
-        if (!this.menu || !storageAvailable('localStorage')) {
+        if (!this.menu) {
             return
         }
-        for (const [name, defVal] of values) {
+        // Retrieve data set by the user server side, validate it and store it as default
+        const defValues = values.map((item) => {
+            const [name, _] = item
+            let attrVal = this.container.getAttribute('data-simebv-' + name.toLowerCase())
+            attrVal = Reader.#convertUserSettings(name, attrVal)
+            if (attrVal && this.menu.groups[name].validate(attrVal)) {
+                return [name, attrVal]
+            }
+            return item
+        })
+        // if there is no localStorage available, select default values on the menu
+        if (!storageAvailable('localStorage')) {
+            for (const [name, defVal] of defValues) {
+                this.menu.groups[name].select(defVal)
+            }
+            return
+        }
+        // Retrieve data from localStorage, validate it and select it on the menu, otherwise use default
+        for (const [name, defVal] of defValues) {
             const savedVal = JSON.parse(localStorage.getItem('simebv-' + name))
             this.menu.groups[name].validate(savedVal)
                 ? this.menu.groups[name].select(savedVal)

@@ -59,6 +59,12 @@ class SIMEBV_Viewer {
                 'border' => '',
                 'style' => '',
                 'class' => '',
+                'max-pages' => '',
+                'color-scheme' => '',
+                'zoom' => '',
+                'layout' => '',
+                'default-font-size' => '',
+                'page-margins' => '',
             ],
             $atts,
             'simebv_viewer'
@@ -93,8 +99,16 @@ class SIMEBV_Viewer {
 <section
     id="simebv-reader-container"
     data-ebook-id="<?php echo esc_attr($ebook_id); ?>"
-    <?php echo strlen($styles['container'] !== 0) ? 'style="' . esc_attr($styles['container']) . '"' : ''; ?>
-    <?php echo strlen($atts['class'] !== 0) ? 'class="' . esc_attr($atts['class']) . '"' : ''; ?>
+    <?php
+        echo strlen($styles['container']) !== 0 ? 'style="' . esc_attr($styles['container']) . '"' : '';
+        echo strlen($atts['class']) !== 0 ? 'class="' . esc_attr($atts['class']) . '"' : '';
+        echo strlen($atts['max-pages']) !== 0 ? 'data-simebv-maxpages="' . esc_attr($atts['max-pages']) . '"' : '';
+        echo strlen($atts['color-scheme']) !== 0 ? 'data-simebv-colors="' . esc_attr($atts['color-scheme']) . '"' : '';
+        echo strlen($atts['zoom']) !== 0 ? 'data-simebv-zoom="' . esc_attr($atts['zoom']) . '"' : '';
+        echo strlen($atts['layout']) !== 0 ? 'data-simebv-layout="' . esc_attr($atts['layout']) . '"' : '';
+        echo strlen($atts['default-font-size']) !== 0 ? 'data-simebv-fontsize="' . esc_attr($atts['default-font-size']) . '"' : '';
+        echo strlen($atts['page-margins']) !== 0 ? 'data-simebv-margins="' . esc_attr($atts['page-margins']) . '"' : '';
+    ?>
     tabindex="0"
     aria-label="Ebook reader"
 >
