@@ -2,7 +2,7 @@ import '../../vendor/foliate-js/view.js'
 import { createTOCView } from '../../vendor/foliate-js/ui/tree.js'
 import { createMenu } from '../../vendor/foliate-js/ui/menu.js'
 import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
-import { storageAvailable, addCSPMeta, removeInlineScripts } from './simebv-utils.js'
+import { storageAvailable, addCSPMeta, removeInlineScripts, isNumeric } from './simebv-utils.js'
 import { searchDialog } from './simebv-search-dialog.js'
 import { colorFiltersDialog } from './simebv-filters-dialog.js'
 const { __, _x, _n, sprintf } = wp.i18n;
@@ -334,16 +334,34 @@ class Reader {
                         case 'fit-page':
                         case 'fit-width':
                             this.view?.renderer?.setAttribute('zoom', value)
+                            this.#savePreference('zoom', value)
+                            break
+                        case 'custom':
+                            let val = this.#root.getElementById('simebv-zoom-numeric').value
+                            if (!isNumeric(val) || val < 10 || val > 400 ) {
+                                val = 100
+                            }
+                            this.view?.renderer?.setAttribute('zoom', val / 100)
+                            this.#savePreference('custom-zoom', val)
+                            this.#savePreference('zoom', value)
                             break
                         default:
-                            let val = this.#root.getElementById('simebv-zoom-numeric').value / 100
-                            if (isNaN(val) || val < 0.1 || val > 4 ) {
-                                val = 1
+                            if (!isNumeric(value)) {
+                                break
                             }
-                            this.view?.renderer?.setAttribute('zoom', val)
-                            this.#savePreference('custom-zoom', val)
+                            value = Number(value)
+                            if (value >= 10 && value <= 400) {
+                                const inputElem = this.#root.getElementById('simebv-zoom-numeric')
+                                inputElem.value = value
+                                inputElem.dispatchEvent(new Event('change'))
+                            }
                     }
-                    this.#savePreference('zoom', value)
+                },
+                onvalidate: (value) => {
+                    return (
+                        ['fit-page', 'fit-width', 'custom'].includes(value)
+                        || (isNumeric(value) && Number(value) >= 10 && Number(value) <= 400)
+                    )
                 }
             }
         ])
@@ -367,9 +385,6 @@ class Reader {
                 this.closeMenus()
             }
         })
-        const customZoom = this.#loadPreference('custom-zoom')
-        if (customZoom && !isNaN(customZoom))
-            this.#root.getElementById('simebv-zoom-numeric').value = Math.round(customZoom * 100)
         this.#loadMenuPreferences([
             ['fontSize', 18],
         ])
@@ -857,7 +872,7 @@ class Reader {
                 'false': false,
             },
         }
-        if (!isNaN(Number(value))) {
+        if (isNumeric(value)) {
             value = Number(value)
         }
         return converter[name.toLowerCase()]?.[value] ?? value
@@ -886,12 +901,19 @@ class Reader {
         }
         // Retrieve data from localStorage, validate it and select it on the menu, otherwise use default
         for (const [name, defVal] of defValues) {
-            const savedVal = JSON.parse(localStorage.getItem('simebv-' + name))
+            if (name === 'zoom') {
+                const savedCustomZoom = this.#loadPreference('custom-zoom')
+                if (this.menu.groups.zoom.validate(savedCustomZoom)) {
+                    // this will not trigger the change event
+                    this.menu.element.querySelector('#simebv-zoom-numeric').value = savedCustomZoom
+                }
+            }
+            let savedVal = JSON.parse(localStorage.getItem('simebv-' + name))
             this.menu.groups[name].validate(savedVal)
                 ? this.menu.groups[name].select(savedVal)
                 : (
                     this.menu.groups[name].select(defVal),
-                    console.warn(`Invalid value for menu ${name}: ${savedVal}, setting default...`)
+                    console.warn(`Invalid value for menu ${name}: ${savedVal}, setting default: ${defVal}`)
                 )
         }
     }

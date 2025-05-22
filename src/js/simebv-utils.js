@@ -47,3 +47,7 @@ export function removeInlineScripts(data, type) {
     catch (e) { console.error(e) }
     return data
 }
+
+export function isNumeric(v) {
+    return parseFloat(v) === Number(v)
+}
