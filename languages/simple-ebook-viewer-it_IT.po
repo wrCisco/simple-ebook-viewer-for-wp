@@ -8,13 +8,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2025-05-16T12:55:17+00:00\n"
-"PO-Revision-Date: 2025-05-16\n"
+"PO-Revision-Date: 2025-05-23\n"
 "Language: it\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: simple-ebook-viewer\n"
 
 #. Plugin Name of the plugin
 #: simple-ebook-viewer.php
+#: simple-ebook-viewer.php:38
 msgid "Simple Ebook Viewer"
 msgstr ""
 
@@ -28,83 +29,83 @@ msgstr "Un plugin per incorporare e visualizzare ebook"
 msgid "Francesco Martini"
 msgstr ""
 
-#: includes/simebv-viewer.php:102
+#: includes/simebv-viewer.php:126
 msgid "It seems that JavaScript is not enabled in your browser, you need to enable it in order to use the Ebook Viewer."
 msgstr "Sembra che JavaScript non sia abilitato nel tuo browser, è necessario che lo abiliti per poter usare il visualizzatore di Ebook."
 
-#: includes/simebv-viewer.php:87
+#: includes/simebv-viewer.php:98
 msgid "No Web Publication file provided."
 msgstr "Non è stata fornita alcuna pubblicazione."
 
-#: src/js/simebv-viewer.js:204
+#: src/js/simebv-viewer.js:206
 msgid "Paginated"
 msgstr "Pagine"
 
-#: src/js/simebv-viewer.js:205
+#: src/js/simebv-viewer.js:207
 msgid "Scrolled"
 msgstr "Scorrimento"
 
-#: src/js/simebv-viewer.js:223
+#: src/js/simebv-viewer.js:225
 msgid "Max pages per view"
 msgstr "Max pagine per vista"
 
-#: src/js/simebv-viewer.js:201
+#: src/js/simebv-viewer.js:203
 msgid "Layout"
 msgstr "Layout"
 
-#: src/js/simebv-viewer.js:236
+#: src/js/simebv-viewer.js:238
 msgid "Font Size"
 msgstr "Grandezza del testo"
 
-#: src/js/simebv-viewer.js:253
+#: src/js/simebv-viewer.js:257
 msgid "Page Margins"
 msgstr "Margini"
 
-#: src/js/simebv-viewer.js:269
+#: src/js/simebv-viewer.js:273
 msgid "Colors"
 msgstr "Colori"
 
-#: src/js/simebv-viewer.js:168
+#: src/js/simebv-viewer.js:170
 msgid "Search..."
 msgstr "Cerca..."
 
 #. translators: %1s: page number
-#: src/js/simebv-viewer.js:754
+#: src/js/simebv-viewer.js:781
 #, js-format
 msgid "Page %1$s"
 msgstr "Pagina %1$s"
 
 #. translators: Loc: contraction for 'Location' in the book, followed by a numerical fraction
-#: src/js/simebv-viewer.js:758
+#: src/js/simebv-viewer.js:785
 #, js-format
 msgid "Loc %1$s/%2$s"
 msgstr "Loc %1$s/%2$s"
 
-#: src/js/simebv-viewer.js:830
+#: src/js/simebv-viewer.js:925
 msgid "Loading..."
 msgstr "Caricamento..."
 
-#: src/js/simebv-viewer.js:832
+#: src/js/simebv-viewer.js:927
 msgid "Show sidebar"
 msgstr "Mostra barra laterale"
 
-#: src/js/simebv-viewer.js:836
+#: src/js/simebv-viewer.js:931
 msgid "No title"
 msgstr "Senza titolo"
 
-#: src/js/simebv-viewer.js:838
+#: src/js/simebv-viewer.js:933
 msgid "Show settings"
 msgstr "Mostra impostazioni"
 
-#: src/js/simebv-viewer.js:843
+#: src/js/simebv-viewer.js:938
 msgid "Full screen"
 msgstr "Schermo intero"
 
-#: src/js/simebv-viewer.js:848
+#: src/js/simebv-viewer.js:943
 msgid "Go left"
 msgstr "Vai a sinistra"
 
-#: src/js/simebv-viewer.js:853
+#: src/js/simebv-viewer.js:948
 msgid "Go right"
 msgstr "Vai a destra"
 
@@ -125,90 +126,90 @@ msgstr "Successivo"
 msgid "Close"
 msgstr "Chiudi"
 
-#: src/js/simebv-viewer.js:239
+#: src/js/simebv-viewer.js:241
 msgctxt "Font Size"
 msgid "Small"
 msgstr "Piccola"
 
-#: src/js/simebv-viewer.js:240
+#: src/js/simebv-viewer.js:242
 msgctxt "Font Size"
 msgid "Medium"
 msgstr "Media"
 
-#: src/js/simebv-viewer.js:241
+#: src/js/simebv-viewer.js:243
 msgctxt "Font Size"
 msgid "Large"
 msgstr "Grande"
 
-#: src/js/simebv-viewer.js:242
+#: src/js/simebv-viewer.js:244
 msgctxt "Font Size"
 msgid "X-Large"
 msgstr "Molto grande"
 
-#: src/js/simebv-viewer.js:256
+#: src/js/simebv-viewer.js:260
 msgctxt "Margins"
 msgid "Small"
 msgstr "Stretti"
 
-#: src/js/simebv-viewer.js:257
+#: src/js/simebv-viewer.js:261
 msgctxt "Margins"
 msgid "Medium"
 msgstr "Medi"
 
-#: src/js/simebv-viewer.js:258
+#: src/js/simebv-viewer.js:262
 msgctxt "Margins"
 msgid "Large"
 msgstr "Larghi"
 
-#: src/js/simebv-viewer.js:272
+#: src/js/simebv-viewer.js:276
 msgctxt "Theme color"
 msgid "Auto"
 msgstr "Auto"
 
-#: src/js/simebv-viewer.js:273
+#: src/js/simebv-viewer.js:277
 msgctxt "Theme color"
 msgid "Sepia"
 msgstr "Seppia"
 
 #. translators: %s: example of an ebook slug based on the opened ebook
-#: includes/simebv-admin.php:84
+#: includes/simebv-admin.php:124
 #, php-format
 msgid "Use this slug in the shortcode \"simebv_viewer\" to view the ebook in your pages (e.g. [simebv_viewer book=\"%s\"]). If left empty, the value of post_name will be used instead."
 msgstr "Usa questo slug nello shortcode \"simebv_viewer\" per visualizzare l'ebook nelle tue pagine (e.g. [simebv_viewer book=\"%s\"]). Se lasciato vuoto, verrà usato al suo posto il valore di post_name."
 
-#: src/js/simebv-viewer.js:178
+#: src/js/simebv-viewer.js:180
 msgid "History"
 msgstr "Cronologia"
 
-#: src/js/simebv-viewer.js:183
+#: src/js/simebv-viewer.js:185
 msgid "Previous"
 msgstr "Precedente"
 
-#: src/js/simebv-viewer.js:191
+#: src/js/simebv-viewer.js:193
 msgid "Next"
 msgstr "Successivo"
 
-#: src/js/simebv-viewer.js:307
+#: src/js/simebv-viewer.js:311
 msgid "Zoom"
 msgstr "Zoom"
 
-#: src/js/simebv-viewer.js:310
+#: src/js/simebv-viewer.js:314
 msgid "Fit page"
 msgstr "Adatta alla pagina"
 
-#: src/js/simebv-viewer.js:311
+#: src/js/simebv-viewer.js:315
 msgid "Fit width"
 msgstr "Adatta alla larghezza"
 
-#: src/js/simebv-viewer.js:312
+#: src/js/simebv-viewer.js:316
 msgid "Custom"
 msgstr "Personalizzato"
 
-#: src/js/simebv-viewer.js:970
+#: src/js/simebv-viewer.js:1065
 msgid "Error: I couldn't retrieve the book to display."
 msgstr "Errore: non ho potuto recuperare il libro da mostrare."
 
-#: src/js/simebv-viewer.js:976
+#: src/js/simebv-viewer.js:1071
 msgid "Resource not found on the server"
 msgstr "Risorsa non trovata nel server"
 
@@ -236,6 +237,41 @@ msgstr "Colore di sfondo:"
 msgid "OK"
 msgstr "OK"
 
-#: src/js/simebv-viewer.js:298
+#: src/js/simebv-viewer.js:302
 msgid "Color filter..."
 msgstr "Filtro colore..."
+
+#. translators: Suggested privacy policy. %s: name of the plugin
+#: includes/simebv-admin.php:31
+#, php-format
+msgid ""
+"<h3>Use of %s plugin</h3>\n"
+"<p>Our website uses a plugin to enhance your experience when reading ebooks directly on our site. This plugin does <strong>not</strong> collect, transmit, or share any personal data. It does <strong>not</strong> set cookies or track your activity across websites.</p>\n"
+"<p>When you interact with the ebook viewer, the plugin may store certain <strong>preferences locally in your browser</strong> using local storage technology. This information is saved solely to remember your settings and improve your user experience during future visits. These preferences include:</p>\n"
+"<ul>\n"
+"<li>The last page you viewed</li>\n"
+"<li>Your selected font size</li>\n"
+"<li>Page margin settings</li>\n"
+"<li>Maximum pages displayed per view</li>\n"
+"<li>Layout preference (scrolled or paginated)</li>\n"
+"<li>Chosen color theme and any color filters</li>\n"
+"<li>Zoom level</li>\n"
+"</ul>\n"
+"<p>This information is stored <strong>only on your device</strong>, is not accessible by us or any third party, and is used exclusively to personalize your ebook reading experience on this website.</p>\n"
+"<p><strong>Note:</strong> To retrieve and display the ebook content, the plugin interacts with the WordPress REST API. This process may involve the use of <strong>technical cookies</strong> that are set by WordPress itself to ensure secure and correct data transmission. These cookies do not track you and are essential for the proper functioning of the website.</p>\n"
+"<p>You can clear your saved preferences at any time by clearing your browser’s local storage or using your browser's privacy settings.</p>"
+msgstr ""
+"<h3>Uso del plugin %s</h3>\n"
+"<p>Il nostro sito web usa un plugin per migliorare la tua esperienza quando leggi ebook direttamente sul nostro sito. Questo plugin <strong>non</strong> raccoglie, trasmette né condivide alcun dato personale. <strong>Non</strong> imposta cookie né traccia la tua attività tra siti web.</p>\n"
+"<p>Quando interagisci con l'ebook viewer, il plugin può salvare certe <strong> preferenze localmente nel tuo browser</strong> usando la tecnologia del local storage. Queste informazioni sono salvate soltanto per ricordarsi le tue impostazioni e migliorare la tua esperienza durante le visite future. Queste preferenze includono:</p>\n"
+"<ul>\n"
+"<li>L'ultima pagina visualizzata</li>\n"
+"<li>La dimensione del testo selezionata</li>\n"
+"<li>I margini di pagina</li>\n"
+"<li>Le preferenze di layout (pagine o scorrimento)</li>\n"
+"<li>Il tema colore scelto e i filtri colore</li>\n"
+"<li>Il livello di zoom</li>\n"
+"</ul>\n"
+"<p>Queste informazioni sono memorizzata <strong>solo sul tuo dispositivo</strong>, non sono accessibili da noi né da terze parti, e sono usate esclusivamente per personalizzare la tua esperienza nella lettura degli ebook su questo sito web.</p>\n"
+"<p><strong>Nota:</strong> Per recuperare e mostrare il contenuto dell'ebook, il plugin interagisce con la REST API di WordPress. Questo processo può comprtare l'uso di <strong>cookie tecnici</strong> impostati da WordPress per garantire una sicura e corretta trasmissione dei dati. Questi cookie non ti tracciano e sono essenziali per il corretto funzionamento del sito web.</p>\n"
+"<p>Puoi cancellare in ogni momento le tue preferenze salvate svuotando il local storage del tuo browser, o utilizzando le impostazioni di privacy del tuo browser.</p>"
