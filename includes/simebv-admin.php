@@ -17,11 +17,39 @@ class SIMEBV_Admin {
     ];
 
     public static function init() {
+        add_action('admin_init', [self::class, 'suggest_privacy_policy']);
         add_filter('upload_mimes', [self::class, 'allow_ebook_uploads']);
         add_action('add_attachment', [self::class, 'handle_ebook_uploads'], 10, 1);
         add_filter('attachment_fields_to_edit', [self::class, 'add_media_custom_field'], 10, 2);
         add_filter('attachment_fields_to_save', [self::class, 'save_media_custom_field'], 10, 2);
         add_filter('wp_check_filetype_and_ext', [self::class, 'allow_azw_uploads'], 100, 5);
+    }
+
+    public static function suggest_privacy_policy() {
+        $policy_text = sprintf(
+            wp_kses_post(
+// translators: Suggested privacy policy. %s: name of the plugin
+                __(
+"<h3>Use of %s plugin</h3>
+<p>Our website uses a plugin to enhance your experience when reading ebooks directly on our site. This plugin does <strong>not</strong> collect, transmit, or share any personal data. It does <strong>not</strong> set cookies or track your activity across websites.</p>
+<p>When you interact with the ebook viewer, the plugin may store certain <strong>preferences locally in your browser</strong> using local storage technology. This information is saved solely to remember your settings and improve your user experience during future visits. These preferences include:</p>
+<ul>
+<li>The last page you viewed</li>
+<li>Your selected font size</li>
+<li>Page margin settings</li>
+<li>Maximum pages displayed per view</li>
+<li>Layout preference (scrolled or paginated)</li>
+<li>Chosen color theme and any color filters</li>
+<li>Zoom level</li>
+</ul>
+<p>This information is stored <strong>only on your device</strong>, is not accessible by us or any third party, and is used exclusively to personalize your ebook reading experience on this website.</p>
+<p><strong>Note:</strong> To retrieve and display the ebook content, the plugin interacts with the WordPress REST API. This process may involve the use of <strong>technical cookies</strong> that are set by WordPress itself to ensure secure and correct data transmission. These cookies do not track you and are essential for the proper functioning of the website.</p>
+<p>You can clear your saved preferences at any time by clearing your browser’s local storage or using your browser's privacy settings.</p>",
+                    'simple-ebook-viewer'
+                ),
+            ), SIMEBV_PLUGIN_NAME
+        );
+        wp_add_privacy_policy_content(SIMEBV_PLUGIN_NAME, $policy_text);
     }
 
     public static function allow_azw_uploads($types, $file, $filename, $mimes, $real_mime) {

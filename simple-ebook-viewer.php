@@ -16,7 +16,6 @@ if (!defined('ABSPATH')) {
 
 
 define('SIMEBV_VERSION', '0.3.1');
-define('SIMEBV_PLUGIN_NAME', 'Simple Ebook Viewer');
 define('SIMEBV_PLUGIN_DIR', plugin_dir_path( __FILE__ ));
 define('SIMEBV_PLUGIN_URL', plugin_dir_url( __FILE__ ));
 
@@ -35,6 +34,7 @@ register_activation_hook(__FILE__, ['SIMEBV_Admin', 'add_ebook_slug_to_all_ebook
 
 function simebv_load_textdomain() {
     load_plugin_textdomain('simple-ebook-viewer', false, dirname(plugin_basename(__FILE__)) . '/languages');
+    define('SIMEBV_PLUGIN_NAME', esc_html__('Simple Ebook Viewer', 'simple-ebook-viewer'));
 }
 
 function simebv_load_textdomain_mofile($mofile, $domain) {
