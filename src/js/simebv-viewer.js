@@ -96,6 +96,8 @@ class Reader {
     #currentSearchResult = []
     #currentSearchResultIndex = -1
     #lastReadPage
+    // don't save user preferences during page load, but only upon user interaction
+    #canSavePreferences = false
     #appliedFilter = {
         activateColorFilter: false,
         invertColorsFilter: 0,
@@ -524,6 +526,7 @@ class Reader {
         }
         this.view.addEventListener('load', this.#onLoad.bind(this))
         this.view.addEventListener('relocate', this.#onRelocate.bind(this))
+        this.view.addEventListener('relocate', () => this.#canSavePreferences = true, { once: true })
         this.view.history.addEventListener('index-change', this.#updateHistoryMenuItems.bind(this))
         this.#lastReadPage = this.getLastReadPage()
 
@@ -804,7 +807,7 @@ class Reader {
     }
 
     #savePreferences(prefs) {
-        if (!storageAvailable('localStorage')) {
+        if (!storageAvailable('localStorage') || !this.#canSavePreferences) {
             return
         }
         for (const [name, value] of prefs) {
@@ -834,7 +837,7 @@ class Reader {
     }
 
     #savePreference(name, value) {
-        if (!storageAvailable('localStorage')) {
+        if (!storageAvailable('localStorage') || !this.#canSavePreferences) {
             return
         }
         localStorage.setItem('simebv-' + name, JSON.stringify(value))
