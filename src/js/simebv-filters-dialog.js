@@ -30,6 +30,7 @@ export function colorFiltersDialog(bookContainer, appliedFilters, fixedLayout = 
     const invertFilterLabel = document.createElement('label')
     invertFilterLabel.innerText = __('Invert colors:', 'simple-ebook-viewer')
     invertFilterLabel.htmlFor = 'simebv-invert-colors-filter'
+    invertFilterLabel.classList.add('simebv-label-disabled')
     p2.append(invertFilterLabel, ' ', invertFilter)
 
     const p3 = document.createElement('p')
@@ -43,6 +44,7 @@ export function colorFiltersDialog(bookContainer, appliedFilters, fixedLayout = 
     const rotateFilterLabel = document.createElement('label')
     rotateFilterLabel.innerText = __('Rotate hues:', 'simple-ebook-viewer')
     rotateFilterLabel.htmlFor = 'simebv-rotate-colors-filter'
+    rotateFilterLabel.classList.add('simebv-label-disabled')
     p3.append(rotateFilterLabel, ' ', rotateFilter)
 
     const p4 = document.createElement('p')
@@ -54,6 +56,7 @@ export function colorFiltersDialog(bookContainer, appliedFilters, fixedLayout = 
     const bgFilterTransparentLabel = document.createElement('label')
     bgFilterTransparentLabel.innerText = __('Transparent background:', 'simple-ebook-viewer')
     bgFilterTransparentLabel.htmlFor = 'simebv-bg-transparent-filter'
+    bgFilterTransparentLabel.classList.add('simebv-label-disabled')
     p4.append(bgFilterTransparentLabel, ' ', bgFilterTransparent)
 
     const p5 = document.createElement('p')
@@ -65,6 +68,7 @@ export function colorFiltersDialog(bookContainer, appliedFilters, fixedLayout = 
     const bgFilterLabel = document.createElement('label')
     bgFilterLabel.innerText = __('Background color:', 'simple-ebook-viewer')
     bgFilterLabel.htmlFor = 'simebv-bg-color-filter'
+    bgFilterLabel.classList.add('simebv-label-disabled')
     p5.append(bgFilterLabel, ' ', bgFilter)
 
     const closeButton = document.createElement('button')
@@ -92,11 +96,37 @@ export function colorFiltersDialog(bookContainer, appliedFilters, fixedLayout = 
     }
 
     const updateEnabled = () => {
-        invertFilter.disabled = !checkbox.checked
-        rotateFilter.disabled = !checkbox.checked
-        if (!fixedLayout) {
-            bgFilterTransparent.disabled = !checkbox.checked
-            bgFilter.disabled = !checkbox.checked || bgFilterTransparent.checked
+        // invertFilter.disabled = !checkbox.checked
+        // rotateFilter.disabled = !checkbox.checked
+        // if (!fixedLayout) {
+        //     bgFilterTransparent.disabled = !checkbox.checked
+        //     bgFilter.disabled = !checkbox.checked || bgFilterTransparent.checked
+        // }
+        if (checkbox.checked) {
+            invertFilter.disabled = false
+            invertFilterLabel.classList.remove('simebv-disabled-label')
+            rotateFilter.disabled = false
+            rotateFilterLabel.classList.remove('simebv-disabled-label')
+            if (!fixedLayout) {
+                bgFilterTransparent.disabled = false
+                bgFilterTransparentLabel.classList.remove('simebv-disabled-label')
+                bgFilter.disabled = bgFilterTransparent.checked
+                if (!bgFilter.disabled) {
+                    bgFilterLabel.classList.remove('simebv-disabled-label')
+                }
+            }
+        }
+        else {
+            invertFilter.disabled = true
+            invertFilterLabel.classList.add('simebv-disabled-label')
+            rotateFilter.disabled = true
+            rotateFilterLabel.classList.add('simebv-disabled-label')
+            if (!fixedLayout) {
+                bgFilterTransparent.disabled = true
+                bgFilterTransparentLabel.classList.add('simebv-disabled-label')
+                bgFilter.disabled = true
+                bgFilterLabel.classList.add('simebv-disabled-label')
+            }
         }
     }
 
@@ -111,6 +141,7 @@ export function colorFiltersDialog(bookContainer, appliedFilters, fixedLayout = 
     rotateFilter.addEventListener('change', updateFilter)
     bgFilterTransparent.addEventListener('change', () => {
         bgFilter.disabled = bgFilterTransparent.checked
+        bgFilterLabel.classList.toggle('simebv-disabled-label')
         updateFilter()
     })
     bgFilter.addEventListener('change', updateFilter)
