@@ -69,7 +69,7 @@ The plugin sets some reasonable defaults for these preferences, but if you're no
 * **`zoom`**
   - accepted values: "**fit-page**", "**fit-width**" or a number in the range **10 - 400** (default: **fit-page**)
 * **`color-scheme`**
-  - accepted values: "**auto**", "**sepia**" (default: **auto**)
+  - accepted values: "**auto**", "**sepia**", "**light**", "**dark**" (default: **auto**)
 
 Layout, max-pages, default-font-size and page-margins are only available for reflowable ebooks, while zoom is only available for fixed layout ones.
 
@@ -92,6 +92,8 @@ You can set the default values for these filters with the following shortcode's 
   - accepted values: a valid CSS hex color code (default: **#FFFFFF**)
 
 Set activate-color-filter to "true" is necessary to enable all the other filters, and set bg-transparent-filter to false is necessary to enable bg-color-filter.
+
+Bg-transparent-filter and bg-color-filter are available for reflowable ebooks only.
 
 Invert-color-filter inverts the lightness of the colors. With a value of 0 it has no effect, with a value of 1, the white will become black and the black will become white.
 
