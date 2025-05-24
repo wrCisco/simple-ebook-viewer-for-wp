@@ -12,13 +12,12 @@ import '../css/simebv-container.css'
 // Import css for the Viewer's UI, as string
 import viewerUiCss from '../css/simebv-viewer.css?raw'
 // CSS to inject in iframe of reflowable ebooks
-const getCSS = ({ spacing, justify, hyphenate, fontSize, colorScheme, bgColor, textColor }) => `
+const getCSS = ({ spacing, justify, hyphenate, fontSize, colorScheme, bgColor }) => `
     @namespace epub "http://www.idpf.org/2007/ops";
     :root {
         color-scheme: ${colorScheme} !important;
         font-size: ${fontSize}px;
         background-color: ${bgColor};
-        ${ textColor ? 'color: ' + textColor + ';' : ''}
     }
     /* https://github.com/whatwg/html/issues/5426 */
     @media all and (prefers-color-scheme: dark) {
@@ -113,7 +112,6 @@ class Reader {
         fontSize: 1,
         colorScheme: 'light dark',
         bgColor: 'transparent',
-        textColor: null,
     }
     annotations = new Map()
     annotationsByValue = new Map()
@@ -284,43 +282,30 @@ class Reader {
                     switch (value) {
                         case 'simebv-sepia':
                             this.#rootDiv.classList.add(value)
-                            // this.container.classList.add(value)
                             this.#rootDiv.classList.remove(
                                 'simebv-supports-dark', 'simebv-light', 'simebv-dark'
                             )
                             this.style.colorScheme = 'only light'
                             this.style.bgColor = '#f9f1cc'
-                            // this.style.textColor = '#090909'
-                            if (this.view) {
-                                this.view.renderer.setStyles?.(getCSS(this.style))
-                                // this.view.style.textColor = '#111111'
-                            }
+                            this.view?.renderer.setStyles?.(getCSS(this.style))
                             break
                         case 'simebv-light':
                             this.#rootDiv.classList.add(value)
-                            // this.container.classList.add(value)
                             this.#rootDiv.classList.remove(
                                 'simebv-supports-dark', 'simebv-sepia', 'simebv-dark'
                             )
                             this.style.colorScheme = 'only light'
                             this.style.bgColor = '#ffffff'
-                            if (this.view) {
-                                this.view.renderer.setStyles?.(getCSS(this.style))
-                                // this.view.style.textColor = '#111111'
-                            }
+                            this.view?.renderer.setStyles?.(getCSS(this.style))
                             break
                         case 'simebv-dark':
                             this.#rootDiv.classList.add(value)
-                            // this.container.classList.add(value)
                             this.#rootDiv.classList.remove(
                                 'simebv-supports-dark', 'simebv-sepia', 'simebv-light'
                             )
                             this.style.colorScheme = 'only dark'
                             this.style.bgColor = '#090909'
-                            if (this.view) {
-                                this.view.renderer.setStyles?.(getCSS(this.style))
-                                // this.view.style.textColor = '#ffffff'
-                            }
+                                this.view?.renderer.setStyles?.(getCSS(this.style))
                             break
                         case 'auto':
                         default:
@@ -328,13 +313,9 @@ class Reader {
                             this.#rootDiv.classList.remove(
                                 'simebv-sepia', 'simebv-light', 'simebv-dark'
                             )
-                            // this.container.classList.remove('simebv-sepia')
                             this.style.colorScheme = 'light dark'
                             this.style.bgColor = 'transparent'
-                            if (this.view) {
-                                this.view.renderer.setStyles?.(getCSS(this.style))
-                                this.view.style.textColor = null
-                            }
+                            this.view?.renderer.setStyles?.(getCSS(this.style))
                     }
                     this.#savePreference('colors', value)
                 },
