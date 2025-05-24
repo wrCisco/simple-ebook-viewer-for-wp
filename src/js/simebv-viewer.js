@@ -12,12 +12,13 @@ import '../css/simebv-container.css'
 // Import css for the Viewer's UI, as string
 import viewerUiCss from '../css/simebv-viewer.css?raw'
 // CSS to inject in iframe of reflowable ebooks
-const getCSS = ({ spacing, justify, hyphenate, fontSize, colorScheme, bgColor }) => `
+const getCSS = ({ spacing, justify, hyphenate, fontSize, colorScheme, bgColor, textColor }) => `
     @namespace epub "http://www.idpf.org/2007/ops";
     :root {
         color-scheme: ${colorScheme} !important;
         font-size: ${fontSize}px;
-        background-color: ${bgColor}
+        background-color: ${bgColor};
+        ${ textColor ? 'color: ' + textColor + ';' : ''}
     }
     /* https://github.com/whatwg/html/issues/5426 */
     @media all and (prefers-color-scheme: dark) {
@@ -112,6 +113,7 @@ class Reader {
         fontSize: 1,
         colorScheme: 'light dark',
         bgColor: 'transparent',
+        textColor: null,
     }
     annotations = new Map()
     annotationsByValue = new Map()
@@ -275,27 +277,68 @@ class Reader {
                 items: [
                     [_x('Auto', 'Theme color', 'simple-ebook-viewer'), 'auto'],
                     [_x('Sepia', 'Theme color', 'simple-ebook-viewer'), 'simebv-sepia'],
+                    [_x('Light', 'Theme color', 'simple-ebook-viewer'), 'simebv-light'],
+                    [_x('Dark', 'Theme color', 'simple-ebook-viewer'), 'simebv-dark'],
                 ],
                 onclick: value => {
-                    if (value === 'simebv-sepia') {
-                        this.#rootDiv.classList.add(value)
-                        this.container.classList.add(value)
-                        this.#rootDiv.classList.remove('simebv-supports-dark')
-                        this.style.colorScheme = 'only light'
-                        this.style.bgColor = '#f9f1cc'
-                        this.view?.renderer.setStyles?.(getCSS(this.style))
-                    }
-                    else {
-                        this.#rootDiv.classList.remove('simebv-sepia')
-                        this.container.classList.remove('simebv-sepia')
-                        this.#rootDiv.classList.add('simebv-supports-dark')
-                        this.style.colorScheme = 'light dark'
-                        this.style.bgColor = 'transparent'
-                        this.view?.renderer.setStyles?.(getCSS(this.style))
+                    switch (value) {
+                        case 'simebv-sepia':
+                            this.#rootDiv.classList.add(value)
+                            // this.container.classList.add(value)
+                            this.#rootDiv.classList.remove(
+                                'simebv-supports-dark', 'simebv-light', 'simebv-dark'
+                            )
+                            this.style.colorScheme = 'only light'
+                            this.style.bgColor = '#f9f1cc'
+                            // this.style.textColor = '#090909'
+                            if (this.view) {
+                                this.view.renderer.setStyles?.(getCSS(this.style))
+                                // this.view.style.textColor = '#111111'
+                            }
+                            break
+                        case 'simebv-light':
+                            this.#rootDiv.classList.add(value)
+                            // this.container.classList.add(value)
+                            this.#rootDiv.classList.remove(
+                                'simebv-supports-dark', 'simebv-sepia', 'simebv-dark'
+                            )
+                            this.style.colorScheme = 'only light'
+                            this.style.bgColor = '#ffffff'
+                            if (this.view) {
+                                this.view.renderer.setStyles?.(getCSS(this.style))
+                                // this.view.style.textColor = '#111111'
+                            }
+                            break
+                        case 'simebv-dark':
+                            this.#rootDiv.classList.add(value)
+                            // this.container.classList.add(value)
+                            this.#rootDiv.classList.remove(
+                                'simebv-supports-dark', 'simebv-sepia', 'simebv-light'
+                            )
+                            this.style.colorScheme = 'only dark'
+                            this.style.bgColor = '#090909'
+                            if (this.view) {
+                                this.view.renderer.setStyles?.(getCSS(this.style))
+                                // this.view.style.textColor = '#ffffff'
+                            }
+                            break
+                        case 'auto':
+                        default:
+                            this.#rootDiv.classList.add('simebv-supports-dark')
+                            this.#rootDiv.classList.remove(
+                                'simebv-sepia', 'simebv-light', 'simebv-dark'
+                            )
+                            // this.container.classList.remove('simebv-sepia')
+                            this.style.colorScheme = 'light dark'
+                            this.style.bgColor = 'transparent'
+                            if (this.view) {
+                                this.view.renderer.setStyles?.(getCSS(this.style))
+                                this.view.style.textColor = null
+                            }
                     }
                     this.#savePreference('colors', value)
                 },
-                horizontal: true,
+                horizontal: false,
             },
             {
                 name: 'colorFilter',
@@ -400,9 +443,9 @@ class Reader {
         return this.container.getBoundingClientRect().height
     }
 
-    createFilterDialog(bookContainer) {
+    createFilterDialog(bookContainer, isFixedLayout) {
         if (!this.#colorsFilterDialog) {
-            this.#colorsFilterDialog = colorFiltersDialog(bookContainer, this.#appliedFilter)
+            this.#colorsFilterDialog = colorFiltersDialog(bookContainer, this.#appliedFilter, isFixedLayout)
             this.#colorsFilterDialog.id = 'simebv-colors-filter-dialog'
             this.#rootDiv.append(this.#colorsFilterDialog)
             this.#colorsFilterDialog.addEventListener('close', () => {
@@ -667,7 +710,7 @@ class Reader {
             ])
         }
         this.#loadFilterPreferences()
-        this.createFilterDialog(this.#rootDiv)
+        this.createFilterDialog(this.#rootDiv, this.view.isFixedLayout)
     }
 
     #updateHistoryMenuItems() {
@@ -854,6 +897,8 @@ class Reader {
         const converter = {
             colors: {
                 sepia: 'simebv-sepia',
+                light: 'simebv-light',
+                dark: 'simebv-dark',
             },
             margins: {
                 small: '4%',

@@ -2,6 +2,8 @@
     font-family: ManropeVar, sans-serif;
     color-scheme: light dark;
     --sepia-color: #f9f1cc;
+    --bg-light-color: #ffffff;
+    --bg-dark-color: #090909;
     --reader-bg: transparent;
     --active-bg: rgba(0, 0, 0, .05);
     --menu-bg: Canvas;
@@ -40,6 +42,9 @@ foliate-view::part(filter) {
     background-color: var(--book-bg-color);
     filter: none; /*var(--book-colors-filter);*/
 }
+foliate-fxl::part(filter) {
+    background-color: var(--book-bg-color);
+}
 #simebv-reader-root {
     height: 100%;
     width: 100%;
@@ -52,6 +57,35 @@ foliate-view::part(filter) {
     --reader-bg: var(--sepia-color);
     --menu-bg: var(--reader-bg);
     --sidebar-bg: var(--reader-bg);
+}
+#simebv-reader-root.simebv-light {
+    color-scheme: only light;
+    --active-bg: rgba(0, 0, 0, .05);
+    --reader-bg: var(--bg-light-color);
+    --menu-bg: var(--reader-bg);
+    --sidebar-bg: var(--reader-bg);
+    --menu-group-separator-color: rgba(200, 200, 200, 1);
+    --menu-box-shadow: 0 0 0 1px rgba(0, 0, 0, .2), 0 0 16px rgba(0, 0, 0, .1);
+    --border-box-shadow: 0 0 0 1px rgba(0, 0, 0, .2);
+    --side-bar-box-shadow-color: rgba(0, 0, 0, .1);
+    --enabled-dot: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22%2F%3E%3C%2Fsvg%3E');
+    --gray-text: GrayText;
+}
+#simebv-reader-root.simebv-dark {
+    color-scheme: only dark;
+    --active-bg: rgba(255, 255, 255, .1);
+    --reader-bg: var(--bg-dark-color);
+    --menu-bg: var(--reader-bg);
+    --sidebar-bg: var(--reader-bg);
+    --menu-group-separator-color: rgba(255, 255, 255, .3);
+    --menu-box-shadow: 0 0 0 1px rgba(255, 255, 255, .3), 0 0 6px rgba(255, 255, 255, .1);
+    --border-box-shadow: 0 0 0 1px rgba(255, 255, 255, .3);
+    --side-bar-box-shadow-color: rgba(255, 255, 255, .1);
+    --enabled-dot: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23FFFFFF%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22%2F%3E%3C%2Fsvg%3E');
+    --gray-text: rgb(132, 132, 132);
+}
+#simebv-reader-root.simebv-dark a:link {
+    color: lightblue;
 }
 #simebv-book-container {
     position: absolute;

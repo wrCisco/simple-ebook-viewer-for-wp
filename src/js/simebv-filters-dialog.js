@@ -1,6 +1,6 @@
 const { __, _x, _n, sprintf } = wp.i18n;
 
-export function colorFiltersDialog(bookContainer, appliedFilters) {
+export function colorFiltersDialog(bookContainer, appliedFilters, fixedLayout = false) {
     const dlg = document.createElement('dialog')
     const form = document.createElement('form')
     form.setAttribute('method', 'dialog')
@@ -72,10 +72,10 @@ export function colorFiltersDialog(bookContainer, appliedFilters) {
     closeButton.innerText = __('OK', 'simple-ebook-viewer')
 
     const updateFilter = () => {
-        if (appliedFilters) {
-            if (!invertFilter.disabled) {
-                appliedFilters.invertColorsFilter = invertFilter.value
-                appliedFilters.rotateColorsFilter = rotateFilter.value
+        if (appliedFilters && !invertFilter.disabled) {
+            appliedFilters.invertColorsFilter = invertFilter.value
+            appliedFilters.rotateColorsFilter = rotateFilter.value
+            if (!fixedLayout) {
                 appliedFilters.bgFilterTransparent = bgFilterTransparent.checked
                 if (!bgFilterTransparent.checked) {
                     appliedFilters.bgColorsFilter = bgFilter.value
@@ -83,9 +83,9 @@ export function colorFiltersDialog(bookContainer, appliedFilters) {
             }
         }
         const val = invertFilter.disabled ? 'none' : `invert(${invertFilter.value}) hue-rotate(${rotateFilter.value}deg)`
-        const bg = bgFilter.disabled ? 'transparent' : bgFilter.value
         const book = bookContainer.querySelector('foliate-view')
-        if (book) {
+        if (book && !fixedLayout) {
+            const bg = bgFilter.disabled ? 'transparent' : bgFilter.value
             book.style.setProperty('--book-bg-color', bg)
         }
         bookContainer.style.setProperty('--book-colors-filter', val)
@@ -94,8 +94,10 @@ export function colorFiltersDialog(bookContainer, appliedFilters) {
     const updateEnabled = () => {
         invertFilter.disabled = !checkbox.checked
         rotateFilter.disabled = !checkbox.checked
-        bgFilterTransparent.disabled = !checkbox.checked
-        bgFilter.disabled = !checkbox.checked || bgFilterTransparent.checked
+        if (!fixedLayout) {
+            bgFilterTransparent.disabled = !checkbox.checked
+            bgFilter.disabled = !checkbox.checked || bgFilterTransparent.checked
+        }
     }
 
     checkbox.addEventListener('change', () => {
@@ -115,6 +117,11 @@ export function colorFiltersDialog(bookContainer, appliedFilters) {
 
     form.append(p1, p2, p3, p4, p5, closeButton)
     dlg.append(form)
+
+    if (fixedLayout) {
+        p4.style.display = 'none'
+        p5.style.display = 'none'
+    }
 
     updateEnabled()
     updateFilter()
