@@ -88,6 +88,12 @@
             "Theme color\u0004Sepia": [
                 "Seppia"
             ],
+            "Theme color\u0004Light": [
+                "Chiaro"
+            ],
+            "Theme color\u0004Dark": [
+                "Scuro"
+            ],
             "History": [
                 "Cronologia"
             ],

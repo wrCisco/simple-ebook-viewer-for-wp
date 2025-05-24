@@ -15,7 +15,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: simple-ebook-viewer.php
-#: simple-ebook-viewer.php:38
+#: simple-ebook-viewer.php:37
 msgid "Simple Ebook Viewer"
 msgstr ""
 
@@ -37,75 +37,75 @@ msgstr "Sembra che JavaScript non sia abilitato nel tuo browser, è necessario c
 msgid "No Web Publication file provided."
 msgstr "Non è stata fornita alcuna pubblicazione."
 
-#: src/js/simebv-viewer.js:206
+#: src/js/simebv-viewer.js:208
 msgid "Paginated"
 msgstr "Pagine"
 
-#: src/js/simebv-viewer.js:207
+#: src/js/simebv-viewer.js:209
 msgid "Scrolled"
 msgstr "Scorrimento"
 
-#: src/js/simebv-viewer.js:225
+#: src/js/simebv-viewer.js:227
 msgid "Max pages per view"
 msgstr "Max pagine per vista"
 
-#: src/js/simebv-viewer.js:203
+#: src/js/simebv-viewer.js:205
 msgid "Layout"
 msgstr "Layout"
 
-#: src/js/simebv-viewer.js:238
+#: src/js/simebv-viewer.js:240
 msgid "Font Size"
 msgstr "Grandezza del testo"
 
-#: src/js/simebv-viewer.js:257
+#: src/js/simebv-viewer.js:259
 msgid "Page Margins"
 msgstr "Margini"
 
-#: src/js/simebv-viewer.js:273
+#: src/js/simebv-viewer.js:275
 msgid "Colors"
 msgstr "Colori"
 
-#: src/js/simebv-viewer.js:170
+#: src/js/simebv-viewer.js:172
 msgid "Search..."
 msgstr "Cerca..."
 
 #. translators: %1s: page number
-#: src/js/simebv-viewer.js:781
+#: src/js/simebv-viewer.js:824
 #, js-format
 msgid "Page %1$s"
 msgstr "Pagina %1$s"
 
 #. translators: Loc: contraction for 'Location' in the book, followed by a numerical fraction
-#: src/js/simebv-viewer.js:785
+#: src/js/simebv-viewer.js:828
 #, js-format
 msgid "Loc %1$s/%2$s"
 msgstr "Loc %1$s/%2$s"
 
-#: src/js/simebv-viewer.js:925
+#: src/js/simebv-viewer.js:968
 msgid "Loading..."
 msgstr "Caricamento..."
 
-#: src/js/simebv-viewer.js:927
+#: src/js/simebv-viewer.js:970
 msgid "Show sidebar"
 msgstr "Mostra barra laterale"
 
-#: src/js/simebv-viewer.js:931
+#: src/js/simebv-viewer.js:974
 msgid "No title"
 msgstr "Senza titolo"
 
-#: src/js/simebv-viewer.js:933
+#: src/js/simebv-viewer.js:976
 msgid "Show settings"
 msgstr "Mostra impostazioni"
 
-#: src/js/simebv-viewer.js:938
+#: src/js/simebv-viewer.js:981
 msgid "Full screen"
 msgstr "Schermo intero"
 
-#: src/js/simebv-viewer.js:943
+#: src/js/simebv-viewer.js:986
 msgid "Go left"
 msgstr "Vai a sinistra"
 
-#: src/js/simebv-viewer.js:948
+#: src/js/simebv-viewer.js:991
 msgid "Go right"
 msgstr "Vai a destra"
 
@@ -126,90 +126,90 @@ msgstr "Successivo"
 msgid "Close"
 msgstr "Chiudi"
 
-#: src/js/simebv-viewer.js:241
+#: src/js/simebv-viewer.js:243
 msgctxt "Font Size"
 msgid "Small"
 msgstr "Piccola"
 
-#: src/js/simebv-viewer.js:242
+#: src/js/simebv-viewer.js:244
 msgctxt "Font Size"
 msgid "Medium"
 msgstr "Media"
 
-#: src/js/simebv-viewer.js:243
+#: src/js/simebv-viewer.js:245
 msgctxt "Font Size"
 msgid "Large"
 msgstr "Grande"
 
-#: src/js/simebv-viewer.js:244
+#: src/js/simebv-viewer.js:246
 msgctxt "Font Size"
 msgid "X-Large"
 msgstr "Molto grande"
 
-#: src/js/simebv-viewer.js:260
+#: src/js/simebv-viewer.js:262
 msgctxt "Margins"
 msgid "Small"
 msgstr "Stretti"
 
-#: src/js/simebv-viewer.js:261
+#: src/js/simebv-viewer.js:263
 msgctxt "Margins"
 msgid "Medium"
 msgstr "Medi"
 
-#: src/js/simebv-viewer.js:262
+#: src/js/simebv-viewer.js:264
 msgctxt "Margins"
 msgid "Large"
 msgstr "Larghi"
 
-#: src/js/simebv-viewer.js:276
+#: src/js/simebv-viewer.js:278
 msgctxt "Theme color"
 msgid "Auto"
 msgstr "Auto"
 
-#: src/js/simebv-viewer.js:277
+#: src/js/simebv-viewer.js:279
 msgctxt "Theme color"
 msgid "Sepia"
 msgstr "Seppia"
 
 #. translators: %s: example of an ebook slug based on the opened ebook
-#: includes/simebv-admin.php:124
+#: includes/simebv-admin.php:112
 #, php-format
 msgid "Use this slug in the shortcode \"simebv_viewer\" to view the ebook in your pages (e.g. [simebv_viewer book=\"%s\"]). If left empty, the value of post_name will be used instead."
 msgstr "Usa questo slug nello shortcode \"simebv_viewer\" per visualizzare l'ebook nelle tue pagine (e.g. [simebv_viewer book=\"%s\"]). Se lasciato vuoto, verrà usato al suo posto il valore di post_name."
 
-#: src/js/simebv-viewer.js:180
+#: src/js/simebv-viewer.js:182
 msgid "History"
 msgstr "Cronologia"
 
-#: src/js/simebv-viewer.js:185
+#: src/js/simebv-viewer.js:187
 msgid "Previous"
 msgstr "Precedente"
 
-#: src/js/simebv-viewer.js:193
+#: src/js/simebv-viewer.js:195
 msgid "Next"
 msgstr "Successivo"
 
-#: src/js/simebv-viewer.js:311
+#: src/js/simebv-viewer.js:354
 msgid "Zoom"
 msgstr "Zoom"
 
-#: src/js/simebv-viewer.js:314
+#: src/js/simebv-viewer.js:357
 msgid "Fit page"
 msgstr "Adatta alla pagina"
 
-#: src/js/simebv-viewer.js:315
+#: src/js/simebv-viewer.js:358
 msgid "Fit width"
 msgstr "Adatta alla larghezza"
 
-#: src/js/simebv-viewer.js:316
+#: src/js/simebv-viewer.js:359
 msgid "Custom"
 msgstr "Personalizzato"
 
-#: src/js/simebv-viewer.js:1065
+#: src/js/simebv-viewer.js:1108
 msgid "Error: I couldn't retrieve the book to display."
 msgstr "Errore: non ho potuto recuperare il libro da mostrare."
 
-#: src/js/simebv-viewer.js:1071
+#: src/js/simebv-viewer.js:1114
 msgid "Resource not found on the server"
 msgstr "Risorsa non trovata nel server"
 
@@ -237,12 +237,12 @@ msgstr "Colore di sfondo:"
 msgid "OK"
 msgstr "OK"
 
-#: src/js/simebv-viewer.js:302
+#: src/js/simebv-viewer.js:345
 msgid "Color filter..."
 msgstr "Filtro colore..."
 
 #. translators: Suggested privacy policy. %s: name of the plugin
-#: includes/simebv-admin.php:31
+#: includes/simebv-admin.php:32
 #, php-format
 msgid ""
 "<h3>Use of %s plugin</h3>\n"
@@ -275,3 +275,13 @@ msgstr ""
 "<p>Queste informazioni sono memorizzate <strong>solo sul tuo dispositivo</strong>, non sono accessibili da noi né da terze parti, e sono usate esclusivamente per personalizzare la tua esperienza nella lettura degli ebook su questo sito web.</p>\n"
 "<p><strong>Nota:</strong> Per recuperare e mostrare il contenuto dell'ebook, il plugin interagisce con la REST API di WordPress. Questo processo può comprtare l'uso di <strong>cookie tecnici</strong> impostati da WordPress per garantire una sicura e corretta trasmissione dei dati. Questi cookie non ti tracciano e sono essenziali per il corretto funzionamento del sito web.</p>\n"
 "<p>Puoi cancellare in ogni momento le tue preferenze salvate svuotando il local storage del tuo browser, o utilizzando le impostazioni di privacy del tuo browser.</p>"
+
+#: src/js/simebv-viewer.js:280
+msgctxt "Theme color"
+msgid "Light"
+msgstr "Chiaro"
+
+#: src/js/simebv-viewer.js:281
+msgctxt "Theme color"
+msgid "Dark"
+msgstr "Scuro"
