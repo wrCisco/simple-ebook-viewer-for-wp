@@ -99,6 +99,28 @@ Invert-color-filter inverts the lightness of the colors. With a value of 0 it ha
 
 Rotate-color-filter rotates the hues of all the colors in the ebook, like in a [Color Wheel](https://developer.mozilla.org/en-US/docs/Glossary/Color_wheel) (so, no effect on black and white).
 
+### Development
+
+With `nodejs` and `npm` installed, you can clone the git repository on your device and run in the folder of your local repo:
+```
+npm install
+npm run dev
+```
+This will activate the vite development server. Provided that your local repository is in the plugins folder of a working Wordpress installation, you'll be able to use the plugin in the Wordpress instance.
+
+To build the frontend assets, in order to use them without the development server, run:
+```
+npm run build
+```
+
+After the build, the files and folders required for the plugin to work will be:
+* ./simple-ebook-viewer.php
+* ./uninstall.php
+* ./vendor/vite-for-wp/vite-for-wp.php
+* ./dist
+* ./includes
+* ./languages
+
 ### Privacy
 
 This plugin does not track in any way its users. It uses the WordPress REST API to retrieve the url of the ebooks to display, so it uses the technical cookies setup by WordPress to assure the correctness and the security of the communication.
