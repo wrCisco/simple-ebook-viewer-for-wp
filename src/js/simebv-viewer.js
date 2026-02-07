@@ -6,7 +6,7 @@ import { createTOCView } from '../../vendor/foliate-js/ui/tree.js'
 import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
 import * as CFI from '../../vendor/foliate-js/epubcfi.js'
 import { storageAvailable, isNumeric, pageListOutline } from './simebv-utils.js'
-import { transformDoc, convertFontSizePxToRem, getCSS } from './simebv-transform-ebook.js'
+import { transformDoc, convertFontSizePxToRem, defaultStyles, getCSS } from './simebv-transform-ebook.js'
 import { searchDialog } from './simebv-search-dialog.js'
 import { colorFiltersDialog } from './simebv-filters-dialog.js'
 import { metadataDialog, MetadataFormatter } from './simebv-metadata-dialog.js'
@@ -74,16 +74,7 @@ export class Reader {
         bgFilterTransparent: true,
         bgColorsFilter: '#FFFFFF',
     }
-    style = {
-        spacing: 1.4,
-        justify: true,
-        hyphenate: true,
-        fontSize: 1,
-        colorScheme: 'light dark',
-        bgColor: 'transparent',
-        forcedColorScheme: '',
-        fontFamily: 'auto',
-    }
+    style = { ...defaultStyles }
     annotations = new Map()
     annotationsByValue = new Map()
     pageList = new Map()
@@ -549,8 +540,6 @@ export class Reader {
             this._bookContainer.classList.remove('simebv-fxd-layout')
         }
         this.view.addEventListener('load', this._onLoad.bind(this))
-        this.view.addEventListener('relocate', this._onRelocate.bind(this))
-        this.view.addEventListener('relocate', () => this._canSavePreferences = true, { once: true })
         this.view.history.addEventListener('index-change', this._updateHistoryMenuItems.bind(this))
         this._lastReadPage = this._getLastReadPage()
         const newBookEvent = new CustomEvent('new-book', { detail: {
@@ -690,13 +679,19 @@ export class Reader {
         this._createAnnotationsDialog()
         this._setInitialFontFamily(fontFamily)
 
+        this.view.renderer.setStyles?.(getCSS(this.style))
+
         if (this._lastReadPage != null) {
+            let lastLocation = this._lastReadPage
+            if (lastLocation <= 1 && lastLocation >= 0) {
+                lastLocation = { fraction: lastLocation }
+            }
+            else if (typeof lastLocation !== 'string') {
+                lastLocation = null
+            }
             try {
-                if (typeof this._lastReadPage === 'string') {
-                    await this.view.init({lastLocation: this._lastReadPage})
-                }
-                else if (this._lastReadPage <= 1 && this._lastReadPage >= 0) {
-                    await this.view.init({lastLocation: { fraction: this._lastReadPage }})
+                if (lastLocation) {
+                    await this.view.init({lastLocation})
                 }
             }
             catch (e) {
@@ -705,9 +700,20 @@ export class Reader {
             }
         }
 
-        this.view.renderer.setStyles?.(getCSS(this.style))
         if (!this._lastReadPage) this.view.renderer.next()
 
+        this.view.addEventListener('relocate', this._onRelocate.bind(this))
+        // The relocate event fires multiple times from foliate-js during the
+        // ebook opening. These initial relocate events should not trigger
+        // a change in _canSavePreferences.
+        // TODO: use a more robust approach.
+        setTimeout(
+            () => {
+                this.view.addEventListener(
+                'relocate', () => this._canSavePreferences = true, { once: true }
+            )},
+            1000,
+        )
         document.dispatchEvent(new CustomEvent('simebv-ebook-loaded'))
 
     }
@@ -906,28 +912,38 @@ export class Reader {
             (this.getBookIdentifier() ?? this.getCurrentTitle()) + '_LastPage', detail.cfi ?? fraction
         )
         const percent = percentFormat.format(fraction)
-        const loc = pageItem
-            ? sprintf(
-                /* translators: %1$s: page number */
-                __('Page %1$s', 'simple-ebook-viewer'), pageItem.label
-            )
-            : sprintf(
-                /* translators: Location in the book, followed by a numerical fraction */
-                __('Location %1$s/%2$s', 'simple-ebook-viewer'), location.current + 1, location.total
-            )
         let currentPage = location.current + 1
         let totalPages = location.total
         if (this.view.isFixedLayout) {
             currentPage = section.current + 1
             totalPages = section.total
         }
-        const page = pageItem
-            ? sprintf(
+        let loc
+        let page
+        if (pageItem) {
+            loc = sprintf(
                 /* translators: %1$s: page number */
-                __('Page %1$s', 'simple-ebook-viewer'), pageItem.label)
-            : sprintf(
+                __('Page %1$s', 'simple-ebook-viewer'), pageItem.label
+            )
+            page = sprintf(
+                /* translators: %1$s: page number */
+                __('Page %1$s', 'simple-ebook-viewer'), pageItem.label
+            )
+        }
+        else if (this.view.book.pageList?.length) {
+            loc = __('Front matter', 'simple-ebook-viewer')
+            page = __('Front matter', 'simple-ebook-viewer')
+        }
+        else {
+            loc = sprintf(
+                /* translators: Location in the book, followed by a numerical fraction */
+                __('Location %1$s/%2$s', 'simple-ebook-viewer'), location.current + 1, location.total
+            )
+            page = sprintf(
                 /* translators: current page number / total pages number */
-                __('Page %1$s / %2$s', 'simple-ebook-viewer'), currentPage, totalPages)
+                __('Page %1$s / %2$s', 'simple-ebook-viewer'), currentPage, totalPages
+            )
+        }
         this._navBar.dispatchEvent(new CustomEvent('relocate', { detail: {
             sliderValue: fraction,
             sliderTitle: `${percent} · ${loc}`,
@@ -960,12 +976,14 @@ export class Reader {
 
     _setInitialFontFamily(fontFamilyAttr) {
         let fontFamily = this._loadPreference('font-family')
-        if (!fontFamily && fontFamilyAttr !== 'auto') {
+        if (!fontFamily && fontFamilyAttr) {
             fontFamily = fontFamilyAttr
             // this usually won't have an effect (this._canSavePreferences is initially set to false)
             this._savePreference('font-family', fontFamily)
         }
-        this.style.fontFamily = fontFamily
+        if (fontFamily) {
+            this.style.fontFamily = fontFamily
+        }
     }
 
     _savePreferences(prefs) {
