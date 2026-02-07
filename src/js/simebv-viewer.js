@@ -904,6 +904,47 @@ export class Reader {
                 }
             })
         }
+        // Allow horizontal scrolling of overflowing elements
+        let hScrolling = false
+        doc.addEventListener('touchstart', (e) => {
+            let elem
+            const touch = e.changedTouches[0]
+            for (const el of doc.elementsFromPoint(touch.clientX, touch.clientY)) {
+                if (el === doc.body) {
+                    break
+                }
+                if (el.scrollWidth && el.scrollWidth > el.clientWidth) {
+                    const before = el.scrollLeft
+                    el.scrollLeft += 1
+                    if (el.scrollLeft === before) {
+                        el.scrollLeft -= 1
+                    }
+                    if (el.scrollLeft !== before) {
+                        el.scrollLeft = before
+                        elem = el
+                        break
+                    }
+                }
+            }
+            if (elem) {
+                hScrolling = elem
+                e.preventDefault()
+                e.stopPropagation()
+            }
+        }, {capture: true})
+        doc.addEventListener('touchmove', (e) => {
+            if (hScrolling && e.touches.length === 1) {
+                e.preventDefault()
+                e.stopPropagation()
+            }
+        }, {capture: true})
+        doc.addEventListener('touchend', (e) => {
+            if (hScrolling) {
+                hScrolling = false
+                e.preventDefault()
+                e.stopPropagation()
+            }
+        }, {capture: true})
     }
 
     _onRelocate({ detail }) {
