@@ -1,3 +1,5 @@
+import { safeCSSString } from './simebv-utils.js'
+
 export function transformDoc(data, type, ops) {
     try {
         let doc
@@ -63,8 +65,32 @@ export function convertFontSizePxToRem(data, defaultSize) {
 }
 
 
+import openDyslexicRegular from "../../resources/fonts/opendyslexic/OpenDyslexic-Regular.woff2?url"
+import openDyslexicBold from "../../resources/fonts/opendyslexic/OpenDyslexic-Bold.woff2?url"
+import openDyslexicItalic from "../../resources/fonts/opendyslexic/OpenDyslexic-Italic.woff2?url"
+import openDyslexicBoldItalic from "../../resources/fonts/opendyslexic/OpenDyslexic-BoldItalic.woff2?url"
+
+export const defaultStyles = Object.freeze({
+    spacing: 1.4,
+    justify: true,
+    hyphenate: true,
+    fontSize: 1,
+    colorScheme: 'light dark',
+    bgColor: 'transparent',
+    forcedColorScheme: '',
+    fontFamily: 'auto',
+})
+
 // CSS to inject in iframe of reflowable ebooks
-export const getCSS = ({ spacing, justify, hyphenate, fontSize, colorScheme, bgColor, forcedColorScheme, fontFamily }) => `
+export const getCSS = ({ spacing, justify, hyphenate, fontSize, colorScheme, bgColor, forcedColorScheme, fontFamily }) => {
+    spacing = safeCSSString(spacing) ?? defaultStyles.spacing
+    fontSize = safeCSSString(fontSize) ?? defaultStyles.fontSize
+    colorScheme = safeCSSString(colorScheme) ?? defaultStyles.colorScheme
+    bgColor = safeCSSString(bgColor) ?? defaultStyles.bgColor
+    forcedColorScheme = safeCSSString(forcedColorScheme) ?? defaultStyles.forcedColorScheme
+    fontFamily = safeCSSString(fontFamily, true) ?? defaultStyles.fontFamily
+
+    return `
     @namespace epub "http://www.idpf.org/2007/ops";
     :root {
         color-scheme: ${colorScheme} !important;
@@ -93,9 +119,42 @@ export const getCSS = ({ spacing, justify, hyphenate, fontSize, colorScheme, bgC
         ? 'body, body * { color: #000000 !important; background-color: ' + bgColor + ' !important; border-color: #000000 !important; }'
         : ''
     }
-    ${fontFamily !== 'auto'
-        ? 'body, body * { font-family: ' + fontFamily + ' !important; }'
-        : ''
+    @font-face {
+        font-family: "OpenDyslexic";
+        src:
+            local("OpenDyslexic")
+            local("OpenDyslexic-Regular")
+            local("OpenDyslexic Regular")
+            url("${openDyslexicRegular}") format("woff2");
+    }
+    @font-face {
+        font-family: "OpenDyslexic";
+        src:
+            local("OpenDyslexic-Bold")
+            local("OpenDyslexic Bold")
+            url("${openDyslexicBold}") format("woff2");
+        font-weight: bold;
+    }
+    @font-face {
+        font-family: "OpenDyslexic";
+        src:
+            local("OpenDyslexic-Italic")
+            local("OpenDyslexic Italic")
+            url("${openDyslexicItalic}") format("woff2");
+        font-style: italic;
+    }
+    @font-face {
+        font-family: "OpenDyslexic";
+        src:
+            local("OpenDyslexic-BoldItalic")
+            local("OpenDyslexic Bold Italic")
+            url("${openDyslexicBoldItalic}") format("woff2");
+        font-style: italic;
+        font-weight: bold;
+    }
+    ${['auto', 'undefined'].includes(fontFamily)
+        ? ''
+        : 'body, body :not(math):not(math *) { font-family: ' + fontFamily + ' !important; }'
     }
     p, li, blockquote, dd {
         line-height: ${spacing};
@@ -127,3 +186,4 @@ export const getCSS = ({ spacing, justify, hyphenate, fontSize, colorScheme, bgC
         text-decoration: underline dotted .1em;
     }
 `
+}

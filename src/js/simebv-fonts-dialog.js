@@ -65,11 +65,25 @@ export function fontsDialog(reader, injectCSS) {
     monospaceLabel.style.fontFamily = 'monospace'
     monospaceContainer.append(monospace, monospaceLabel)
 
+    const openDyslexicContainer = document.createElement('div')
+    const openDyslexic = document.createElement('input')
+    openDyslexic.type = 'radio'
+    openDyslexic.id = 'simebv-font-opendyslexic'
+    openDyslexic.name = 'simebv-font-family'
+    openDyslexic.value = 'OpenDyslexic'
+    openDyslexic.checked = false
+    const openDyslexicLabel = document.createElement('label')
+    openDyslexicLabel.htmlFor = 'simebv-font-opendyslexic'
+    openDyslexicLabel.textContent = __('OpenDyslexic', 'simple-ebook-viewer')
+    openDyslexicLabel.style.fontFamily = 'OpenDyslexic'
+    openDyslexicContainer.append(openDyslexic, openDyslexicLabel)
+
     fieldset.append(
         autoContainer,
         serifContainer,
         sansSerifContainer,
         monospaceContainer,
+        openDyslexicContainer,
     )
 
     const buttons = document.createElement('div')
@@ -92,6 +106,7 @@ export function fontsDialog(reader, injectCSS) {
         'serif': serif,
         'sans-serif': sansSerif,
         'monospace': monospace,
+        'OpenDyslexic': openDyslexic,
     }
     const initialChecked = reader._loadPreference('font-family') ?? reader.style.fontFamily
     if (initialChecked && families[initialChecked]) {

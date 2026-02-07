@@ -31,6 +31,51 @@ export function getLang(el) {
     }
 }
 
+/**
+ * Sanitizes the input string for safe use as a CSS property
+ * value (e.g., a font-family name, or a color).
+ *
+ * It uses a somewhat draconian approach, removing all
+ * the characters that are not letters, numbers, simple spaces,
+ * or a selected set of punctuation characters,
+ * ( /%:.#()_- ), so its use is limited to specific values.
+ *
+ * @param {string} input - string to sanitize.
+ * @returns {string} A quoted and sanitized value.
+ */
+export function sanitizeCSSString(input) {
+  const cleaned = input
+    .normalize('NFC')
+    .replace(/[^\p{L}\p{N} /%:.#()_-]/gu, '')
+  return `"${cleaned}"`
+}
+
+/**
+ * Tests the safety of a string that have to be inserted
+ * in a CSS as a property value (e.g. a font-family name
+ * or a color).
+ *
+ * It admits any letter or number, the simple white space
+ * and a selected set of punctuation characters (/%:.#()_-).
+ * If the input string contains any other character,
+ * the function returns null, otherwise it returns
+ * the canonical normalized unicode form of the input,
+ * optionally surrounded by double quotes.
+ *
+ * @param {string} input - string to check for safety.
+ * @param {boolean} [quotes=false] - if true, the input will be returned surrounded by double quotes ("${input}").
+ * @returns {(string|null)} The normalized string if it contains allowed characters only, null otherwise.
+ */
+export function safeCSSString(input, quotes=false) {
+    if (isNumeric(input)) { input = input.toString() }
+    const cleaned = input.normalize('NFC')
+    if (!/^[\p{L}\p{N} /%:.#()_-]*$/u.test(cleaned)) {
+        return null
+    }
+    return quotes ? `"${cleaned}"` : cleaned
+}
+
+
 export function pageListOutline(rects, options = {}) {
     const { color = 'red', width: strokeWidth = 2, radius = 3, label = '', fontSize = 16 } = options
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
