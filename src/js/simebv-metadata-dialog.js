@@ -1,25 +1,25 @@
 const { __, _x, _n, sprintf } = wp.i18n
 
 export const metadataMap = [
-    ['title', __('Title', 'simple-ebook-viewer'), 'formatLanguageMap'],
-    ['subtitle', __('Subtitle', 'simple-ebook-viewer'), 'formatLanguageMap'],
-    ['author', __('Author', 'simple-ebook-viewer'), 'formatContributor'],
-    ['editor', __('Editor', 'simple-ebook-viewer'), 'formatContributor'],
-    ['translator', __('Translator', 'simple-ebook-viewer'), 'formatContributor'],
-    ['artist', __('Artist', 'simple-ebook-viewer'), 'formatContributor'],
-    ['illustrator', __('Illustrator', 'simple-ebook-viewer'), 'formatContributor'],
-    ['colorist', __('Colorist', 'simple-ebook-viewer'), 'formatContributor'],
-    ['narrator', __('Narrator', 'simple-ebook-viewer'), 'formatContributor'],
-    ['language', __('Language', 'simple-ebook-viewer'), 'formatLanguageCodes'],
-    ['publisher', __('Publisher', 'simple-ebook-viewer'), 'formatContributor'],
-    ['published', __('Publication date', 'simple-ebook-viewer'), 'formatDate'],
-    ['subject', __('Subject', 'simple-ebook-viewer'), 'formatContributor'],
-    ['description', __('Description', 'simple-ebook-viewer'), 'formatOneContributor'],
-    ['source', __('Source', 'simple-ebook-viewer'), 'formatContributor'],
-    ['rights', __('Rights', 'simple-ebook-viewer'), 'formatOneContributor'],
-    ['pageBreakSource', __("Source of the page list", 'simple-ebook-viewer'), 'formatOneContributor'],
-    ['identifier', __('Identifier', 'simple-ebook-viewer'), 'formatId'],
-    ['altIdentifier', __('Other identifiers', 'simple-ebook-viewer'), 'formatContributor'],
+    ['title', __('Title', 'simple-ebook-viewer'), 'languageMap'],
+    ['subtitle', __('Subtitle', 'simple-ebook-viewer'), 'languageMap'],
+    ['author', __('Author', 'simple-ebook-viewer'), 'contributors'],
+    ['editor', __('Editor', 'simple-ebook-viewer'), 'contributors'],
+    ['translator', __('Translator', 'simple-ebook-viewer'), 'contributors'],
+    ['artist', __('Artist', 'simple-ebook-viewer'), 'contributors'],
+    ['illustrator', __('Illustrator', 'simple-ebook-viewer'), 'contributors'],
+    ['colorist', __('Colorist', 'simple-ebook-viewer'), 'contributors'],
+    ['narrator', __('Narrator', 'simple-ebook-viewer'), 'contributors'],
+    ['language', __('Language', 'simple-ebook-viewer'), 'languageCodes'],
+    ['publisher', __('Publisher', 'simple-ebook-viewer'), 'contributors'],
+    ['published', __('Publication date', 'simple-ebook-viewer'), 'date'],
+    ['subject', __('Subject', 'simple-ebook-viewer'), 'contributors'],
+    ['description', __('Description', 'simple-ebook-viewer'), 'contributor'],
+    ['source', __('Source', 'simple-ebook-viewer'), 'contributors'],
+    ['rights', __('Rights', 'simple-ebook-viewer'), 'contributor'],
+    ['pageBreakSource', __("Source of the page list", 'simple-ebook-viewer'), 'contributor'],
+    ['identifier', __('Identifier', 'simple-ebook-viewer'), 'identifier'],
+    ['altIdentifier', __('Other identifiers', 'simple-ebook-viewer'), 'contributors'],
 ]
 
 export function metadataDialog(metadata, formatter, ebookFormat) {
@@ -63,17 +63,29 @@ export class MetadataFormatter {
     #locales
     #listFormat
     #langFormat
+    #formatMap
 
     constructor(locales) {
         this.#locales = locales
         this.#listFormat = new Intl.ListFormat(locales, { style: 'short', type: 'unit' })
         this.#langFormat = new Intl.DisplayNames(locales, { type: 'language', languageDisplay: 'standard' })
+        this.#formatMap = {
+            'identifier': this.formatId.bind(this),
+            'languageMap': this.formatLanguageMap.bind(this),
+            'contributor': this.formatOneContributor.bind(this),
+            'contributors': this.formatContributor.bind(this),
+            'languageCodes': this.formatLanguageCodes.bind(this),
+            'languageCode': this.formatLanguageCode.bind(this),
+            'date': this.formatDate.bind(this),
+        }
     }
 
     format(data, func) {
-        const f = typeof func === 'string'
-            ? this[func]?.bind(this) ?? (s => s)
-            : func
+        let f = this.#formatMap[func]
+        if (!f) {
+            console.warn('Invalid formatter function:', func)
+            f = this.#formatMap['languageMap']
+        }
         return f(data)
     }
 
