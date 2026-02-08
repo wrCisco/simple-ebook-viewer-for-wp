@@ -84,22 +84,26 @@ export const defaultStyles = Object.freeze({
 const fontFamilyKeywords = new Set([
     'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', 'system-ui',
     'ui-serif', 'ui-sans-serif', 'ui-monospace', 'ui-rounded', 'math',
-    'fangsong', 'inherit', 'initial', 'revert', 'revert-layer', 'unset'
+    'fangsong', 'inherit', 'initial', 'revert', 'revert-layer', 'unset',
 ])
 
 // CSS to inject in iframe of reflowable ebooks
 export const getCSS = (values) => {
     let {
-        spacing, justify, hyphenate, fontSize, colorScheme,
-        bgColor, forcedColorScheme, fontFamily
+        spacing, justify, hyphenate,
+        fontSize, colorScheme, bgColor,
+        forcedColorScheme, fontFamily
     } = values
     spacing = safeCSSString(spacing) ?? defaultStyles.spacing
     fontSize = safeCSSString(fontSize) ?? defaultStyles.fontSize
     colorScheme = safeCSSString(colorScheme) ?? defaultStyles.colorScheme
     bgColor = safeCSSString(bgColor) ?? defaultStyles.bgColor
     forcedColorScheme = safeCSSString(forcedColorScheme) ?? defaultStyles.forcedColorScheme
-    if (!fontFamilyKeywords.has(fontFamily)) {
-        fontFamily = safeCSSString(fontFamily, true) ?? defaultStyles.fontFamily
+    if (['auto', 'undefined'].includes(fontFamily)) {
+        fontFamily = ''
+    }
+    if (fontFamily && !fontFamilyKeywords.has(fontFamily)) {
+        fontFamily = safeCSSString(fontFamily, true) ?? ''
     }
 
     return `
@@ -164,9 +168,9 @@ export const getCSS = (values) => {
         font-style: italic;
         font-weight: bold;
     }
-    ${['auto', 'undefined'].includes(fontFamily)
-        ? ''
-        : 'body, body :not(math):not(math *) { font-family: ' + fontFamily + ' !important; }'
+    ${fontFamily
+        ? 'body, body :not(math):not(math *) { font-family: ' + fontFamily + ' !important; }'
+        : ''
     }
     p, li, blockquote, dd {
         line-height: ${spacing};
