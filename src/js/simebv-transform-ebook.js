@@ -81,14 +81,26 @@ export const defaultStyles = Object.freeze({
     fontFamily: 'auto',
 })
 
+const fontFamilyKeywords = new Set([
+    'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', 'system-ui',
+    'ui-serif', 'ui-sans-serif', 'ui-monospace', 'ui-rounded', 'math',
+    'fangsong', 'inherit', 'initial', 'revert', 'revert-layer', 'unset'
+])
+
 // CSS to inject in iframe of reflowable ebooks
-export const getCSS = ({ spacing, justify, hyphenate, fontSize, colorScheme, bgColor, forcedColorScheme, fontFamily }) => {
+export const getCSS = (values) => {
+    let {
+        spacing, justify, hyphenate, fontSize, colorScheme,
+        bgColor, forcedColorScheme, fontFamily
+    } = values
     spacing = safeCSSString(spacing) ?? defaultStyles.spacing
     fontSize = safeCSSString(fontSize) ?? defaultStyles.fontSize
     colorScheme = safeCSSString(colorScheme) ?? defaultStyles.colorScheme
     bgColor = safeCSSString(bgColor) ?? defaultStyles.bgColor
     forcedColorScheme = safeCSSString(forcedColorScheme) ?? defaultStyles.forcedColorScheme
-    fontFamily = safeCSSString(fontFamily, true) ?? defaultStyles.fontFamily
+    if (!fontFamilyKeywords.has(fontFamily)) {
+        fontFamily = safeCSSString(fontFamily, true) ?? defaultStyles.fontFamily
+    }
 
     return `
     @namespace epub "http://www.idpf.org/2007/ops";
@@ -122,32 +134,32 @@ export const getCSS = ({ spacing, justify, hyphenate, fontSize, colorScheme, bgC
     @font-face {
         font-family: "OpenDyslexic";
         src:
-            local("OpenDyslexic")
-            local("OpenDyslexic-Regular")
-            local("OpenDyslexic Regular")
+            local("OpenDyslexic"),
+            local("OpenDyslexic-Regular"),
+            local("OpenDyslexic Regular"),
             url("${openDyslexicRegular}") format("woff2");
     }
     @font-face {
         font-family: "OpenDyslexic";
         src:
-            local("OpenDyslexic-Bold")
-            local("OpenDyslexic Bold")
+            local("OpenDyslexic-Bold"),
+            local("OpenDyslexic Bold"),
             url("${openDyslexicBold}") format("woff2");
         font-weight: bold;
     }
     @font-face {
         font-family: "OpenDyslexic";
         src:
-            local("OpenDyslexic-Italic")
-            local("OpenDyslexic Italic")
+            local("OpenDyslexic-Italic"),
+            local("OpenDyslexic Italic"),
             url("${openDyslexicItalic}") format("woff2");
         font-style: italic;
     }
     @font-face {
         font-family: "OpenDyslexic";
         src:
-            local("OpenDyslexic-BoldItalic")
-            local("OpenDyslexic Bold Italic")
+            local("OpenDyslexic-BoldItalic"),
+            local("OpenDyslexic Bold Italic"),
             url("${openDyslexicBoldItalic}") format("woff2");
         font-style: italic;
         font-weight: bold;
