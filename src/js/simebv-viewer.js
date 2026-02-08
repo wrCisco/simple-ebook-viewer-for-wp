@@ -1103,7 +1103,7 @@ export const gatherOptionsFromContainer = container => {
     }
     let return_to_url = container.getAttribute('data-simebv-return-to-url')
     if (return_to_url) {
-        return_to_url = new URL(return_to_url)
+        return_to_url = new URL(return_to_url, window.location.origin)
         if (return_to_url.origin === window.location.origin) {
             options.reader.closeViewerCallback = () => window.location.assign(return_to_url.href)
         }
