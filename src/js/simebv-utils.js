@@ -31,6 +31,17 @@ export function getLang(el) {
     }
 }
 
+export function getDefaultFontSize(root) {
+    const fake = document.createElement('div')
+    fake.style.visibility = 'hidden'
+    fake.style.position = 'absolute'
+    fake.style.fontSize = '1rem'
+    root.append(fake)
+    const computedFontSize = parseFloat(globalThis.getComputedStyle(fake).fontSize)
+    fake.remove()
+    return isNaN(computedFontSize) ? 16 : computedFontSize
+}
+
 /**
  * Sanitizes the input string for safe use as a CSS property
  * value (e.g., a font-family name, or a color).

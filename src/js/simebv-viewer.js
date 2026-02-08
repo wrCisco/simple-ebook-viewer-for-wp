@@ -5,7 +5,7 @@ import './simebv-sidebar.js'
 import { createTOCView } from '../../vendor/foliate-js/ui/tree.js'
 import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
 import * as CFI from '../../vendor/foliate-js/epubcfi.js'
-import { storageAvailable, isNumeric, pageListOutline } from './simebv-utils.js'
+import { storageAvailable, isNumeric, getDefaultFontSize, pageListOutline } from './simebv-utils.js'
 import { transformDoc, convertFontSizePxToRem, defaultStyles, getCSS } from './simebv-transform-ebook.js'
 import { searchDialog } from './simebv-search-dialog.js'
 import { colorFiltersDialog } from './simebv-filters-dialog.js'
@@ -211,7 +211,7 @@ export class Reader {
         })
 
         this.setLocalizedDefaultInterface(this._root)
-        this._defaultFontSize = Reader.getDefaultFontSize(this._rootDiv)
+        this._defaultFontSize = getDefaultFontSize(this._rootDiv)
         this._textSearch = this.setupTextSearch(this.container)
 
         document.dispatchEvent(new CustomEvent('simebv-viewer-loaded'))
@@ -225,17 +225,6 @@ export class Reader {
         return this.container.getBoundingClientRect().width
     }
 
-    static getDefaultFontSize(root) {
-        const fake = document.createElement('div')
-        fake.style.visibility = 'hidden'
-        fake.style.position = 'absolute'
-        fake.style.fontSize = '1rem'
-        root.append(fake)
-        const computedFontSize = parseFloat(globalThis.getComputedStyle(fake).fontSize)
-        fake.remove()
-        return isNaN(computedFontSize) ? 16 : computedFontSize
-    }
-
     async drawAnnotationHandler(e) {
         const { draw, annotation, doc, range } = e.detail
         switch (annotation.type) {
@@ -246,7 +235,7 @@ export class Reader {
                 draw(Overlayer.highlight, { color: annotation.color })
                 break
             case 'page-list':
-                const fontSize = doc?.body ? Reader.getDefaultFontSize(doc.body) : this._defaultFontSize
+                const fontSize = doc?.body ? getDefaultFontSize(doc.body) : this._defaultFontSize
                 draw(pageListOutline, { color: '#E55330', label: annotation.label, type: annotation.type, fontSize })
                 break
             default: {
