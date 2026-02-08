@@ -17,6 +17,7 @@ import { createPageListForAnnotations } from './simebv-page-list.js'
 import { Menu } from './simebv-menu.js'
 import { createMenuItemsStd, getInitialMenuStatusStd } from './simebv-menu-items.js'
 import { ebookFormat } from './simebv-ebook-format.js'
+import { TextSearch } from './simebv-search.js'
 const { __, _x, _n, sprintf } = wp.i18n;
 
 // Import css for the Viewer's container element, as static asset
@@ -60,10 +61,7 @@ export class Reader {
     _metadataFormatter
     _colorsFilterDialog
     _searchDialog
-    _currentSearch
-    _currentSearchQuery
-    _currentSearchResult = []
-    _currentSearchResultIndex = -1
+    _textSearch
     _lastReadPage
     // don't save user preferences during page load, but only upon user interaction
     _canSavePreferences = false
@@ -213,8 +211,8 @@ export class Reader {
         })
 
         this.setLocalizedDefaultInterface(this._root)
-
         this._defaultFontSize = Reader.getDefaultFontSize(this._rootDiv)
+        this._textSearch = this.setupTextSearch(this.container)
 
         document.dispatchEvent(new CustomEvent('simebv-viewer-loaded'))
     }
@@ -390,10 +388,10 @@ export class Reader {
     openSearchDialog() {
         if (!this._searchDialog) {
             this._searchDialog = searchDialog(
-                this.boundDoSearch,
-                this.boundPrevMatch,
-                this.boundNextMatch,
-                this.boundSearchCleanUp,
+                this._textSearch.boundDoSearch,
+                this._textSearch.boundPrevMatch,
+                this._textSearch.boundNextMatch,
+                this._textSearch.boundSearchCleanUp,
                 this.container
             )
             this._searchDialog.id = 'simebv-search-dialog'
@@ -403,123 +401,34 @@ export class Reader {
         this._searchDialog.classList.add('simebv-show')
     }
 
-    async doSearch(str, reverse = false) {
-        if (this._currentSearch && this._currentSearchQuery === str) {
-            reverse ? await this.prevMatch() : await this.nextMatch()
-            return
-        }
-        this.searchCleanUp()
-        this._currentSearchQuery = str
-        this._currentSearch = await this.view?.search({query: str})
-        await this.matchUntilCurrentLocation()
-        await this.nextMatch()
-    }
-    boundDoSearch = this.doSearch.bind(this)
-
-    async matchUntilCurrentLocation() {
-        while (true) {
-            if (!this._currentSearch) {
-                // this can happen if the user closes the search panel during the search
-                return
-            }
-            const result = await this._currentSearch.next()
-            if (result.value === 'done' || result.done === true) {
-                break
-            }
-            if (result.value?.subitems) {
-                this._currentSearchResult.push(...result.value.subitems)
-                let resultCfi = this._currentSearchResult[this._currentSearchResult.length - 1].cfi
-                if (CFI.compare(this.view.lastLocation.cfi, resultCfi) > 0) {  // 1: resultCfi precedes this.view.lastLocation.cfi
-                    this._currentSearchResultIndex = this._currentSearchResult.length - 1
-                    continue
-                }
-                while (this._currentSearchResultIndex < this._currentSearchResult.length - 1) {
-                    this._currentSearchResultIndex++
-                    resultCfi = this._currentSearchResult[this._currentSearchResultIndex].cfi
-                    if (CFI.compare(this.view.lastLocation.cfi, resultCfi) <= 0) {
-                        this._currentSearchResultIndex--
-                        return
-                    }
-                }
-            }
-        }
-        this._currentSearchResultIndex = this._currentSearchResult.length - 2
-    }
-
-    async nextMatch() {
-        if (!this._currentSearch) {
-            return
-        }
-        if (this._currentSearchResult
-                && this._currentSearchResult.length > 0
-                && this._currentSearchResultIndex < this._currentSearchResult.length - 1
-        ) {
-            const oldCFI = this._currentSearchResult[this._currentSearchResultIndex]?.cfi
+    setupTextSearch(eventsTarget) {
+        const textSearch = new TextSearch(eventsTarget)
+        textSearch.target.addEventListener('simebv-search-new', ({detail}) => {
+            const { newSearch, query } = detail
+            newSearch.newSearch = this.view.search({query})
+            newSearch.lastLocation = this.view.lastLocation
+        })
+        textSearch.target.addEventListener('simebv-search-next', ({detail}) => {
+            const { oldCFI, newCFI } = detail
             if (oldCFI) {
                 this.view.deleteAnnotation({value: oldCFI})
             }
-            this._currentSearchResultIndex++
-            const newCFI = this._currentSearchResult[this._currentSearchResultIndex].cfi
-            await this.view.goTo(newCFI)
-            this.view.addAnnotation({value: newCFI, type: 'current-search'})
-            return
-        }
-        let result = await this._currentSearch.next()
-        if (result.value === 'done' || result.done === true) {
-            return
-        }
-        if (result.value?.subitems) {
-            this._currentSearchResult.push(...result.value.subitems)
-            const oldCFI = this._currentSearchResult[this._currentSearchResultIndex]?.cfi
-            if (oldCFI) {
-                this.view.deleteAnnotation({value: oldCFI})
+            detail.register((async () => {
+                await this.view.goTo(newCFI)
+                await this.view.addAnnotation({value: newCFI, type: 'current-search'})
+            })())
+        })
+        textSearch.target.addEventListener('simebv-search-cleanup', ({detail}) => {
+            const { lastCFI } = detail
+             if (lastCFI) {
+                this.view.deleteAnnotation({ value: lastCFI })
             }
-            this._currentSearchResultIndex++
-            const newCFI = this._currentSearchResult[this._currentSearchResultIndex].cfi
-            await this.view.goTo(newCFI)
-            this.view.addAnnotation({value: newCFI, type: 'current-search'})
-            return
-        }
-        else {
-            await this.nextMatch()
-        }
+            this.view.clearSearch()
+            this.view.deselect()
+            this._closeMenus()
+        })
+        return textSearch
     }
-    boundNextMatch = this.nextMatch.bind(this)
-
-    async prevMatch() {
-        if (!this._currentSearch) {
-            return
-        }
-        if (this._currentSearchResult
-                && this._currentSearchResult.length > 0
-                && this._currentSearchResultIndex > 0
-        ) {
-            const oldCFI = this._currentSearchResult[this._currentSearchResultIndex]?.cfi
-            if (oldCFI) {
-                this.view.deleteAnnotation({ value: oldCFI })
-            }
-            this._currentSearchResultIndex--
-            const newCFI = this._currentSearchResult[this._currentSearchResultIndex].cfi
-            await this.view.goTo(newCFI)
-            this.view.addAnnotation({ value: newCFI, type: 'current-search' })
-            return
-        }
-    }
-    boundPrevMatch = this.prevMatch.bind(this)
-
-    async searchCleanUp() {
-        const lastCFI = this._currentSearchResult[this._currentSearchResultIndex]?.cfi
-        if (lastCFI) {
-            this.view.deleteAnnotation({ value: lastCFI })
-        }
-        this._currentSearch = undefined
-        this._currentSearchResult = []
-        this._currentSearchResultIndex = -1
-        this.view.clearSearch()
-        this.view.deselect()
-        this._closeMenus()
-    }
-    boundSearchCleanUp = this.searchCleanUp.bind(this)
 
     async open(fileUrl, options) {
         let {
