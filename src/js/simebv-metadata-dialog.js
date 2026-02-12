@@ -56,7 +56,7 @@ export function metadataDialog(metadata, formatter, ebookFormat) {
         )
     }
 
-    return dlg
+    return { element: dlg }
 }
 
 export class MetadataFormatter {

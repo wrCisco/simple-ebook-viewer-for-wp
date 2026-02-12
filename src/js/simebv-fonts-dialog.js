@@ -131,5 +131,5 @@ export function fontsDialog(reader, injectCSS) {
         reader._closeMenus()
     })
 
-    return dlg
+    return { element: dlg }
 }

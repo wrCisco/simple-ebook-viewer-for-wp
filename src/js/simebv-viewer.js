@@ -55,12 +55,16 @@ export class Reader {
     _realFullscreen
     _alwaysFullViewport
     _showCloseButton
-    _annotationsDialog
-    _showAnnotationDialog
-    _metadataDialog
-    _metadataFormatter
-    _colorsFilterDialog
-    _searchDialog
+    _modalDialogs = {
+        annotations: undefined,
+        showAnnotation: undefined,
+        metadata: undefined,
+        colorsFilter: undefined,
+        fonts: undefined,
+    }
+    _modelessDialogs = {
+        search: undefined,
+    }
     _textSearch
     _lastReadPage
     // don't save user preferences during page load, but only upon user interaction
@@ -308,86 +312,91 @@ export class Reader {
     boundBookmarksShowAnnotation = this.bookmarksShowAnnotation.bind(this)
 
     openShowAnnotationDialog(note, header) {
-        if (!this._showAnnotationDialog) {
-            this._showAnnotationDialog = createShowAnnotationDialog()
-            this._showAnnotationDialog.element.id = 'simebv-show-annotation-dialog'
-            this._showAnnotationDialog.element.classList.add('simebv-form-dialog')
-            this._rootDiv.append(this._showAnnotationDialog.element)
+        if (!this._modalDialogs.showAnnotation) {
+            const dlg = createShowAnnotationDialog()
+            dlg.element.id = 'simebv-show-annotation-dialog'
+            dlg.element.classList.add('simebv-form-dialog')
+            this._rootDiv.append(dlg.element)
+            this._modalDialogs.showAnnotation = dlg
         }
-        this._showAnnotationDialog.showAnnotation(note, header, this.container)
+        this._modalDialogs.showAnnotation.showAnnotation(note, header, this.container)
     }
 
     _createAnnotationsDialog() {
-        if (!this._annotationsDialog) {
-            this._annotationsDialog = annotationsDialog(this)
-            this._annotationsDialog.id = 'simebv-annotations-dialog'
-            this._annotationsDialog.classList.add('simebv-form-dialog')
-            this._rootDiv.append(this._annotationsDialog)
+        if (!this._modalDialogs.annotations) {
+            const dlg = annotationsDialog(this)
+            dlg.element.id = 'simebv-annotations-dialog'
+            dlg.element.classList.add('simebv-form-dialog')
+            this._rootDiv.append(dlg.element)
+            this._modalDialogs.annotations = dlg
         }
     }
 
     openAnnotationsDialog() {
-        if (!this._annotationsDialog) {
+        if (!this._modalDialogs.annotations) {
             this._createAnnotationsDialog()
         }
-        this._annotationsDialog.showModal()
+        this._modalDialogs.annotations.element.showModal()
     }
 
     openMetadataDialog() {
-        if (!this._metadataDialog) {
-            this._metadataDialog = metadataDialog(this.view?.book?.metadata ?? {}, this._metadataFormatter, this._openEbookFormat)
-            this._metadataDialog.id = 'simebv-metadata-dialog'
-            this._rootDiv.append(this._metadataDialog)
-            this._metadataDialog.style.minWidth = 'min(320px, 100vw)'
+        if (!this._modalDialogs.metadata) {
+            const dlg = metadataDialog(this.view?.book?.metadata ?? {}, this._metadataFormatter, this._openEbookFormat)
+            dlg.element.id = 'simebv-metadata-dialog'
+            dlg.element.style.minWidth = 'min(320px, 100vw)'
+            this._rootDiv.append(dlg.element)
+            this._modalDialogs.metadata = dlg
         }
-        this._metadataDialog.style.maxWidth = 'min(70vw, ' + (this.containerWidth - 30) + 'px)'
-        this._metadataDialog.showModal()
+        this._modalDialogs.metadata.element.style.maxWidth = 'min(70vw, ' + (this.containerWidth - 30) + 'px)'
+        this._modalDialogs.metadata.element.showModal()
     }
 
     _createFilterDialog(bookContainer, isFixedLayout) {
-        if (!this._colorsFilterDialog) {
-            this._colorsFilterDialog = colorFiltersDialog(bookContainer, this._appliedFilter, isFixedLayout)
-            this._colorsFilterDialog.id = 'simebv-colors-filter-dialog'
-            this._rootDiv.append(this._colorsFilterDialog)
-            this._colorsFilterDialog.addEventListener('close', () => {
+        if (!this._modalDialogs.colorsFilter) {
+            const dlg = colorFiltersDialog(bookContainer, this._appliedFilter, isFixedLayout)
+            dlg.element.id = 'simebv-colors-filter-dialog'
+            this._rootDiv.append(dlg.element)
+            dlg.element.addEventListener('close', () => {
                 for (const prop in this._appliedFilter) {
                     this._savePreference(prop, this._appliedFilter[prop])
                 }
             })
+            this._modalDialogs.colorsFilter = dlg
         }
     }
 
     openFilterDialog(bookContainer) {
-        if (!this._colorsFilterDialog) {
+        if (!this._modalDialogs.colorsFilter) {
             this._createFilterDialog(bookContainer)
         }
-        this._colorsFilterDialog.showModal()
+        this._modalDialogs.colorsFilter.element.showModal()
     }
 
     openFontsDialog() {
-        if (!this._fontsDialog) {
-            this._fontsDialog = fontsDialog(this, getCSS)
-            this._fontsDialog.id = 'simebv-fonts-dialog'
-            this._fontsDialog.classList.add('simebv-form-dialog')
-            this._rootDiv.append(this._fontsDialog)
+        if (!this._modalDialogs.fonts) {
+            const dlg = fontsDialog(this, getCSS)
+            dlg.element.id = 'simebv-fonts-dialog'
+            dlg.element.classList.add('simebv-form-dialog')
+            this._rootDiv.append(dlg.element)
+            this._modalDialogs.fonts = dlg
         }
-        this._fontsDialog.showModal()
+        this._modalDialogs.fonts.element.showModal()
     }
 
     openSearchDialog() {
-        if (!this._searchDialog) {
-            this._searchDialog = searchDialog(
+        if (!this._modelessDialogs.search) {
+            this._modelessDialogs.search = searchDialog(
                 this._textSearch.boundDoSearch,
                 this._textSearch.boundPrevMatch,
                 this._textSearch.boundNextMatch,
                 this._textSearch.boundSearchCleanUp,
                 this.container
             )
-            this._searchDialog.id = 'simebv-search-dialog'
-            this._rootDiv.append(this._searchDialog)
+            this._modelessDialogs.search.id = 'simebv-search-dialog'
+            this._rootDiv.append(this._modelessDialogs.search)
         }
-        this._searchDialog.show()
-        this._searchDialog.classList.add('simebv-show')
+        this._modelessDialogs.search.show()
+        this._modelessDialogs.search.classList.add('simebv-show')
     }
 
     setupTextSearch(eventsTarget) {
@@ -724,8 +733,10 @@ export class Reader {
     }
 
     _handleKeydown(e) {
-        if (this._colorsFilterDialog.open) {
-            return
+        for (const dlg in this._modalDialogs) {
+            if (this._modalDialogs[dlg]?.element.open) {
+                return
+            }
         }
         const k = e.key
         switch (k) {
@@ -766,13 +777,14 @@ export class Reader {
             case 'Escape':
                 if (this.menu.element.classList.contains('simebv-show')
                         || this._root.querySelector('#simebv-side-bar')?.classList.contains('simebv-show')
-                        || this._searchDialog?.classList.contains('simebv-show')) {
+                        || this._modelessDialogs.search?.classList.contains('simebv-show')) {
                     this._closeMenus()
                 }
                 else if (this._realFullscreen && document.fullscreenElement) {
                     this._toggleFullScreen()
                 }
-                else if (this.container.classList.contains('simebv-view-fullscreen')) {
+                else if (!this._alwaysFullViewport
+                        && this.container.classList.contains('simebv-view-fullscreen')) {
                     this._toggleFullViewport()
                 }
                 break

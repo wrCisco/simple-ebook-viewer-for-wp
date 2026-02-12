@@ -157,5 +157,5 @@ export function colorFiltersDialog(bookContainer, appliedFilters, fixedLayout = 
     updateEnabled()
     updateFilter()
 
-    return dlg
+    return { element: dlg }
 }

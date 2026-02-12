@@ -112,5 +112,5 @@ export function annotationsDialog(reader) {
         reader._closeMenus()
     })
 
-    return dlg
+    return { element: dlg }
 }
