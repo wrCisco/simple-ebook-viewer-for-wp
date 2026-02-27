@@ -359,7 +359,7 @@ export class Menu {
             }
             listItem.onclick = () => {
                 item.onclick()
-                this.#updateFocus(this.#currentItem, item)
+                this.#updateFocus(this.#currentItem, listItem)
             }
             const select = () => listItem.click()
             const enable = (active) => {
