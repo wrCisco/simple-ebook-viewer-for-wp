@@ -18,6 +18,10 @@ export function storageAvailable(type) {
     }
 }
 
+export function isAndroid() {
+    return navigator.userAgentData?.platform === 'Android' || /Android/i.test(navigator.userAgent)
+}
+
 export function isNumeric(v) {
     return parseFloat(v) === Number(v)
 }
@@ -97,7 +101,7 @@ export function pageListOutline(rects, options = {}) {
         const { left, top, height, width } = rects[0]
         const pathHeight = Math.min(height, fontSize * 1.7)
         const el = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-        el.setAttribute('d', `M ${left - 1},${top + pathHeight} v ${-pathHeight}`)// l 6 -3`)
+        el.setAttribute('d', `M ${Math.max(0, left - 1)},${top + pathHeight} v ${-pathHeight}`)// l 6 -3`)
         el.style.opacity = 'var(--overlayer-highlight-opacity, .8)'
         el.style.mixBlendMode = 'var(--overlayer-highlight-blend-mode, normal)'
         g.append(el)

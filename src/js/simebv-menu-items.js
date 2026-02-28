@@ -226,6 +226,16 @@ export function createMenuItemsStd(reader, injectCSS) {
             ],
         }],
 
+        ['speechSynthesis', {
+            name: 'speechSynthesis',
+            label: __('Read aloud...', 'simple-ebook-viewer'),
+            type: 'action',
+            onclick: () => reader._speechManager.open(),
+            attrs: [
+                ['aria-haspopup', 'dialog'],
+            ],
+        }],
+
         ['colorFilter', {
             name: 'colorFilter',
             label: __('Color filter...', 'simple-ebook-viewer'),

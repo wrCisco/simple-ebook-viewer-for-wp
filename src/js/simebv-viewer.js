@@ -5,7 +5,9 @@ import './simebv-sidebar.js'
 import { createTOCView } from '../../vendor/foliate-js/ui/tree.js'
 import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
 import * as CFI from '../../vendor/foliate-js/epubcfi.js'
-import { storageAvailable, isNumeric, getDefaultFontSize, pageListOutline } from './simebv-utils.js'
+import {
+    storageAvailable, isNumeric, getDefaultFontSize,
+    pageListOutline } from './simebv-utils.js'
 import { transformDoc, convertFontSizePxToRem, defaultStyles, getCSS } from './simebv-transform-ebook.js'
 import { searchDialog } from './simebv-search-dialog.js'
 import { colorFiltersDialog } from './simebv-filters-dialog.js'
@@ -18,6 +20,7 @@ import { Menu } from './simebv-menu.js'
 import { createMenuItemsStd, getInitialMenuStatusStd } from './simebv-menu-items.js'
 import { ebookFormat } from './simebv-ebook-format.js'
 import { TextSearch } from './simebv-search.js'
+import { SpeechManager } from './simebv-speech.js'
 const { __, _x, _n, sprintf } = wp.i18n;
 
 // Import css for the Viewer's container element, as static asset
@@ -64,6 +67,7 @@ export class Reader {
     }
     _modelessDialogs = {
         search: undefined,
+        // the speech synthesis dialog is handled directly by the speech manager
     }
     _textSearch
     _lastReadPage
@@ -88,6 +92,7 @@ export class Reader {
     _openEbookFormat
     _ebookTitle
     _defaultFontSize
+    _speechManager
 
     _closeMenus() {
         let focusTo
@@ -173,7 +178,7 @@ export class Reader {
             this._tocView.getCurrentItem()?.focus()
         })
         this._sideBar.addEventListener('side-bar-close', this._closeMenus.bind(this))
-        this._root.addEventListener('closeMenu', () => {
+        this.menu.element.addEventListener('closeMenu', () => {
             if (!this._sideBar.isVisible()) {
                 this._overlay.classList.remove('simebv-show')
             }
@@ -438,8 +443,8 @@ export class Reader {
         this._bookContainer.append(this.view)
         const file = await fetchFile(fileUrl)
         await this.view.open(fileUrl)
-        this._populateMenu(menuItems)
         this._openEbookFormat = await ebookFormat(file)
+        this._populateMenu(menuItems)
         if (this.view.isFixedLayout) {
             this._bookContainer.classList.add('simebv-fxd-layout')
         }
@@ -454,6 +459,10 @@ export class Reader {
             dir: this.view.book.dir
         }})
         this._navBar.dispatchEvent(newBookEvent)
+        this._speechManager = new SpeechManager(this.view, this._rootDiv, {
+            savePreference: this._savePreference.bind(this),
+            loadPreference: this._loadPreference.bind(this),
+        })
 
         const { book } = this.view
         book.transformTarget?.addEventListener('data', ({ detail }) => {
@@ -638,8 +647,13 @@ export class Reader {
                 menuItems.get('colors'),
                 menuItems.get('colorFilter'),
                 menuItems.get('zoom'),
-                menuItems.get('positionViewer'),
             ])
+            if (this._openEbookFormat !== 'cbz') {
+                this.menu.addMenuItem(
+                    menuItems.get('speechSynthesis'), true
+                )
+            }
+            this.menu.addMenuItem(menuItems.get('positionViewer'), true)
         }
         else {
             this.menu.addMenuItems([
@@ -653,6 +667,7 @@ export class Reader {
                 menuItems.get('margins'),
                 menuItems.get('colors'),
                 menuItems.get('colorFilter'),
+                menuItems.get('speechSynthesis'),
                 menuItems.get('positionViewer'),
             ])
         }
@@ -661,6 +676,9 @@ export class Reader {
     _setInitialMenuStatus(initialMenuStatus) {
         this.menu.groups.history?.items.previous.enable(false)
         this.menu.groups.history?.items.next.enable(false)
+        if (!speechSynthesis) {
+            this.menu.groups.speechSynthesis?.enable(false)
+        }
         if (!initialMenuStatus) {
             initialMenuStatus = getInitialMenuStatusStd()
         }
@@ -733,10 +751,8 @@ export class Reader {
     }
 
     _handleKeydown(e) {
-        for (const dlg in this._modalDialogs) {
-            if (this._modalDialogs[dlg]?.element.open) {
-                return
-            }
+        if (this._rootDiv.querySelector('dialog:modal')) {
+            return
         }
         const k = e.key
         switch (k) {
@@ -802,6 +818,9 @@ export class Reader {
         const loadingOverlay = this._root.getElementById('simebv-loading-overlay');
         if (loadingOverlay) {
             loadingOverlay.classList.remove('simebv-show');
+        }
+        if (this._speechManager?.isActive) {
+            this._speechManager.onSectionLoad()
         }
         doc.addEventListener('keydown', this._handleKeydown.bind(this))
         if (this.view.isFixedLayout) {
@@ -1192,6 +1211,8 @@ export * from './simebv-metadata-dialog.js'
 export * from './simebv-fonts-dialog.js'
 export * from './simebv-annotations-dialog.js'
 export * from './simebv-show-annotation-dialog.js'
+export * from './simebv-speech-dialog.js'
+export * from './simebv-speech.js'
 export * from './simebv-page-list.js'
 export * from './simebv-menu.js'
 export * from './simebv-menu-items.js'

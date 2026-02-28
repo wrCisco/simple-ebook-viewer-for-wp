@@ -103,7 +103,7 @@ foliate-fxl::part(filter) {
     height: calc(100% - var(--header-height) * 2);
     top: var(--header-height);
 }
-input, button {
+input, button, select {
     font-family: inherit;
     font-size: max(var(--font-size-input), 1rem);
 }
@@ -163,7 +163,8 @@ input, button {
 #simebv-metadata-dialog,
 #simebv-fonts-dialog,
 #simebv-annotations-dialog,
-#simebv-show-annotation-dialog {
+#simebv-show-annotation-dialog,
+#simebv-speech-dialog-options {
     background-color: var(--menu-bg);
     border: none;
     box-shadow: var(--menu-box-shadow);
@@ -197,10 +198,87 @@ input, button {
 #simebv-metadata-dialog dt {
     font-weight: bolder;
 }
+#simebv-speech-dialog {
+    align-items: center;
+    flex-direction: row;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    border: none;
+    box-sizing: border-box;
+    padding: 0 16px;
+    height: calc(var(--header-height) - 8px);
+    z-index: 9999;
+    background-color: var(--menu-bg);
+    box-shadow: var(--menu-box-shadow);
+    display: none;
+    border-radius: 3px;
+}
+@media (max-width: 480px) {
+    #simebv-speech-dialog {
+        width: calc(100% - 2px);
+    }
+}
+.simebv-speech-dialog-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-direction: row;
+    width: 100%;
+    --button-size: 40px;
+    --icon-size: 24px;
+}
+.simebv-speech-dlg-button,
+.simebv-speech-dlg-input {
+    border: 0;
+    background: transparent;
+    height: var(--button-size);
+    padding-block: calc((var(--button-size) - var(--icon-size)) / 2);
+}
+.simebv-speech-dlg-button {
+    width: var(--button-size);
+    border-radius: 6px;
+}
+.simebv-speech-dlg-button:hover:not(:disabled) {
+    background: var(--active-bg);
+    color: CanvasText;
+    cursor: pointer;
+}
+.simebv-speech-dlg-input {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.simebv-speech-dlg-input input:hover:not(:disabled) {
+    cursor: pointer;
+}
+.simebv-speech-dialog-controls svg {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    fill: CanvasText;
+}
+.simebv-speech-dlg-output {
+    margin-left: .5rem;
+}
+#simebv-speech-dialog-options {
+    max-width: min(480px, 95vw);
+    --label-width: 4em;
+}
+.simebv-speech-dlg-options-label {
+    min-width: var(--label-width)
+}
+.simebv-speech-dlg-options-control,
+.simebv-speech-dlg-options-control option {
+    max-width: calc(100% - calc(var(--label-width) + 2em));
+}
 #simebv-search-dialog {
     justify-content: space-between;
     align-items: center;
     flex-direction: row;
+    gap: 6px;
     position: absolute;
     top: 0;
     left: 0;
@@ -214,7 +292,8 @@ input, button {
     border: none;
     box-shadow: var(--menu-box-shadow);
 }
-#simebv-search-dialog.simebv-show {
+#simebv-search-dialog.simebv-show,
+#simebv-speech-dialog.simebv-show {
     display: flex;
 }
 #simebv-search-dialog menu {
@@ -223,11 +302,11 @@ input, button {
     justify-items: center;
     flex-direction: row;
     justify-content: flex-end;
+    gap: 6px;
     padding: 0;
     margin-block: 0;
 }
 #simebv-search-dialog button {
-    margin-inline: 6px;
     border-radius: 6px;
     padding: 3px;
     border: 1px solid GrayText;
@@ -243,7 +322,8 @@ input, button {
     background: none;
     border: 0;
     text-align: center;
-/*    color: GrayText;*/
+    width: 40px;
+    height: 40px;
 }
 #simebv-search-input {
     box-shadow: var(--border-box-shadow);
@@ -257,7 +337,6 @@ input, button {
     width: 100%;
     appearance: none;
     border: none;
-    positon: absolute;
     padding-inline: 4px;
     padding-block: 3px;
 }
@@ -292,6 +371,7 @@ input, button {
     padding-inline: 0;
     margin-inline: -.2rem;
     margin-block-end: .3rem;
+    min-width: 100%;
 }
 .simebv-form-dialog fieldset div {
     margin-bottom: .4rem;
