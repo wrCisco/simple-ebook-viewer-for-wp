@@ -316,6 +316,9 @@ export class Menu {
             }
         }
         p.onclick = () => {
+            if (p.getAttribute('aria-disabled') === 'true') {
+                return
+            }
             onclick(...args)
             this.#updateFocus(this.#currentItem, p)
         }
@@ -331,8 +334,8 @@ export class Menu {
         }
         const enable = (activate) => {
             activate === false
-                ? container.setAttribute('aria-disabled', 'true')
-                : container.removeAttribute('aria-disabled')
+                ? p.setAttribute('aria-disabled', 'true')
+                : p.removeAttribute('aria-disabled')
         }
         const visible = (isVisible) => {
             isVisible === false
@@ -358,6 +361,9 @@ export class Menu {
                 listItem.classList.add(...item.classList)
             }
             listItem.onclick = () => {
+                if (listItem.getAttribute('aria-disabled') === 'true') {
+                    return
+                }
                 item.onclick()
                 this.#updateFocus(this.#currentItem, listItem)
             }

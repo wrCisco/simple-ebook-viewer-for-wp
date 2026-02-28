@@ -94,6 +94,7 @@ export function fontsDialog(reader, injectCSS) {
     close.addEventListener('click', () => dlg.close())
     const dismiss = document.createElement('button')
     dismiss.textContent = __('Close', 'simple-ebook-viewer')
+    dismiss.setAttribute('type', 'button')
     dismiss.addEventListener('click', () => dlg.dispatchEvent(new Event('cancel')))
     buttons.append(close, dismiss)
 
@@ -129,6 +130,7 @@ export function fontsDialog(reader, injectCSS) {
             families[reader.style.fontFamily].checked = true
         }
         reader._closeMenus()
+        dlg.close()
     })
 
     return { element: dlg }

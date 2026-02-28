@@ -93,7 +93,8 @@ template.innerHTML = `
     cursor: pointer;
 }
 .simebv-menu [aria-disabled="true"] li:hover,
-.simebv-menu li[aria-disabled="true"]:hover {
+.simebv-menu li[aria-disabled="true"]:hover,
+.simebv-menu p[aria-disabled="true"]:hover {
     background-color: transparent;
     cursor: default;
 }
