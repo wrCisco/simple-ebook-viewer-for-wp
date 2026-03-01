@@ -97,8 +97,15 @@ export function pageListOutline(rects, options = {}) {
     g.setAttribute('fill', 'none')
     g.setAttribute('stroke', color)
     g.setAttribute('stroke-width', strokeWidth)
-    if (rects.length > 0) {
-        const { left, top, height, width } = rects[0]
+    let rect
+    for (let i = 0; i < rects.length; i++) {
+        if (rects[i].height) {
+            rect = rects[i]
+            break
+        }
+    }
+    if (rect) {
+        const { left, top, height, width } = rect
         const pathHeight = Math.min(height, fontSize * 1.7)
         const el = document.createElementNS('http://www.w3.org/2000/svg', 'path')
         el.setAttribute('d', `M ${Math.max(0, left - 1)},${top + pathHeight} v ${-pathHeight}`)// l 6 -3`)
