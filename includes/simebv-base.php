@@ -90,10 +90,10 @@ class SIMEBV_Base {
                 'html_name' => 'data-simebv-ebook-author', 'default' => ''
             ],
             'show-annotations' => [
-                'html_name' => 'data-simebv-show-annotations', 'default' => 'true'
+                'html_name' => 'data-simebv-show-annotations', 'default' => 'false'
             ],
             'show-page-delimiters' => [
-                'html_name' => 'data-simebv-show-page-delimiters', 'default' => 'true'
+                'html_name' => 'data-simebv-show-page-delimiters', 'default' => 'false'
             ],
         ],
     ];
