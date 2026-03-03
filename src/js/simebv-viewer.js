@@ -436,7 +436,7 @@ export class Reader {
     async open(fileUrl, options) {
         let {
             menuItems, initialMenuStatus, ebookTitle, ebookAuthor,
-            fontFamily, allowJS, injectMathJaxData, filterEbookContent,
+            fontFamily, allowJS, useMathStyles, filterEbookContent,
             showAnnotations, showPageDelimiters
         } = options
         this.view = document.createElement('simebv-foliate-view')
@@ -477,8 +477,8 @@ export class Reader {
                             if (!allowJS) {
                                 ops.set('addCSPMeta', [])
                             }
-                            else if (injectMathJaxData?.url) {
-                                ops.set('injectMathJax', [injectMathJaxData.url, injectMathJaxData.config])
+                            if (['fonts', 'styles', 'all'].includes(useMathStyles)) {
+                                ops.set('useMathStyles', [useMathStyles])
                             }
                             ops.set('convertFontSizePxToRem', [this._defaultFontSize])
                             if (ops.size > 0) {
@@ -1133,6 +1133,9 @@ export const gatherOptionsFromContainer = container => {
     }
     if (container.getAttribute('data-simebv-allow-js') === 'true') {
         options.ebook.allowJS = true
+    }
+    if (['fonts', 'styles', 'all'].includes(container.getAttribute('data-simebv-math-styles'))) {
+        options.ebook.useMathStyles = container.getAttribute('data-simebv-math-styles')
     }
     if (container.hasAttribute('data-simebv-font-family')) {
         options.ebook.fontFamily = container.getAttribute('data-simebv-font-family')

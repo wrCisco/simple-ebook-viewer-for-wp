@@ -83,6 +83,9 @@ class SIMEBV_Base {
             'allow-js' => [
                 'html_name' => 'data-simebv-allow-js', 'default' => 'false'
             ],
+            'math-styles' => [
+                'html_name' => 'data-simebv-math-styles', 'default' => ''
+            ],
             'ebook-title' => [
                 'html_name' => 'data-simebv-ebook-title', 'default' => ''
             ],

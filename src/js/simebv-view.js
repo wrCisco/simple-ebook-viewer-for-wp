@@ -9,6 +9,9 @@ export class SimebvView extends View {
         if (node.matches('[data-simebv-inject]')) {
             return NodeFilter.FILTER_REJECT
         }
+        if (node.matches('[data-simebv-skip]')) {
+            return NodeFilter.FILTER_SKIP
+        }
         return NodeFilter.FILTER_ACCEPT
     }
 

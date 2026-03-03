@@ -14,8 +14,8 @@ export function transformDoc(data, type, ops) {
                 case 'removeInlineScripts':
                     removeInlineScripts(doc)
                     break
-                case 'injectMathJax':
-                    injectMathJax(doc, ...args)
+                case 'useMathStyles':
+                    useMathStyles(doc, args[0])
                     break
             }
         }
@@ -44,6 +44,8 @@ function removeInlineScripts(doc) {
     doc.querySelectorAll('script').forEach(el => el.replaceWith(doc.createElement('style')))
 }
 
+// TODO: reconsider usage of MathJax,
+// (maybe only the speech engine - https://speechruleengine.org/)
 function injectMathJax(doc, url, config) {
     const scriptConfig = doc.createElement('script')
     scriptConfig.textContent = config
@@ -62,6 +64,111 @@ export function convertFontSizePxToRem(data, defaultSize) {
             const n = parseFloat(p1)
             return 'font-size:' + (Math.round((n / defaultSize) * 1000) / 1000) + 'rem'
         })
+}
+
+import latinModernMath from "../../resources/fonts/latinmodern/latinmodern-math.woff2?url"
+import latinModernRomanRegular from "../../resources/fonts/latinmodern/lmroman10-regular.woff2?url"
+import latinModernRomanBold from "../../resources/fonts/latinmodern/lmroman10-bold.woff2?url"
+import latinModernRomanItalic from "../../resources/fonts/latinmodern/lmroman10-italic.woff2?url"
+import latinModernRomanBoldItalic from "../../resources/fonts/latinmodern/lmroman10-bolditalic.woff2?url"
+const mathNamespaceCSS = `
+@namespace m url("http://www.w3.org/1998/Math/MathML");
+`
+const mathFontsCSS = `
+/* The WOFF fonts have been converted from the OTF ones
+obtained from http://www.gust.org.pl/projects/e-foundry/.
+Stylesheet inspired by https://github.com/fred-wang/MathFonts
+by Frédéric Wang Nélar */
+@font-face {
+    font-family: LMRoman10;
+    src: url("${latinModernRomanRegular}") format("woff2");
+}
+@font-face {
+    font-family: LMRoman10;
+    src: url("${latinModernRomanBold}") format("woff2");
+    font-weight: bold;
+}
+@font-face {
+    font-family: LMRoman10;
+    src: url("${latinModernRomanItalic}") format("woff2");
+    font-style: italic;
+}
+@font-face {
+    font-family: LMRoman10;
+    src: url("${latinModernRomanBoldItalic}") format("woff2");
+    font-weight: bold;
+    font-style: italic;
+}
+@font-face {
+    font-family: "Latin Modern Math";
+    src: local("Latin Modern Math"), local("LatinModernMath-Regular"),
+         url("${latinModernMath}") format("woff2");
+}
+m|mtext {
+    font-family: "Latin Modern Roman", LatinModernRoman, LMRoman10;
+}
+m|math {
+    font-family: "Latin Modern Math";
+}
+`
+const mathStylesCSS = `
+/* From https://stackoverflow.com/questions/13916177/how-to-line-break-in-mathml#answer-77954155
+answer by Sámal Rasmussen */
+m|math:not([display="block"]) {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: left;
+    gap: 3px;
+}
+`
+const supportsMathMLLineBreaks = (function() {
+    const div = document.createElement('div')
+    div.style.cssText = 'color: rgba(0, 0, 0, 0); border: none; background-color: transparent; font-size: 12px; position: absolute; width: 100px;'
+    div.innerHTML = `<math display="block">
+        <mn>100</mn><mo>+</mo>
+        <mn>200</mn><mo>+</mo>
+        <mn>300</mn><mo>+</mo>
+        <mn>400</mn><mo>+</mo>
+        <mn>500</mn><mo>+</mo>
+    </math>`
+    document.body.appendChild(div)
+    const m = div.querySelector('math')
+    const linesHeight = m.getBoundingClientRect().height
+    div.style.width = '10000px'
+    const singleLineHeight = m.getBoundingClientRect().height
+    document.body.removeChild(div)
+    return linesHeight > singleLineHeight;
+})();
+
+function useMathStyles(doc, what) {
+    let mathElems = doc.body?.getElementsByTagNameNS('http://www.w3.org/1998/Math/MathML', 'math')
+    if (mathElems?.length) {
+        let styleText = mathNamespaceCSS
+        if (['fonts', 'all'].includes(what)) {
+            styleText += mathFontsCSS
+        }
+        if (['styles', 'all'].includes(what)) {
+            for (const math of mathElems) {
+                if (math.getAttribute('display') === 'block') {
+                    const div = document.createElement('div')
+                    div.setAttribute('data-simebv-skip', 'true')
+                    div.style.width = '100%'
+                    div.style.overflowX = 'auto'
+                    div.style.overflowY = 'hidden'
+                    div.style.paddingBlock = '2px'
+                    math.replaceWith(div)
+                    div.append(math)
+                }
+            }
+            if (!supportsMathMLLineBreaks) {
+                styleText += mathStylesCSS
+            }
+        }
+        const style = doc.createElement('style')
+        style.textContent = styleText
+        doc.head.append(style)
+    }
 }
 
 
