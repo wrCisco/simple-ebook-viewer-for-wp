@@ -291,7 +291,7 @@ export class Reader {
         if (annotation?.label) {
             this.openShowAnnotationDialog(
                 __('Start of page ', 'simple-ebook-viewer') + annotation.label,
-                'Page list',
+                __('Page list', 'simple-ebook-viewer'),
             )
         }
     }

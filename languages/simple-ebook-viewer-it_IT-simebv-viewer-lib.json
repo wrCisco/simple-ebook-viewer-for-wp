@@ -1,5 +1,5 @@
 {
-    "translation-revision-date": "2025-05-16",
+    "translation-revision-date": "2026-03-03",
     "generator": "WP-CLI\/2.12.0",
     "source": "src\/js\/simebv-viewer.js",
     "domain": "messages",
@@ -10,6 +10,96 @@
                 "lang": "it",
                 "plural-forms": "nplurals=2; plural=(n != 1);"
             },
+            "Page %1$s": [
+                "Pagina %1$s"
+            ],
+            "Loading...": [
+                "Caricamento..."
+            ],
+            "Error: I couldn't retrieve the book to display.": [
+                "Errore: non ho potuto recuperare il libro da mostrare."
+            ],
+            "Resource not found on the server": [
+                "Risorsa non trovata nel server"
+            ],
+            "Start of page ": [
+                "Inizio della pagina "
+            ],
+            "Front matter": [
+                "Pagine preliminari"
+            ],
+            "Location %1$s\/%2$s": [
+                "Posizione %1$s\/%2$s"
+            ],
+            "Page %1$s \/ %2$s": [
+                "Pagina %1$s \/ %2$s"
+            ],
+            "Ebook contents": [
+                "Contenuti dell'ebook"
+            ],
+            "Error while opening the book:": [
+                "Errore durante l'apertura del libro:"
+            ],
+            "Show sidebar": [
+                "Mostra barra laterale"
+            ],
+            "No title": [
+                "Senza titolo"
+            ],
+            "Show settings": [
+                "Mostra impostazioni"
+            ],
+            "Toggle full screen": [
+                "Attiva\/disattiva schermo intero"
+            ],
+            "Close Reader": [
+                "Chiudi il lettore"
+            ],
+            "Activate color filters": [
+                "Attiva i filtri colore"
+            ],
+            "Invert colors:": [
+                "Inverti colori:"
+            ],
+            "Rotate hues:": [
+                "Ruota tonalit\u00e0:"
+            ],
+            "Transparent background:": [
+                "Sfondo trasparente:"
+            ],
+            "Background color:": [
+                "Colore di sfondo:"
+            ],
+            "OK": [
+                "OK"
+            ],
+            "Search": [
+                "Cerca"
+            ],
+            "Previous result": [
+                "Precedente"
+            ],
+            "Next result": [
+                "Successivo"
+            ],
+            "Close": [
+                "Chiudi"
+            ],
+            "Auto": [
+                ""
+            ],
+            "Serif": [
+                ""
+            ],
+            "Sans Serif": [
+                ""
+            ],
+            "Monospace": [
+                ""
+            ],
+            "OpenDyslexic": [
+                ""
+            ],
             "Paginated": [
                 "Pagine"
             ],
@@ -33,33 +123,6 @@
             ],
             "Search...": [
                 "Cerca..."
-            ],
-            "Page %1$s": [
-                "Pagina %1$s"
-            ],
-            "Loc %1$s\/%2$s": [
-                "Loc %1$s\/%2$s"
-            ],
-            "Loading...": [
-                "Caricamento..."
-            ],
-            "Show sidebar": [
-                "Mostra barra laterale"
-            ],
-            "No title": [
-                "Senza titolo"
-            ],
-            "Show settings": [
-                "Mostra impostazioni"
-            ],
-            "Full screen": [
-                "Schermo intero"
-            ],
-            "Go left": [
-                "Vai a sinistra"
-            ],
-            "Go right": [
-                "Vai a destra"
             ],
             "Font Size\u0004Small": [
                 "Piccola"
@@ -88,12 +151,6 @@
             "Theme color\u0004Sepia": [
                 "Seppia"
             ],
-            "Theme color\u0004Light": [
-                "Chiaro"
-            ],
-            "Theme color\u0004Dark": [
-                "Scuro"
-            ],
             "History": [
                 "Cronologia"
             ],
@@ -115,44 +172,212 @@
             "Custom": [
                 "Personalizzato"
             ],
-            "Error: I couldn't retrieve the book to display.": [
-                "Errore: non ho potuto recuperare il libro da mostrare."
-            ],
-            "Resource not found on the server": [
-                "Risorsa non trovata nel server"
-            ],
             "Color filter...": [
                 "Filtro colore..."
             ],
-            "Search": [
-                "Cerca"
+            "Theme color\u0004Light": [
+                "Chiaro"
             ],
-            "Previous result": [
-                "Precedente"
+            "Theme color\u0004Dark": [
+                "Scuro"
             ],
-            "Next result": [
-                "Successivo"
+            "Show position": [
+                "Mostra posizione"
             ],
-            "Close": [
-                "Chiudi"
+            "Slider": [
+                "Slider"
             ],
-            "Activate color filters": [
-                "Attiva i filtri colore"
+            "Percentage": [
+                "Percentuale"
             ],
-            "Invert colors:": [
-                "Inverti colori:"
+            "Pages": [
+                "Pagine"
             ],
-            "Rotate hues:": [
-                "Ruota tonalit\u00e0:"
+            "Theme color\u0004Light (forced)": [
+                "Chiaro (forzato)"
             ],
-            "Transparent background:": [
-                "Sfondo trasparente:"
+            "Theme color\u0004Dark (forced)": [
+                "Scuro (forzato)"
             ],
-            "Background color:": [
-                "Colore di sfondo:"
+            "Font style...": [
+                "Stile font..."
             ],
-            "OK": [
-                "OK"
+            "Show\/hide annotations...": [
+                "Mostra\/nascondi annotazioni"
+            ],
+            "Read aloud...": [
+                "Leggi ad alta voce..."
+            ],
+            "Annotation": [
+                "Annotazione"
+            ],
+            "Title": [
+                "Titolo"
+            ],
+            "Subtitle": [
+                "Sottotitolo"
+            ],
+            "Author": [
+                "Autore"
+            ],
+            "Editor": [
+                "Editore"
+            ],
+            "Translator": [
+                "Traduttore"
+            ],
+            "Artist": [
+                "Artista"
+            ],
+            "Illustrator": [
+                "Illustratore"
+            ],
+            "Colorist": [
+                "Colorista"
+            ],
+            "Narrator": [
+                "Narratore"
+            ],
+            "Language": [
+                "Lingua"
+            ],
+            "Publisher": [
+                "Editore"
+            ],
+            "Publication date": [
+                "Data di pubblicazione"
+            ],
+            "Subject": [
+                "Soggetto"
+            ],
+            "Description": [
+                "Descrizione"
+            ],
+            "Source": [
+                "Sorgente"
+            ],
+            "Rights": [
+                "Diritti"
+            ],
+            "Source of the page list": [
+                "Fonte della lista delle pagine"
+            ],
+            "Identifier": [
+                "Identificatore"
+            ],
+            "Other identifiers": [
+                "Altri identificatori"
+            ],
+            "Ebook metadata": [
+                "Metadati dell'ebook"
+            ],
+            "Ebook format": [
+                "Formato dell'ebook"
+            ],
+            "I cannot access the audio output device because it's already in use, maybe by another application.": [
+                "Non posso accedere al dispotivo di uscita dell'audio perch\u00e9 gi\u00e0 in uso, forse da un'altra applicazione."
+            ],
+            "I cannot identify an audio output channel on this device.": [
+                "Non posso identificare un canale di uscita audio in questo dispositivo."
+            ],
+            "A required network operation to start the speech synthesis failed.": [
+                "Un'operazione di rete necessaria per far partire la sintesi vocale non \u00e8 riuscita."
+            ],
+            "No speech synthesis engine available at this moment.": [
+                "Nessun motore di sintesi vocale disponibile al momento."
+            ],
+            "The speech synthesis engine raised an error.": [
+                "Il motore di sintesi vocale ha riportato un errore."
+            ],
+            "No appropriate voice available": [
+                "Non \u00e8 disponibile alcuna voce adeguata."
+            ],
+            "The selected voice is not available.": [
+                "La voce selezionata non \u00e8 disponibile."
+            ],
+            "The text is too long to synthesize.": [
+                "Il testo \u00e8 troppo lungo per farne la sintesi vocale."
+            ],
+            "The value of at least one amongst Speed, Pitch and Volume is not valid.": [
+                "Il valore di almeno uno fra Velocit\u00e0, Tonalit\u00e0 e Volume non \u00e8 valido."
+            ],
+            "The operation's start was not allowed.": [
+                "Operazione non permessa."
+            ],
+            "No appropriate voice available for the language %1$s": [
+                "Nessuna voce appropriata per il linguaggio %1$s"
+            ],
+            "Details": [
+                "Dettagli"
+            ],
+            "Ebook metadata and navigation trees": [
+                "Metadati dell'ebook e alberi di navigazione"
+            ],
+            "Table of contents": [
+                "Indice generale"
+            ],
+            "Page list": [
+                "Indice delle pagine"
+            ],
+            "Turn left page": [
+                "Gira pagina a sinistra"
+            ],
+            "Turn right page": [
+                "Gira pagina a destra"
+            ],
+            "Location in ebook": [
+                "Posizione nell'ebook"
+            ],
+            "Show\/hide annotations": [
+                "Mostra\/nascondi annotazioni"
+            ],
+            "Show Calibre Bookmarks": [
+                "Mostra note di Calibre"
+            ],
+            "Show page delimiters": [
+                "Mostra i punti di separazione delle pagine"
+            ],
+            "(e.g. of the ebook's paper version)": [
+                "(e.g. della versione cartacea del libro)"
+            ],
+            "Cancel": [
+                "Cancella"
+            ],
+            "Play": [
+                "Play"
+            ],
+            "Pause": [
+                "Pausa"
+            ],
+            "Speech Options": [
+                "Opzioni"
+            ],
+            "Go to previous section": [
+                "Vai alla sezione precedente"
+            ],
+            "Go to next section": [
+                "Vai alla sezione successiva"
+            ],
+            "Volume: ": [
+                "Volume: "
+            ],
+            "Pitch: ": [
+                "Tonalit\u00e0: "
+            ],
+            "Speed: ": [
+                "Velocit\u00e0: "
+            ],
+            "Voice: ": [
+                "Voce: "
+            ],
+            "The voice is automatically selected based on the ebook and the system language. If you have more than one voice for the language, you can select your preferred one in the system settings.": [
+                "La voce \u00e8 selezionata automaticamente a seconda dell'ebook e della lingua di sistema. Se hai installato pi\u00f9 di una voce per lingua, puoi selezionare quella che preferisci fra le impostazioni di sistema del tuo dispositivo."
+            ],
+            "If you select a word in the text, the speech will begin from that word.": [
+                "Se selezioni una parola nel testo, la lettura comincer\u00e0 da quella parola."
+            ],
+            "Warning: remote voices may restart from the beginning of the paragraph when they are changed. On Android, all voices may do the same when paused also.": [
+                "Attenzione: le voci remote possono ripartire dall'inizio del paragrafo quando vengono cambiate. Su Android, tutte le voci possono fare lo stesso anche quando messe in pausa."
             ]
         }
     }

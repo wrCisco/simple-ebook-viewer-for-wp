@@ -30,7 +30,7 @@ export class SpeechManager {
         'language-unavailable': __('No appropriate voice available', 'simple-ebook-viewer'),
         'voice-unavailable': __('The selected voice is not available.', 'simple-ebook-viewer'),
         'text-too-long': __('The text is too long to synthesize.', 'simple-ebook-viewer'),
-        'invalid-argument': __('The value of at least one amongst Rate, Pitch and Volume is not valid.', 'simple-ebook-viewer'),
+        'invalid-argument': __('The value of at least one amongst Speed, Pitch and Volume is not valid.', 'simple-ebook-viewer'),
         'not-allowed': __("The operation's start was not allowed.", 'simple-ebook-viewer'),
     }
     #isAndroid
