@@ -89,17 +89,7 @@ class SIMEBV_Viewer extends SIMEBV_Base {
 
     }
 
-    public static function render_ebook_viewer($atts) {
-        if (!is_singular()) {
-            return;
-        }
-        // add default value for attributes in the shortcode
-        $atts = shortcode_atts(
-            self::shortcode_viewer_atts_with_defaults(),
-            $atts,
-            'simebv_viewer'
-        );
-
+    public static function get_ebook_id($slug) {
         $ebook_id = '';
         $args = array(
             'post_type' => 'attachment',
@@ -108,7 +98,7 @@ class SIMEBV_Viewer extends SIMEBV_Base {
             'meta_query' => [
                 [
                     'key' => 'simebv_ebook_slug',
-                    'value' => sanitize_text_field($atts['book']),
+                    'value' => sanitize_text_field($slug),
                     'compare' => '=',
                 ],
             ],
@@ -119,8 +109,28 @@ class SIMEBV_Viewer extends SIMEBV_Base {
             $ebook_id = get_the_ID();
             wp_reset_postdata();
         }
+        return $ebook_id;
+    }
+
+    public static function render_ebook_viewer($atts) {
+        if (!is_singular() && !apply_filters('simebv_allow_viewer', false)) {
+            return;
+        }
+        // add default value for attributes in the shortcode
+        $atts = shortcode_atts(
+            self::shortcode_viewer_atts_with_defaults(),
+            $atts,
+            'simebv_viewer'
+        );
+        $ebook_id = self::get_ebook_id($atts['book']);
         if (empty($ebook_id)) {
             return '<p style="color: red;">' . esc_html__("No Web Publication file provided.", 'simple-ebook-viewer') . '</p>';
+        }
+
+        if (!wp_script_is(self::$js_core_script_handle, 'enqueued')) {
+            self::enqueue_core_js();
+            self::enqueue_init_js();
+            self::register_javascript_translations();
         }
 
         $styles = self::setup_styles($atts);
