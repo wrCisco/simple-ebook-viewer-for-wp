@@ -100,7 +100,7 @@ export class Menu {
         item.append(widget.element)
         this.#element.append(item)
         if (addKeyboardEventListeners) {
-            this.#addKeyboardEventListeners(this.getMenuItems(widget))
+            this.#addKeyboardEventListeners(this.getMenuItems(widget.element))
         }
     }
 
