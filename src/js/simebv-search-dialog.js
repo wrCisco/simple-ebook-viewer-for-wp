@@ -96,6 +96,10 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
                     }
                 }
                 break
+            case 'ArrowLeft':
+            case 'ArrowRight':
+                e.stopPropagation()
+                break
         }
     })
 
