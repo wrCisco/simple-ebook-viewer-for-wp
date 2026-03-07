@@ -459,7 +459,7 @@ export class Reader {
             dir: this.view.book.dir
         }})
         this._navBar.dispatchEvent(newBookEvent)
-        this._speechManager = new SpeechManager(this.view, this._rootDiv, {
+        this._speechManager = new SpeechManager(this.view, this._rootDiv, pluginBaseUrl(), {
             savePreference: this._savePreference.bind(this),
             loadPreference: this._loadPreference.bind(this),
         })
@@ -1094,6 +1094,11 @@ const fetchFile = async url => {
 }
 
 
+export const pluginBaseUrl = () => {
+    return new URL(/* @vite-ignore */'../../', import.meta.url).href
+}
+
+
 export const get_ebook_url = async id => {
     await wp.api.loadPromise
     let media = new wp.api.models.Media({ id: id })
@@ -1216,6 +1221,8 @@ export * from './simebv-annotations-dialog.js'
 export * from './simebv-show-annotation-dialog.js'
 export * from './simebv-speech-dialog.js'
 export * from './simebv-speech.js'
+export * from './simebv-sre.js'
+export * from './simebv-tts.js'
 export * from './simebv-page-list.js'
 export * from './simebv-menu.js'
 export * from './simebv-menu-items.js'

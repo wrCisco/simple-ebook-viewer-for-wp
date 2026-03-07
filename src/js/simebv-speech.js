@@ -17,6 +17,7 @@ export class SpeechManager {
     }
     #view
     #target
+    #localesBaseUrl
     #wakeLock
     #prefix = '<?xml version="1.0"?>'
     #speechErrors = {
@@ -38,9 +39,10 @@ export class SpeechManager {
     #loadPreference
     #speechDialog
 
-    constructor(view, eventTarget, { savePreference, loadPreference } = {}) {
+    constructor(view, eventTarget, localesBaseUrl, { savePreference, loadPreference } = {}) {
         this.#view = view
         this.#target = eventTarget
+        this.#localesBaseUrl = localesBaseUrl
         this.#isAndroid = isAndroid()
         this.#savePreference = savePreference ?? (() => {})
         this.#loadPreference = loadPreference ?? (() => null)
@@ -85,7 +87,7 @@ export class SpeechManager {
         if (voice) {
             this.speechSynthesis.voice = voice
         }
-        await this.#view.initTTS()
+        await this.#view.initTTS('word', undefined, this.#localesBaseUrl)
         if (!this.#speechDialog) {
             const dlg = speechDialog(this.#target, this.speechSynthesis)
             dlg.element.id = 'simebv-speech-dialog'
@@ -105,7 +107,7 @@ export class SpeechManager {
     }
 
     onSectionLoad() {
-        this.#view.initTTS()
+        this.#view.initTTS('word', undefined, this.#localesBaseUrl)
         this.speechSynthesis.utterance = undefined
     }
 
@@ -181,7 +183,7 @@ export class SpeechManager {
         }
         u.voice = v
         this.speechSynthesis.voice = v
-        u.onend = e => {
+        u.onend = async e => {
             if (this.speechSynthesis.utterance !== u) {
                 return
             }
@@ -193,7 +195,7 @@ export class SpeechManager {
                 utt = this.#newUtterance(s, nextTexts)
             }
             else {
-                s = this.#view.tts.next(true)
+                s = await this.#view.tts.next(true)
                 if (s) {
                     utt = this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
                 }
@@ -228,8 +230,7 @@ export class SpeechManager {
     }
 
     #ssmlToStrings(ssml) {
-        // It would be much more efficient to not create the ssml at all
-        // but for now I'm going to leave the tts module of foliate-js as is
+        // TODO: reconsider direct use of ssml
         const doc = new DOMParser().parseFromString(ssml, 'application/xml')
         const lang = doc.documentElement.getAttributeNS?.('http://www.w3.org/XML/1998/namespace', 'lang')
         try {
@@ -238,6 +239,11 @@ export class SpeechManager {
         catch (err) {
             console.warn(err)
         }
+        // Replace with punctuation the ssml pauses inserted
+        // for math expressions by the Speech Rule Engine
+        doc.querySelectorAll('break').forEach(el => {
+            el.replaceWith(parseInt(el.getAttribute('time')) > 250 ? '...' : ',')
+        })
         const text = doc.documentElement.textContent
         // with longer chunks Google voices may not start
         const maxLength = 4000
@@ -283,7 +289,7 @@ export class SpeechManager {
     }
 
     #setupEventListeners() {
-        this.#target.addEventListener('simebv-speech-play', ({ detail }) => {
+        this.#target.addEventListener('simebv-speech-play', async ({ detail }) => {
             const { doc } = this.#view.renderer.getContents()[0]
             const selection = doc.getSelection()
             let selectedRange
@@ -292,8 +298,8 @@ export class SpeechManager {
             }
             if (!this.speechSynthesis.utterance) {
                 this.speechSynthesis.synthesis.cancel()
-                setTimeout(() => {
-                    const s = selectedRange ? this.#view.tts.from(selectedRange) : this.#view.tts.start()
+                setTimeout(async () => {
+                    const s = selectedRange ? (await this.#view.tts.from(selectedRange)) : (await this.#view.tts.start())
                     const u = this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
                     // Add warmup utterance to avoid the cutting off of the first words by the Windows voices
                     const warmup = new SpeechSynthesisUtterance('Silence...')
@@ -319,7 +325,7 @@ export class SpeechManager {
             }
             else {
                 if (selectedRange) {
-                    const s = this.#view.tts.from(selectedRange)
+                    const s = await this.#view.tts.from(selectedRange)
                     this.speechSynthesis.synthesis.cancel()
                     this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
                     this.speechSynthesis.synthesis.speak(this.speechSynthesis.utterance)

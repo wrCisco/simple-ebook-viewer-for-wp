@@ -4,7 +4,8 @@
   "license": "GPL-2.0-or-later",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "postbuild": "node ./copy-sre-locales.js"
   },
   "type": "module",
   "devDependencies": {
