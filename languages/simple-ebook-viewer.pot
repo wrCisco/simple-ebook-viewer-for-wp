@@ -468,6 +468,10 @@ msgstr ""
 msgid "Go to next section"
 msgstr ""
 
+#: src/js/simebv-speech-dialog.js:194
+msgid "Text To Speech Options"
+msgstr ""
+
 #: src/js/simebv-speech-dialog.js:208
 msgid "Volume: "
 msgstr ""

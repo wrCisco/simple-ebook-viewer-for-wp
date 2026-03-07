@@ -191,7 +191,7 @@ function speechDialogOptions(target, options) {
 
     const header = document.createElement('h2')
     header.classList.add('simebv-header-dialog')
-    header.textContent = 'Text To Speech Options'
+    header.textContent = __('Text To Speech Options', 'simple-ebook-viewer')
     header.id = 'simebv-speech-options-header'
 
     const volume = document.createElement('div')
