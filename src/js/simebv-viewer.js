@@ -835,6 +835,8 @@ export class Reader {
         }
         // Allow horizontal scrolling of overflowing elements
         let hScrolling = false
+        // Allow users to select text
+        let selectionExistedAtStart = false
         doc.addEventListener('touchstart', (e) => {
             let elem
             const touch = e.changedTouches[0]
@@ -857,22 +859,29 @@ export class Reader {
             }
             if (elem) {
                 hScrolling = elem
-                e.preventDefault()
+            }
+            const sel = doc.getSelection()
+            selectionExistedAtStart = sel && !sel.isCollapsed
+            if (hScrolling || selectionExistedAtStart) {
                 e.stopPropagation()
             }
         }, {capture: true})
         doc.addEventListener('touchmove', (e) => {
             if (hScrolling && e.touches.length === 1) {
-                e.preventDefault()
+                e.stopPropagation()
+            }
+            const sel = doc.getSelection()
+            if (selectionExistedAtStart || (sel && !sel.isCollapsed)) {
                 e.stopPropagation()
             }
         }, {capture: true})
         doc.addEventListener('touchend', (e) => {
-            if (hScrolling) {
-                hScrolling = false
-                e.preventDefault()
+            const sel = doc.getSelection()
+            if (hScrolling || selectionExistedAtStart || (sel && !sel.isCollapsed)) {
                 e.stopPropagation()
             }
+            hScrolling = false
+            selectionExistedAtStart = false
         }, {capture: true})
     }
 
