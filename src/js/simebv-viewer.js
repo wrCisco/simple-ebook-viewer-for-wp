@@ -481,10 +481,14 @@ export class Reader {
         if (!ebookTitle) {
             ebookTitle = this._metadataFormatter.formatLanguageMap(book.metadata?.title) || 'Untitled Book'
         }
+        ebookTitle = ebookTitle.slice(0, 260)
         this._ebookTitle = ebookTitle
         this._headerBar.setHeader(ebookTitle)
         this._headerBar.dispatchEvent(newBookEvent)
         this._sideBar.setTitle(ebookTitle)
+        if (ebookAuthor) {
+            ebookAuthor.slice(0, 260)
+        }
         this._sideBar.setAuthor(ebookAuthor ? ebookAuthor : this._metadataFormatter.formatContributor(book.metadata?.author))
         Promise.resolve(book.getCover?.())?.then(blob =>
             blob ? this._sideBar.setCover(URL.createObjectURL(blob)) : null)
