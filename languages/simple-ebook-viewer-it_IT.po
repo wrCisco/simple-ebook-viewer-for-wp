@@ -17,7 +17,7 @@ msgstr ""
 #: simple-ebook-viewer.php
 #: simple-ebook-viewer.php:23
 msgid "Simple Ebook Viewer"
-msgstr ""
+msgstr "Simple Ebook Viewer"
 
 #. Description of the plugin
 #: simple-ebook-viewer.php
@@ -27,7 +27,7 @@ msgstr "Un plugin per incorporare e visualizzare ebook"
 #. Author of the plugin
 #: simple-ebook-viewer.php
 msgid "Francesco Martini"
-msgstr ""
+msgstr "Francesco Martini"
 
 #: includes/simebv-viewer.php:152
 msgid "It seems that JavaScript is not enabled in your browser, you need to enable it in order to use the Ebook Viewer."
@@ -70,13 +70,13 @@ msgid "Search..."
 msgstr "Cerca..."
 
 #. translators: %1$s: page number
-#: src/js/simebv-viewer.js:896
-#: src/js/simebv-viewer.js:900
+#: src/js/simebv-viewer.js:878
+#: src/js/simebv-viewer.js:882
 #, js-format
 msgid "Page %1$s"
 msgstr "Pagina %1$s"
 
-#: src/js/simebv-viewer.js:1079
+#: src/js/simebv-viewer.js:1061
 msgid "Loading..."
 msgstr "Caricamento..."
 
@@ -107,8 +107,8 @@ msgstr "Successivo"
 
 #: src/js/simebv-fonts-dialog.js:96
 #: src/js/simebv-search-dialog.js:61
-#: src/js/simebv-speech-dialog.js:69
-#: src/js/simebv-speech-dialog.js:310
+#: src/js/simebv-speech-dialog.js:74
+#: src/js/simebv-speech-dialog.js:315
 msgid "Close"
 msgstr "Chiudi"
 
@@ -158,7 +158,7 @@ msgid "Sepia"
 msgstr "Seppia"
 
 #. translators: %s: example of an ebook slug based on the opened ebook
-#: includes/simebv-admin.php:106
+#: includes/simebv-admin.php:109
 #, php-format
 msgid "Use this slug in the shortcode \"simebv_viewer\" to view the ebook in your pages (e.g. [simebv_viewer book=\"%s\"]). If left empty, the value of post_name will be used instead."
 msgstr "Usa questo slug nello shortcode \"simebv_viewer\" per visualizzare l'ebook nelle tue pagine (e.g. [simebv_viewer book=\"%s\"]). Se lasciato vuoto, verrà usato al suo posto il valore di post_name."
@@ -191,11 +191,11 @@ msgstr "Adatta alla larghezza"
 msgid "Custom"
 msgstr "Personalizzato"
 
-#: src/js/simebv-viewer.js:1163
+#: src/js/simebv-viewer.js:1148
 msgid "Error: I couldn't retrieve the book to display."
 msgstr "Errore: non ho potuto recuperare il libro da mostrare."
 
-#: src/js/simebv-viewer.js:1169
+#: src/js/simebv-viewer.js:1154
 msgid "Resource not found on the server"
 msgstr "Risorsa non trovata nel server"
 
@@ -222,50 +222,16 @@ msgstr "Colore di sfondo:"
 #: src/js/simebv-annotations-dialog.js:46
 #: src/js/simebv-filters-dialog.js:76
 #: src/js/simebv-fonts-dialog.js:93
+#: src/js/simebv-footnotes.js:101
 #: src/js/simebv-metadata-dialog.js:32
 #: src/js/simebv-show-annotation-dialog.js:13
-#: src/js/simebv-speech-dialog.js:307
+#: src/js/simebv-speech-dialog.js:312
 msgid "OK"
 msgstr "OK"
 
 #: src/js/simebv-menu-items.js:241
 msgid "Color filter..."
 msgstr "Filtro colore..."
-
-#. translators: Suggested privacy policy. %s: name of the plugin
-#: includes/simebv-admin.php:26
-#, php-format
-msgid ""
-"<h3>Use of %s plugin</h3>\n"
-"<p>Our website uses a plugin to enhance your experience when reading ebooks directly on our site. This plugin does <strong>not</strong> collect, transmit, or share any personal data. It does <strong>not</strong> set cookies or track your activity across websites.</p>\n"
-"<p>When you interact with the ebook viewer, the plugin may store certain <strong>preferences locally in your browser</strong> using local storage technology. This information is saved solely to remember your settings and improve your user experience during future visits. These preferences include:</p>\n"
-"<ul>\n"
-"<li>The last page you viewed</li>\n"
-"<li>Your selected font size</li>\n"
-"<li>Page margin settings</li>\n"
-"<li>Maximum pages displayed per view</li>\n"
-"<li>Layout preference (scrolled or paginated)</li>\n"
-"<li>Chosen color theme and any color filters</li>\n"
-"<li>Zoom level</li>\n"
-"</ul>\n"
-"<p>This information is stored <strong>only on your device</strong>, is not accessible by us or any third party, and is used exclusively to personalize your ebook reading experience on this website.</p>\n"
-"<p><strong>Note:</strong> To retrieve and display the ebook content, the plugin interacts with the WordPress REST API. This process may involve the use of <strong>technical cookies</strong> that are set by WordPress itself to ensure secure and correct data transmission. These cookies do not track you and are essential for the proper functioning of the website.</p>\n"
-"<p>You can clear your saved preferences at any time by clearing your browser’s local storage or using your browser's privacy settings.</p>"
-msgstr ""
-"<h3>Uso del plugin %s</h3>\n"
-"<p>Il nostro sito web usa un plugin per migliorare la tua esperienza quando leggi ebook direttamente sul nostro sito. Questo plugin <strong>non</strong> raccoglie, trasmette né condivide alcun dato personale. <strong>Non</strong> imposta cookie né traccia la tua attività tra siti web.</p>\n"
-"<p>Quando interagisci con l'ebook viewer, il plugin può salvare certe <strong> preferenze localmente nel tuo browser</strong> usando la tecnologia del local storage. Queste informazioni sono salvate soltanto per ricordarsi le tue impostazioni e migliorare la tua esperienza durante le visite future. Queste preferenze includono:</p>\n"
-"<ul>\n"
-"<li>L'ultima pagina visualizzata</li>\n"
-"<li>La dimensione del testo selezionata</li>\n"
-"<li>I margini di pagina</li>\n"
-"<li>Le preferenze di layout (pagine o scorrimento)</li>\n"
-"<li>Il tema colore scelto e i filtri colore</li>\n"
-"<li>Il livello di zoom</li>\n"
-"</ul>\n"
-"<p>Queste informazioni sono memorizzate <strong>solo sul tuo dispositivo</strong>, non sono accessibili da noi né da terze parti, e sono usate esclusivamente per personalizzare la tua esperienza nella lettura degli ebook su questo sito web.</p>\n"
-"<p><strong>Nota:</strong> Per recuperare e mostrare il contenuto dell'ebook, il plugin interagisce con la REST API di WordPress. Questo processo può comprtare l'uso di <strong>cookie tecnici</strong> impostati da WordPress per garantire una sicura e corretta trasmissione dei dati. Questi cookie non ti tracciano e sono essenziali per il corretto funzionamento del sito web.</p>\n"
-"<p>Puoi cancellare in ogni momento le tue preferenze salvate svuotando il local storage del tuo browser, o utilizzando le impostazioni di privacy del tuo browser.</p>"
 
 #: src/js/simebv-menu-items.js:136
 msgctxt "Theme color"
@@ -303,19 +269,19 @@ msgstr ""
 
 #: src/js/simebv-fonts-dialog.js:38
 msgid "Serif"
-msgstr ""
+msgstr "Serif"
 
 #: src/js/simebv-fonts-dialog.js:51
 msgid "Sans Serif"
-msgstr ""
+msgstr "Sans Serif"
 
 #: src/js/simebv-fonts-dialog.js:64
 msgid "Monospace"
-msgstr ""
+msgstr "Monospaziato"
 
 #: src/js/simebv-fonts-dialog.js:77
 msgid "OpenDyslexic"
-msgstr ""
+msgstr "OpenDyslexic"
 
 #: src/js/simebv-header.js:269
 msgid "Toggle full screen"
@@ -429,7 +395,7 @@ msgstr "Diritti"
 
 #: src/js/simebv-metadata-dialog.js:20
 msgid "Source of the page list"
-msgstr "Fonte della lista delle pagine"
+msgstr "Opera da cui deriva la lista delle pagine"
 
 #: src/js/simebv-metadata-dialog.js:21
 msgid "Identifier"
@@ -475,8 +441,8 @@ msgstr "Metadati dell'ebook e alberi di navigazione"
 msgid "Table of contents"
 msgstr "Indice generale"
 
-#: src/js/simebv-viewer.js:294
 #: src/js/simebv-sidebar.js:277
+#: src/js/simebv-viewer.js:295
 msgid "Page list"
 msgstr "Indice delle pagine"
 
@@ -500,108 +466,164 @@ msgstr "Vai alla sezione precedente"
 msgid "Go to next section"
 msgstr "Vai alla sezione successiva"
 
-#: src/js/simebv-speech-dialog.js:194
+#: src/js/simebv-speech-dialog.js:199
 msgid "Text To Speech Options"
 msgstr "Opzioni sintesi vocale"
 
-#: src/js/simebv-speech-dialog.js:208
+#: src/js/simebv-speech-dialog.js:213
 msgid "Volume: "
 msgstr "Volume: "
 
-#: src/js/simebv-speech-dialog.js:228
+#: src/js/simebv-speech-dialog.js:233
 msgid "Pitch: "
 msgstr "Tonalità: "
 
-#: src/js/simebv-speech-dialog.js:248
+#: src/js/simebv-speech-dialog.js:253
 msgid "Speed: "
 msgstr "Velocità: "
 
-#: src/js/simebv-speech-dialog.js:283
+#: src/js/simebv-speech-dialog.js:288
 msgid "Voice: "
 msgstr "Voce: "
 
-#: src/js/simebv-speech-dialog.js:291
+#: src/js/simebv-speech-dialog.js:296
 msgid "The voice is automatically selected based on the ebook and the system language. If you have more than one voice for the language, you can select your preferred one in the system settings."
 msgstr "La voce è selezionata automaticamente a seconda dell'ebook e della lingua di sistema. Se hai installato più di una voce per lingua, puoi selezionare quella che preferisci fra le impostazioni di sistema del tuo dispositivo."
 
-#: src/js/simebv-speech-dialog.js:297
+#: src/js/simebv-speech-dialog.js:302
 msgid "If you select a word in the text, the speech will begin from that word."
 msgstr "Se selezioni una parola nel testo, la lettura comincerà da quella parola."
 
-#: src/js/simebv-speech-dialog.js:298
+#: src/js/simebv-speech-dialog.js:303
 msgid "Warning: remote voices may restart from the beginning of the paragraph when they are changed. On Android, all voices may do the same when paused also."
 msgstr "Attenzione: le voci remote possono ripartire dall'inizio del paragrafo quando vengono cambiate. Su Android, tutte le voci possono fare lo stesso anche quando messe in pausa."
 
-#: src/js/simebv-speech.js:25
+#: src/js/simebv-speech.js:26
 msgid "I cannot access the audio output device because it's already in use, maybe by another application."
 msgstr "Non posso accedere al dispotivo di uscita dell'audio perché già in uso, forse da un'altra applicazione."
 
-#: src/js/simebv-speech.js:26
+#: src/js/simebv-speech.js:27
 msgid "I cannot identify an audio output channel on this device."
 msgstr "Non posso identificare un canale di uscita audio in questo dispositivo."
 
-#: src/js/simebv-speech.js:27
+#: src/js/simebv-speech.js:28
 msgid "A required network operation to start the speech synthesis failed."
 msgstr "Un'operazione di rete necessaria per far partire la sintesi vocale non è riuscita."
 
-#: src/js/simebv-speech.js:28
+#: src/js/simebv-speech.js:29
 msgid "No speech synthesis engine available at this moment."
 msgstr "Nessun motore di sintesi vocale disponibile al momento."
 
-#: src/js/simebv-speech.js:29
+#: src/js/simebv-speech.js:30
 msgid "The speech synthesis engine raised an error."
 msgstr "Il motore di sintesi vocale ha riportato un errore."
 
-#: src/js/simebv-speech.js:30
+#: src/js/simebv-speech.js:31
 msgid "No appropriate voice available"
 msgstr "Non è disponibile alcuna voce adeguata."
 
-#: src/js/simebv-speech.js:31
+#: src/js/simebv-speech.js:32
 msgid "The selected voice is not available."
 msgstr "La voce selezionata non è disponibile."
 
-#: src/js/simebv-speech.js:32
+#: src/js/simebv-speech.js:33
 msgid "The text is too long to synthesize."
 msgstr "Il testo è troppo lungo per farne la sintesi vocale."
 
-#: src/js/simebv-speech.js:33
+#: src/js/simebv-speech.js:34
 msgid "The value of at least one amongst Speed, Pitch and Volume is not valid."
 msgstr "Il valore di almeno uno fra Velocità, Tonalità e Volume non è valido."
 
-#: src/js/simebv-speech.js:34
+#: src/js/simebv-speech.js:35
 msgid "The operation's start was not allowed."
 msgstr "Operazione non permessa."
 
-#: src/js/simebv-speech.js:169
+#: src/js/simebv-speech.js:172
 #, js-format
 msgid "No appropriate voice available for the language %1$s"
 msgstr "Nessuna voce appropriata per il linguaggio %1$s"
 
-#: src/js/simebv-viewer.js:293
+#: src/js/simebv-viewer.js:294
 msgid "Start of page "
 msgstr "Inizio della pagina "
 
-#: src/js/simebv-viewer.js:904
-#: src/js/simebv-viewer.js:905
+#: src/js/simebv-viewer.js:886
+#: src/js/simebv-viewer.js:887
 msgid "Front matter"
 msgstr "Pagine preliminari"
 
 #. translators: Location in the book, followed by a numerical fraction
-#: src/js/simebv-viewer.js:910
+#: src/js/simebv-viewer.js:892
 #, js-format
 msgid "Location %1$s/%2$s"
 msgstr "Posizione %1$s/%2$s"
 
 #. translators: current page number / total pages number
-#: src/js/simebv-viewer.js:914
+#: src/js/simebv-viewer.js:896
 #, js-format
 msgid "Page %1$s / %2$s"
 msgstr "Pagina %1$s / %2$s"
 
-#: src/js/simebv-viewer.js:1080
+#: src/js/simebv-viewer.js:1062
 msgid "Ebook contents"
 msgstr "Contenuti dell'ebook"
 
-#: src/js/simebv-viewer.js:1184
+#: src/js/simebv-viewer.js:1169
 msgid "Error while opening the book:"
 msgstr "Errore durante l'apertura del libro:"
+
+#: src/js/simebv-footnotes.js:14
+msgid "Bibliography"
+msgstr "Bibliografia"
+
+#: src/js/simebv-footnotes.js:15
+msgid "Definition"
+msgstr "Definizione"
+
+#: src/js/simebv-footnotes.js:16
+#: src/js/simebv-footnotes.js:17
+#: src/js/simebv-footnotes.js:65
+#: src/js/simebv-footnotes.js:77
+msgid "Note"
+msgstr "Nota"
+
+#. translators: Suggested privacy policy. %s: name of the plugin
+#: includes/simebv-admin.php:26
+#, php-format
+msgid ""
+"<h3>Use of %s plugin</h3>\n"
+"<p>Our website uses a plugin to enhance your experience when reading ebooks directly on our site. This plugin does <strong>not</strong> collect any personal data. It does <strong>not</strong> set cookies or track your activity across websites.</p>\n"
+"<p>When you interact with the ebook viewer, the plugin may store certain <strong>preferences locally in your browser</strong> using local storage technology. This information is saved solely to remember your settings and improve your user experience during future visits. These preferences include:</p>\n"
+"<ul>\n"
+"<li>The last page you viewed</li>\n"
+"<li>Your selected font size and style</li>\n"
+"<li>Show or hide annotations and page delimiters</li>\n"
+"<li>Page margin settings</li>\n"
+"<li>Maximum pages displayed per view</li>\n"
+"<li>Layout preference (scrolled or paginated)</li>\n"
+"<li>Chosen color theme and any color filters</li>\n"
+"<li>Zoom level</li>\n"
+"<li>Speech synthesis preferences</li>\n"
+"</ul>\n"
+"<p>This information is stored <strong>only on your device</strong> and is never transmitted to our servers. It is used exclusively to personalize your ebook reading experience on this website.</p>\n"
+"<p>If you use the Text-to-Speech functionality offered by the ebook viewer with a remote voice (the available voices depend on the browser and the operating system: Chrome offers Google remote voices, Edge offers Microsoft remote ones, for example), the text to be synthesized and the voice and language parameters will be transmitted to these remote services. As with any network request, your IP address and browser identifiers are also transmitted. You can avoid this by selecting a local voice, if available in your system.</p>\n"
+"<p><strong>Note:</strong> To retrieve and display the ebook content, the plugin interacts with the WordPress REST API. This process may involve the use of <strong>technical cookies</strong> that are set by WordPress itself to ensure secure and correct data transmission. These cookies do not track you and are essential for the proper functioning of the website.</p>\n"
+"<p>You can clear your saved preferences at any time by clearing your browser’s local storage or using your browser's privacy settings.</p>"
+msgstr ""
+"<h3>Uso del plugin %s</h3>\n"
+"<p>Il nostro sito web usa un plugin per migliorare la tua esperienza quando leggi ebook direttamente sul nostro sito. Questo plugin <strong>non</strong> raccoglie alcun dato personale. <strong>Non</strong> imposta cookie né traccia la tua attività tra siti web.</p>\n"
+"<p>Quando interagisci con l'ebook viewer, il plugin può salvare certe <strong> preferenze localmente nel tuo browser</strong> usando la tecnologia del local storage. Queste informazioni sono salvate soltanto per ricordarsi le tue impostazioni e migliorare la tua esperienza durante le visite future. Queste preferenze includono:</p>\n"
+"<ul>\n"
+"<li>L'ultima pagina visualizzata</li>\n"
+"<li>La dimensione del testo e lo stile del font</li>\n"
+"<li>Se mostrare o meno le annotazioni e i limiti di pagina</li>\n"
+"<li>I margini di pagina</li>\n"
+"<li>Le preferenze di layout (pagine o scorrimento)</li>\n"
+"<li>Il tema colore scelto e i filtri colore</li>\n"
+"<li>Il livello di zoom</li>\n"
+"<li>Le preferenze della sintesi vocale</li>\n"
+"</ul>\n"
+"<p>Queste informazioni sono memorizzate <strong>solo sul tuo dispositivo</strong> e non vengono mai trasmesse ai nostri server. Sono usate esclusivamente per personalizzare la tua esperienza nella lettura degli ebook su questo sito web.</p>\n"
+"<p>Se usi la funzionalità di sintesi vocale (Text-to-Speech) offerta dall'ebook viewer con una voce remota (le voci disponibili dipendono dal browser e dal sistema operativo: per esempio, Chrome offre le voci remote di Google, Edge offre quelle della Microsoft), il testo da elaborare e i parametri della voce e della lingua saranno trasmessi a questi servizi remoti. Come per ogni richiesta di rete, verranno trasmessi anche il tuo indirizzo IP e gli identificatori del browser. Puoi evitare questa cosa selezionando una voce locale, se disponibile nel tuo sistema.</p>\n"
+"<p><strong>Nota:</strong> Per recuperare e mostrare il contenuto dell'ebook, il plugin interagisce con la REST API di WordPress. Questo processo può comprtare l'uso di <strong>cookie tecnici</strong> impostati da WordPress per garantire una sicura e corretta trasmissione dei dati. Questi cookie non ti tracciano e sono essenziali per il corretto funzionamento del sito web.</p>\n"
+"<p>Puoi cancellare in ogni momento le tue preferenze salvate svuotando il local storage del tuo browser, o utilizzando le impostazioni di privacy del tuo browser.</p>"

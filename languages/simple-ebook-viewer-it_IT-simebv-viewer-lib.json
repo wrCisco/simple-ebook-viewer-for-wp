@@ -22,6 +22,9 @@
             "Resource not found on the server": [
                 "Risorsa non trovata nel server"
             ],
+            "Page list": [
+                "Indice delle pagine"
+            ],
             "Start of page ": [
                 "Inizio della pagina "
             ],
@@ -89,16 +92,16 @@
                 ""
             ],
             "Serif": [
-                ""
+                "Serif"
             ],
             "Sans Serif": [
-                ""
+                "Sans Serif"
             ],
             "Monospace": [
-                ""
+                "Monospaziato"
             ],
             "OpenDyslexic": [
-                ""
+                "OpenDyslexic"
             ],
             "Paginated": [
                 "Pagine"
@@ -260,7 +263,7 @@
                 "Diritti"
             ],
             "Source of the page list": [
-                "Fonte della lista delle pagine"
+                "Opera da cui deriva la lista delle pagine"
             ],
             "Identifier": [
                 "Identificatore"
@@ -306,6 +309,15 @@
             ],
             "No appropriate voice available for the language %1$s": [
                 "Nessuna voce appropriata per il linguaggio %1$s"
+            ],
+            "Bibliography": [
+                "Bibliografia"
+            ],
+            "Definition": [
+                "Definizione"
+            ],
+            "Note": [
+                "Nota"
             ],
             "Details": [
                 "Dettagli"
