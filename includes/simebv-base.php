@@ -71,9 +71,6 @@ class SIMEBV_Base {
             'always-full-viewport' => [
                 'html_name' => 'data-simebv-always-full-viewport', 'default' => 'false'
             ],
-            'show-close-button' => [
-                'html_name' => 'data-simebv-show-close-button', 'default' => 'false'
-            ],
             'return-to-url' => [
                 'html_name' => 'data-simebv-return-to-url', 'default' => ''
             ],

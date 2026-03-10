@@ -58,7 +58,6 @@ export class Reader {
     _overlay
     _realFullscreen
     _alwaysFullViewport
-    _showCloseButton
     _modalDialogs = {
         annotations: undefined,
         showAnnotation: undefined,
@@ -112,7 +111,7 @@ export class Reader {
 
     constructor(container, options) {
         let { menu, navBar, headerBar, sideBar, realFullscreen,
-            alwaysFullViewport, showCloseButton, closeViewerCallback
+            alwaysFullViewport, closeViewerCallback
         } = options
         this.container = container ?? document.body
         this._root = this.container.attachShadow({ mode: 'open' })
@@ -121,8 +120,9 @@ export class Reader {
         this._bookContainer = this._root.querySelector('#simebv-book-container')
         this._overlay = this._root.querySelector('#simebv-dimming-overlay')
         this._realFullscreen = !!realFullscreen
-        this._alwaysFullViewport = !!alwaysFullViewport
-        this._showCloseButton = !!(showCloseButton || alwaysFullViewport)
+        // Always full viewport needs a callback function for the close button
+        // and can't be real full screen (it needs user activation)
+        this._alwaysFullViewport = !!alwaysFullViewport && !!closeViewerCallback && !realFullscreen
 
         const sideBarContainer = this._root.querySelector('#simebv-side-bar')
         if (!sideBar) {
@@ -153,7 +153,7 @@ export class Reader {
         this.menu.element.classList.add('simebv-menu')
         this._setMenuMaxBlockSize()
 
-        if (this._showCloseButton && typeof closeViewerCallback === 'function') {
+        if (typeof closeViewerCallback === 'function') {
             this._headerBar.setAttribute('show-close-button', 'true')
             this._headerBar.addEventListener('close-button', closeViewerCallback)
             if (this._alwaysFullViewport) {
@@ -1099,9 +1099,6 @@ export const gatherOptionsFromContainer = container => {
     }
     if (container.getAttribute('data-simebv-always-full-viewport') === 'true') {
         options.reader.alwaysFullViewport = true
-    }
-    if (container.getAttribute('data-simebv-show-close-button') === 'true') {
-        options.reader.showCloseButton = true
     }
     let return_to_url = container.getAttribute('data-simebv-return-to-url')
     if (return_to_url) {
