@@ -125,20 +125,20 @@ There are some other settings that the users won't be able to change by themselv
 * **`popup-notes`**
   - accepted values: "**true**", "**false**" (default: **true**)
 
-With always-full-viewport set to **true**, the ebook viewer will cover the entire webpage when it is opened, and the "full screen" icon will be replaced by a "close viewer" icon. Always-full-viewport requires that also return-to-url is present, with a valid URL that indicates the destination of the user when they choose to close the viewer. The URL can be a relative one, like "/" or "/books-gallery", or it can be an absolute one, but it needs to have the same hostname of the ebook viewer web page (e.g. if the ebook viewer is opened in the page https://www.example.com/ebook-viewer, the URL in return-to-url needs to start with https://www.example.com).
+With `always-full-viewport` set to **true**, the ebook viewer will cover the entire webpage when it is opened, and the "full screen" icon will be replaced by a "close viewer" icon. `Always-full-viewport` requires that also `return-to-url` is present, with a valid URL that indicates the destination of the user when they choose to close the viewer. The URL can be relative, like "/" or "/books-gallery", or it can be absolute, but it needs to have the same hostname of the webpage that contains the ebook viewer (e.g. if the ebook viewer is opened in https://www.example.com/ebook-viewer, the URL in `return-to-url` needs to start with https://www.example.com).
 
-If real-fullscreen is set to **true**, the ebook viewer will cover the entire screen instead of only the webpage viewport when the user clicks on the "full screen" icon. With real-fullscreen set to true, always-full-viewport is ignored, since the full screen requires an explicit action by the user.
+If `real-fullscreen` is set to **true**, the ebook viewer will cover the entire screen instead of only the webpage viewport when the user clicks on the "full screen" icon. With `real-fullscreen` set to true, `always-full-viewport` is ignored, since the full screen requires an explicit action by the user.
 
-Allow-js: normally, the plugin forbids, as far as possible, script execution from inside the ebooks. If you set allow-js to true, this restriction is relaxed, and scripts within the ebook can be executed.
+`Allow-js`: normally, the plugin forbids, as far as possible, script execution from inside the ebooks. If you set `allow-js` to true, this restriction is relaxed, and scripts within the ebook can be executed.
 **Caveat 1**: you need to be absolutely certain that the code inside the ebook is not malicious, since it can harm your entire webpage.
 **Caveat 2**: the ebook viewer is not strongly equipped to deal with dynamic content created or removed after the ebook opening, so you might encounter errors or inaccuracies when jumping from one ebook location to another in such a circumstance.
 
-Math-styles: in recent years all the major browser have implemented at least a good deal of the MathML Core specification, so it is now possible to represent natively many mathematical expression without the use of third party libraries. However, not all browsers and systems load automatically appropriate fonts. With math-styles set to **fonts** or **all**, all the contents of MathML expression will use the Latin Modern font.
-Another shortcoming in the current support of MathML in the browsers, is that only Gecko based browsers (i.e. Firefox) implement a breaking lines algorithm, so long math expressions within small screens usually don't fit entirely. With math-styles set to **styles** or **all**, the plugin will use some html+css tricks to try to allow either line breaks or horizontal scrolling.
+`Math-styles`: in recent years all the major browser have implemented a good deal of the MathML Core specification, so it is now possible to represent natively many mathematical expression without the use of third party libraries. However, not all browsers and systems load automatically appropriate fonts. With math-styles set to **fonts** or **all**, all the contents of MathML expression will use the Latin Modern font.
+Another shortcoming in the current support of MathML, is that only Gecko based browsers (i.e. Firefox) implement a breaking lines algorithm, so long math expressions within small screens usually don't fit entirely. With math-styles set to **styles** or **all**, the plugin will use some html+css tricks to try to allow either line breaks or horizontal scrolling.
 
-Ebook-author and ebook-title: you can use these optional values to override the ones that the ebook viewer retrieves from the ebook metadata in order to display them to the users.
+`Ebook-author` and `ebook-title`: you can use these optional values to override the ones that the ebook viewer retrieves from the ebook metadata in order to display them to the users.
 
-Popup-notes: show footnotes and endnotes as popup instead of just links. The notes (and their references) need to be correctly marked with the appropriate epub:type attributes to ensure that they are displayed as popups (the ebook viewer will try to recognize them anyway, but it can't guarantee a complete success).
+`Popup-notes`: show footnotes and endnotes as popup instead of just links. The notes (and their references) need to be correctly marked with the appropriate epub:type attributes to ensure that they are displayed as popups (the ebook viewer will try to recognize them anyway, but it can't guarantee a complete success).
 
 ### Development
 
