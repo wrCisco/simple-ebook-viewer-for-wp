@@ -24,7 +24,6 @@ export default defineConfig({
         minify: true,
         sourcemap: false,
         manifest: true,
-        chunkSizeWarningLimit: 610,
         rollupOptions: {
             output: {
                 entryFileNames: "[name].js",
