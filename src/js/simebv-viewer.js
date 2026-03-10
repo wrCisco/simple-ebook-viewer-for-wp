@@ -7,7 +7,7 @@ import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
 import * as CFI from '../../vendor/foliate-js/epubcfi.js'
 import {
     storageAvailable, isNumeric, getDefaultFontSize,
-    pageListOutline } from './simebv-utils.js'
+    pageListOutline, pluginBaseUrl } from './simebv-utils.js'
 import { transformDoc, convertFontSizePxToRem, defaultStyles, getCSS } from './simebv-transform-ebook.js'
 import { searchDialog } from './simebv-search-dialog.js'
 import { colorFiltersDialog } from './simebv-filters-dialog.js'
@@ -21,6 +21,7 @@ import { createMenuItemsStd, getInitialMenuStatusStd } from './simebv-menu-items
 import { ebookFormat } from './simebv-ebook-format.js'
 import { TextSearch } from './simebv-search.js'
 import { SpeechManager } from './simebv-speech.js'
+import { FootnoteManager } from './simebv-footnotes.js'
 const { __, _x, _n, sprintf } = wp.i18n;
 
 // Import css for the Viewer's container element, as static asset
@@ -437,7 +438,7 @@ export class Reader {
         let {
             menuItems, initialMenuStatus, ebookTitle, ebookAuthor,
             fontFamily, allowJS, useMathStyles, filterEbookContent,
-            showAnnotations, showPageDelimiters
+            showAnnotations, showPageDelimiters, popupNotes
         } = options
         this.view = document.createElement('simebv-foliate-view')
         this._bookContainer.append(this.view)
@@ -466,44 +467,7 @@ export class Reader {
 
         const { book } = this.view
         book.transformTarget?.addEventListener('data', ({ detail }) => {
-            detail.data = Promise
-                .resolve(detail.data)
-                .then(data => typeof filterEbookContent === 'function' ? filterEbookContent(data) : data)
-                .then(data => {
-                    const ops = new Map()
-                    switch(detail.type) {
-                        case 'application/xhtml+xml':
-                        case 'text/html':
-                            if (!allowJS) {
-                                ops.set('addCSPMeta', [])
-                            }
-                            if (['fonts', 'styles', 'all'].includes(useMathStyles)) {
-                                ops.set('useMathStyles', [useMathStyles])
-                            }
-                            ops.set('convertFontSizePxToRem', [this._defaultFontSize])
-                            if (ops.size > 0) {
-                                data = transformDoc(data, detail.type, ops)
-                            }
-                            return data
-                        case 'image/svg+xml':
-                        case 'application/xml':
-                            if (!allowJS) {
-                                ops.set('removeInlineScripts', [])
-                            }
-                            if (ops.size > 0) {
-                                data = transformDoc(data, detail.type, ops)
-                            }
-                            return data
-                        case 'text/css':
-                            return convertFontSizePxToRem(data, this._defaultFontSize)
-                        default:
-                            return data
-                    }
-                })
-                .catch(e => {
-                    console.error(new Error(`Failed to load ${detail.name}`, { cause: e }))
-                    return ''
-                })
+            detail.data = transformDoc(detail, options, this._defaultFontSize)
         })
 
         this._navBar.addEventListener('go-left', () => this.view.goLeft())
@@ -588,6 +552,15 @@ export class Reader {
                 }
             }
         })
+
+        if (popupNotes) {
+            this._footnoteManager = new FootnoteManager(this, options, this._defaultFontSize)
+            this._footnoteManager.handleFootnotes()
+            this.style.popupNotes = true
+        }
+        else {
+            this.style.popupNotes = false
+        }
 
         this._setInitialMenuStatus(initialMenuStatus)
         this._loadFilterPreferences()
@@ -833,9 +806,9 @@ export class Reader {
                 }
             })
         }
-        // Allow horizontal scrolling of overflowing elements
+        // Allow users to select text and to scroll horizontally
+        // overflowing elements on touch devices
         let hScrolling = false
-        // Allow users to select text
         let selectionExistedAtStart = false
         doc.addEventListener('touchstart', (e) => {
             let elem
@@ -1103,11 +1076,6 @@ const fetchFile = async url => {
 }
 
 
-export const pluginBaseUrl = () => {
-    return new URL(/* @vite-ignore */'../../', import.meta.url).href
-}
-
-
 export const get_ebook_url = async id => {
     await wp.api.loadPromise
     let media = new wp.api.models.Media({ id: id })
@@ -1159,6 +1127,9 @@ export const gatherOptionsFromContainer = container => {
     }
     if (container.getAttribute('data-simebv-show-page-delimiters') === 'true') {
         options.ebook.showPageDelimiters = true
+    }
+    if (container.getAttribute('data-simebv-popup-notes') === 'true') {
+        options.ebook.popupNotes = true
     }
     options.ebook.ebookTitle = container.getAttribute('data-simebv-ebook-title') || ''
     options.ebook.ebookAuthor = container.getAttribute('data-simebv-ebook-author') || ''
@@ -1232,6 +1203,7 @@ export * from './simebv-speech-dialog.js'
 export * from './simebv-speech.js'
 export * from './simebv-sre.js'
 export * from './simebv-tts.js'
+export * from './simebv-footnotes.js'
 export * from './simebv-page-list.js'
 export * from './simebv-menu.js'
 export * from './simebv-menu-items.js'

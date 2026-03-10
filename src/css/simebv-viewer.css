@@ -164,7 +164,8 @@ input, button, select {
 #simebv-fonts-dialog,
 #simebv-annotations-dialog,
 #simebv-show-annotation-dialog,
-#simebv-speech-dialog-options {
+#simebv-speech-dialog-options,
+#simebv-notes-dialog {
     background-color: var(--menu-bg);
     border: none;
     box-shadow: var(--menu-box-shadow);
@@ -175,18 +176,33 @@ input, button, select {
 #simebv-colors-filter-dialog input {
     vertical-align: middle;
 }
-#simebv-metadata-dialog > div {
+#simebv-metadata-dialog > div,
+#simebv-notes-dialog-container {
     display: flex;
     flex-direction: column;
     align-items: start;
 }
+#simebv-notes-dialog-container {
+    height: 100%;
+    gap: 12px;
+}
 #simebv-colors-filter-dialog button,
-#simebv-metadata-dialog button {
+#simebv-metadata-dialog button,
+#simebv-notes-dialog-buttons, {
     padding-inline: 12px;
     padding-block: 3px;
 }
-#simebv-metadata-dialog button {
+#simebv-metadata-dialog button,
+#simebv-notes-dialog h2,
+#simebv-notes-dialog-buttons {
     flex-grow: 0;
+}
+#simebv-notes-dialog h2 {
+    margin-block: 0.1em;
+}
+#simebv-notes-dialog-buttons {
+    display: flex;
+    margin-inline-start: auto;
 }
 #simebv-metadata-dialog dl {
     flex-grow: 1;
@@ -194,6 +210,15 @@ input, button, select {
     max-height: 70vh;
     max-height: 70dvh;
     width: 100%;
+}
+#simebv-notes-dialog-contents {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: 80vh;
+    max-height: 80dvh;
+    width: 100%;
+    border: none;
+    box-shadow: var(--border-box-shadow);
 }
 #simebv-metadata-dialog dt {
     font-weight: bolder;
@@ -221,7 +246,8 @@ input, button, select {
         width: calc(100% - 2px);
     }
 }
-.simebv-speech-dialog-controls {
+.simebv-speech-dialog-controls,
+.simebv-notes-dialog-controls {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -230,6 +256,12 @@ input, button, select {
     width: 100%;
     --button-size: 40px;
     --icon-size: 24px;
+}
+.simebv-notes-dialog-controls {
+    justify-content: flex-start;
+}
+.simebv-notes-dlg-button {
+    box-shadow: var(--border-box-shadow);
 }
 .simebv-speech-dlg-button,
 .simebv-speech-dlg-input {
@@ -255,10 +287,14 @@ input, button, select {
 .simebv-speech-dlg-input input:hover:not(:disabled) {
     cursor: pointer;
 }
-.simebv-speech-dialog-controls svg {
+.simebv-speech-dialog-controls svg,
+.simebv-notes-dialog-controls svg {
     width: var(--icon-size);
     height: var(--icon-size);
     fill: CanvasText;
+}
+.simebv-speech-dlg-button:disabled svg {
+    fill: var(--gray-text);
 }
 .simebv-speech-dlg-output {
     margin-left: .5rem;

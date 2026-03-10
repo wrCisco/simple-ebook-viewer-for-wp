@@ -98,6 +98,9 @@ class SIMEBV_Base {
             'show-page-delimiters' => [
                 'html_name' => 'data-simebv-show-page-delimiters', 'default' => 'false'
             ],
+            'popup-notes' => [
+                'html_name' => 'data-simebv-popup-notes', 'default' => 'true'
+            ],
         ],
     ];
 

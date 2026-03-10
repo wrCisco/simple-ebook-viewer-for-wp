@@ -2,7 +2,7 @@ import { isAndroid } from './simebv-utils.js'
 const { __, _x, _n, sprintf } = wp.i18n;
 
 
-export function speechDialog(target, speechOptions, returnFocus) {
+export function speechDialog(target, speechOptions, isNote, returnFocus) {
     const dlg = document.createElement('dialog')
     const container = document.createElement('div')
     container.classList.add('simebv-speech-dialog-controls')
@@ -19,7 +19,7 @@ export function speechDialog(target, speechOptions, returnFocus) {
     playPause.title = playLabel
     playPause.innerHTML = `
     <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M8 5v14l11-7z"/>
+        <path d="M8.5 5v14l11-7z"/>
     </svg>
     <svg id="pauseIcon" viewBox="0 0 24 24" aria-hidden="true" style="display: none;">
         <path d="M8 4h4v16h-4zm8 0h4v16h-4z"/>
@@ -62,6 +62,11 @@ export function speechDialog(target, speechOptions, returnFocus) {
     <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M7 6v12l10-6zm10 0v12h2v-12z"/>
     </svg>`
+
+    if (isNote) {
+        prevSection.disabled = true
+        nextSection.disabled = true
+    }
 
     const closeBtn = document.createElement('button')
     closeBtn.id = 'simebv-speech-close'

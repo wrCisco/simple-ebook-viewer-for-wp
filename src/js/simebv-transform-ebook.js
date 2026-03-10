@@ -1,6 +1,48 @@
 import { safeCSSString } from './simebv-utils.js'
 
-export function transformDoc(data, type, ops) {
+export function transformDoc(detail, options, defaultFontSize) {
+    const { filterEbookContent, allowJS, useMathStyles } = options
+    return Promise
+        .resolve(detail.data)
+        .then(data => typeof filterEbookContent === 'function' ? filterEbookContent(data) : data)
+        .then(data => {
+            const ops = new Map()
+            switch(detail.type) {
+                case 'application/xhtml+xml':
+                case 'text/html':
+                    if (!allowJS) {
+                        ops.set('addCSPMeta', [])
+                    }
+                    if (['fonts', 'styles', 'all'].includes(useMathStyles)) {
+                        ops.set('useMathStyles', [useMathStyles])
+                    }
+                    ops.set('convertFontSizePxToRem', [defaultFontSize])
+                    if (ops.size > 0) {
+                        data = applyTransform(data, detail.type, ops)
+                    }
+                    return data
+                case 'image/svg+xml':
+                case 'application/xml':
+                    if (!allowJS) {
+                        ops.set('removeInlineScripts', [])
+                    }
+                    if (ops.size > 0) {
+                        data = applyTransform(data, detail.type, ops)
+                    }
+                    return data
+                case 'text/css':
+                    return convertFontSizePxToRem(data, defaultFontSize)
+                default:
+                    return data
+            }
+        })
+        .catch(e => {
+            console.error(new Error(`Failed to load ${detail.name}`, { cause: e }))
+            return ''
+        })
+}
+
+export function applyTransform(data, type, ops) {
     try {
         let doc
         typeof data === 'string'
@@ -44,8 +86,7 @@ function removeInlineScripts(doc) {
     doc.querySelectorAll('script').forEach(el => el.replaceWith(doc.createElement('style')))
 }
 
-// TODO: reconsider usage of MathJax,
-// (maybe only the speech engine - https://speechruleengine.org/)
+// TODO: reconsider usage of a custom version of MathJax
 function injectMathJax(doc, url, config) {
     const scriptConfig = doc.createElement('script')
     scriptConfig.textContent = config
@@ -186,6 +227,7 @@ export const defaultStyles = Object.freeze({
     bgColor: 'transparent',
     forcedColorScheme: '',
     fontFamily: 'auto',
+    popupNotes: true,
 })
 
 const fontFamilyKeywords = new Set([
@@ -197,9 +239,8 @@ const fontFamilyKeywords = new Set([
 // CSS to inject in iframe of reflowable ebooks
 export const getCSS = (values) => {
     let {
-        spacing, justify, hyphenate,
-        fontSize, colorScheme, bgColor,
-        forcedColorScheme, fontFamily
+        spacing, justify, hyphenate, fontSize, colorScheme,
+        bgColor, forcedColorScheme, fontFamily, popupNotes
     } = values
     spacing = safeCSSString(spacing) ?? defaultStyles.spacing
     fontSize = safeCSSString(fontSize) ?? defaultStyles.fontSize
@@ -299,11 +340,15 @@ export const getCSS = (values) => {
     pre {
         white-space: pre-wrap !important;
     }
+    ${popupNotes
+        ? `
     aside[epub|type~="endnote"],
     aside[epub|type~="footnote"],
     aside[epub|type~="note"],
     aside[epub|type~="rearnote"] {
         display: none;
+    }`
+        : ''
     }
     a:focus {
         text-decoration: underline dotted .1em;

@@ -18,6 +18,10 @@ export function storageAvailable(type) {
     }
 }
 
+export const pluginBaseUrl = () => {
+    return new URL(/* @vite-ignore */'../../', import.meta.url).href
+}
+
 export function isAndroid() {
     return navigator.userAgentData?.platform === 'Android' || /Android/i.test(navigator.userAgent)
 }
