@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
 }
 
 
-define('SIMEBV_VERSION', '0.4.1');
+define('SIMEBV_VERSION', '1.0.0');
 define('SIMEBV_PLUGIN_DIR', plugin_dir_path( __FILE__ ));
 define('SIMEBV_PLUGIN_URL', plugin_dir_url( __FILE__ ));
 
