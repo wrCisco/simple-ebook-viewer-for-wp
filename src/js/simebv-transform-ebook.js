@@ -192,14 +192,22 @@ function useMathStyles(doc, what) {
         if (['styles', 'all'].includes(what)) {
             for (const math of mathElems) {
                 if (math.getAttribute('display') === 'block') {
+                    if (math.closest('[data-simebv-math-style]')) {
+                        continue
+                    }
+                    let el = math.closest('table, p')
+                    if (!el) {
+                        el = math
+                    }
                     const div = document.createElement('div')
+                    div.setAttribute('data-simebv-math-style', 'true')
                     div.setAttribute('data-simebv-skip', 'true')
                     div.style.width = '100%'
                     div.style.overflowX = 'auto'
                     div.style.overflowY = 'hidden'
                     div.style.paddingBlock = '2px'
-                    math.replaceWith(div)
-                    div.append(math)
+                    el.replaceWith(div)
+                    div.append(el)
                 }
             }
             if (!supportsMathMLLineBreaks) {
