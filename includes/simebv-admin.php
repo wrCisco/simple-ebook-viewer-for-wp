@@ -25,18 +25,21 @@ class SIMEBV_Admin extends SIMEBV_Base {
 // translators: Suggested privacy policy. %s: name of the plugin
                 __(
 "<h3>Use of %s plugin</h3>
-<p>Our website uses a plugin to enhance your experience when reading ebooks directly on our site. This plugin does <strong>not</strong> collect, transmit, or share any personal data. It does <strong>not</strong> set cookies or track your activity across websites.</p>
+<p>Our website uses a plugin to enhance your experience when reading ebooks directly on our site. This plugin does <strong>not</strong> collect any personal data. It does <strong>not</strong> set cookies or track your activity across websites.</p>
 <p>When you interact with the ebook viewer, the plugin may store certain <strong>preferences locally in your browser</strong> using local storage technology. This information is saved solely to remember your settings and improve your user experience during future visits. These preferences include:</p>
 <ul>
 <li>The last page you viewed</li>
-<li>Your selected font size</li>
+<li>Your selected font size and style</li>
+<li>Show or hide annotations and page delimiters</li>
 <li>Page margin settings</li>
 <li>Maximum pages displayed per view</li>
 <li>Layout preference (scrolled or paginated)</li>
 <li>Chosen color theme and any color filters</li>
 <li>Zoom level</li>
+<li>Speech synthesis preferences</li>
 </ul>
-<p>This information is stored <strong>only on your device</strong>, is not accessible by us or any third party, and is used exclusively to personalize your ebook reading experience on this website.</p>
+<p>This information is stored <strong>only on your device</strong> and is never transmitted to our servers. It is used exclusively to personalize your ebook reading experience on this website.</p>
+<p>If you use the Text-to-Speech functionality offered by the ebook viewer with a remote voice (the available voices depend on the browser and the operating system: Chrome offers Google remote voices, Edge offers Microsoft remote ones, for example), the text to be synthesized and the voice and language parameters will be transmitted to these remote services. As with any network request, your IP address and browser identifiers are also transmitted. You can avoid this by selecting a local voice, if available in your system.</p>
 <p><strong>Note:</strong> To retrieve and display the ebook content, the plugin interacts with the WordPress REST API. This process may involve the use of <strong>technical cookies</strong> that are set by WordPress itself to ensure secure and correct data transmission. These cookies do not track you and are essential for the proper functioning of the website.</p>
 <p>You can clear your saved preferences at any time by clearing your browser’s local storage or using your browser's privacy settings.</p>",
                     'simple-ebook-viewer'
