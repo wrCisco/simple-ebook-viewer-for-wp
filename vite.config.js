@@ -16,15 +16,6 @@ export default defineConfig({
             include: ['fs', 'http', 'https'],
         }),
     ],
-    server: {
-        cors: {
-            origin: [
-                /^https?:\/\/(?:(?:[^:]+\.)?localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/,
-                /^https?:\/\/(?:www\.)?embedebooks-wp\.it/,
-            ],
-        },
-        origin: 'http://www.embedebooks-wp.it',
-    },
     esbuild: {
         minifyIdentifiers: false,
         keepNames: true,
