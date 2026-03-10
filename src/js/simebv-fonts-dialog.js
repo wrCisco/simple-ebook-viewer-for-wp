@@ -107,11 +107,11 @@ export function fontsDialog(reader, injectCSS) {
         'serif': serif,
         'sans-serif': sansSerif,
         'monospace': monospace,
-        'OpenDyslexic': openDyslexic,
+        'opendyslexic': openDyslexic,
     }
     const initialChecked = reader._loadPreference('font-family') ?? reader.style.fontFamily
-    if (initialChecked && families[initialChecked]) {
-        families[initialChecked].checked = true
+    if (initialChecked && families[initialChecked.toLowerCase()]) {
+        families[initialChecked.toLowerCase()].checked = true
     }
 
     dlg.addEventListener('submit', () => {
