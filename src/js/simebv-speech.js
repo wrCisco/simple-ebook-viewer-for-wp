@@ -14,6 +14,7 @@ export class SpeechManager {
         lastCharRead: 0,
         paused: false,
         changedUtterance: false,
+        warmup: undefined,
     }
     #view
     #target
@@ -305,6 +306,7 @@ export class SpeechManager {
                 const warmup = new SpeechSynthesisUtterance('Silence...')
                 warmup.volume = 0
                 warmup.onend = () => {
+                    this.speechSynthesis.warmup = undefined
                     this.speechSynthesis.synthesis.speak(u)
                 }
                 warmup.onerror = (e) => {
@@ -312,7 +314,9 @@ export class SpeechManager {
                     if (this.#speechErrors[type]) {
                         alert('Error: ' + type + '\n' + this.#speechErrors[type])
                     }
+                    this.speechSynthesis.warmup = undefined
                 }
+                this.speechSynthesis.warmup = warmup
                 this.speechSynthesis.synthesis.speak(warmup)
                 setTimeout(() => {
                     // Sometimes Firefox speech synthesis on Windows doesn't start without this
@@ -346,7 +350,13 @@ export class SpeechManager {
     #boundPlayHandler = this.#playHandler.bind(this)
 
     #pauseHandler() {
-        if (this.#isAndroid) {
+        if (this.speechSynthesis.warmup) {
+            this.speechSynthesis.warmup.onend = () => null
+            this.speechSynthesis.synthesis.cancel()
+            this.speechSynthesis.warmup = undefined
+            this.speechSynthesis.utterance = undefined
+        }
+        else if (this.#isAndroid) {
             this.#updateUtterance()
             this.speechSynthesis.synthesis.cancel()
         }
@@ -362,6 +372,7 @@ export class SpeechManager {
         this.speechSynthesis.utterance = undefined
         this.speechSynthesis.voice = undefined
         this.speechSynthesis.paused = false
+        this.speechSynthesis.warmup = undefined
         this.speechSynthesis.synthesis?.cancel()
         this.#releaseWakeLock()
         document.removeEventListener('visibilitychange', this.#boundReacquireWakeLock)
