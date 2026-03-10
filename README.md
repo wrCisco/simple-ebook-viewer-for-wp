@@ -77,13 +77,13 @@ The plugin sets some reasonable defaults for these preferences, but if you're no
 * **`color-scheme`**
   - accepted values: "**auto**", "**sepia**", "**light**", "**dark**" (default: **auto**)
 
-Layout, max-pages, default-font-size and page-margins are only available for reflowable ebooks, while zoom is only available for fixed layout ones.
+`Layout`, `max-pages`, `default-font-size` and `page-margins` are only available for reflowable ebooks, while `zoom` is only available for fixed layout ones.
 
-Max-pages is the maximum number of pages (in the "paginated" layout) that the user will be able to see in a single view (if there is enough screen space).
+`Max-pages` is the maximum number of pages (in the "paginated" layout) that the user will be able to see in a single view (if there is enough screen space).
 
-Show-annotations and show-page-delimiters let the user see on page the Calibre annotations (if there are Calibre annotations in the ebook) and the page delimiters (if the ebook contains a page list).
+`Show-annotations` and `show-page-delimiters` let the user see on the pages the Calibre annotations (as highlighted text, if there are Calibre annotations in the ebook) and the page delimiters (as short vertical bars, if the ebook contains a page list).
 
-Color-scheme: "auto" means that the Viewer will adapt to the preferred color-scheme set by the user in their device or browser (light or dark).
+`Color-scheme`: "auto" means that the Viewer will adapt to the preferred color-scheme set by the user in their device or browser (light or dark).
 
 For most ebooks these preferences should be enough, but sometimes there are ebooks with style rules that don't play well with the styles set by the Viewer, so the users have also the option to apply some filters to the Viewer's colors (with the menu entry "Color filter...").
 
@@ -99,13 +99,13 @@ You can set the default values for these filters with the following shortcode's 
 * **`bg-color-filter`**
   - accepted values: a valid CSS hex color code (default: **#FFFFFF**)
 
-Set activate-color-filter to "true" is necessary to enable all the other filters, and set bg-transparent-filter to false is necessary to enable bg-color-filter.
+Set `activate-color-filter` to "true" is necessary to enable all the other filters, and set `bg-transparent-filter` to false is necessary to enable `bg-color-filter`.
 
-Bg-transparent-filter and bg-color-filter are available for reflowable ebooks only.
+`Bg-transparent-filter` and `bg-color-filter` are available for reflowable ebooks only.
 
-Invert-color-filter inverts the lightness of the colors. With a value of 0 it has no effect, with a value of 1, the white will become black and the black will become white.
+`Invert-color-filter` inverts the lightness of the colors. With a value of 0 it has no effect, with a value of 1, the white will become black and the black will become white.
 
-Rotate-color-filter rotates the hues of all the colors in the ebook, like in a [Color Wheel](https://developer.mozilla.org/en-US/docs/Glossary/Color_wheel) (so, no effect on black and white).
+`Rotate-color-filter` rotates the hues of all the colors in the ebook, like in a [Color Wheel](https://developer.mozilla.org/en-US/docs/Glossary/Color_wheel) (so, no effect on black and white).
 
 There are some other settings that the users won't be able to change by themselves. These are:
 * **`always-full-viewport`**
