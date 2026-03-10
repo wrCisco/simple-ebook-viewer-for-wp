@@ -77,13 +77,23 @@ const fragmentToSSML = async (fragment, inherited, SRE) => {
         else if (nodeName === 'em' || nodeName === 'strong')
             el = ssml.createElementNS(NS.SSML, 'emphasis')
         else if (nodeName === 'math') {
-            const s = SRE.engine.toSpeech(serializer.serializeToString(node)).replace('<?xml version="1.0"?>', '')
-            el = new DOMParser().parseFromString(s, "application/xml")
-            for (const child of el.documentElement.children) {
-                parent.append(child)
+            try {
+                const s = SRE.engine.toSpeech(serializer.serializeToString(node)).replace('<?xml version="1.0"?>', '')
+                el = new DOMParser().parseFromString(s, "application/xml")
+                for (const child of el.documentElement.children) {
+                    parent.append(child)
+                }
+                // no need to return el (which would append el to ssml)
+                return
             }
-            // no need to return el (which would append el to ssml)
-            return
+            catch (e) {
+                el = undefined
+                console.error(e)
+                console.warn(
+                    'Error while generating the text to synthesize from a math expression with SRE.\n' +
+                    'The generation will proceed as it would for normal text.'
+                )
+            }
         }
 
         const lang = node.lang || node.getAttributeNS(NS.XML, 'lang')
