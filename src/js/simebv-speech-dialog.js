@@ -22,7 +22,7 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
         <path d="M8.5 5v14l11-7z"/>
     </svg>
     <svg id="pauseIcon" viewBox="0 0 24 24" aria-hidden="true" style="display: none;">
-        <path d="M8 4h4v16h-4zm8 0h4v16h-4z"/>
+        <path d="M6 4h4v16h-4zm8 0h4v16h-4z"/>
     </svg>
     `
     const playIcon = playPause.querySelector('#playIcon')

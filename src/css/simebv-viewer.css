@@ -292,6 +292,7 @@ input, button, select {
     width: var(--icon-size);
     height: var(--icon-size);
     fill: CanvasText;
+    margin-inline: auto;
 }
 .simebv-speech-dlg-button:disabled svg {
     fill: var(--gray-text);

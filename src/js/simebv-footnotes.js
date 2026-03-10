@@ -59,7 +59,7 @@ export class FootnoteManager {
             view.renderer.setAttribute('flow', 'scrolled')
             view.renderer.setAttribute('gap', '2%')
             view.renderer.setAttribute('margin', '5px')
-            view.renderer.setAttribute('max-block-size', `100%`)
+            view.renderer.setAttribute('max-block-size', '100%')
             view.renderer.setStyles?.(getCSS(this.#reader.style) + '* { overflow-wrap: break-word; }')
             this.#notesDlg.querySelector('#simebv-notes-dialog-header')
                 .textContent = this.#notesDlgHeaderTypes[type] ?? __('Note', 'simple-ebook-viewer')
@@ -122,12 +122,12 @@ export class FootnoteManager {
 
     #updateDialogSize() {
         if (globalThis.innerWidth > globalThis.innerHeight) {
-            this.#notesDlg.style.width = `min(70vw, 480px)`
-            this.#notesDlg.style.height = `min(90vh, 360px)`
+            this.#notesDlg.style.width = 'min(80vw, 480px)'
+            this.#notesDlg.style.height = 'min(90vh, 480px)'
         }
         else {
-            this.#notesDlg.style.width = `min(90vw, 360px)`
-            this.#notesDlg.style.height = `min(70vh, 480px)`
+            this.#notesDlg.style.width = 'min(90vw, 480px)'
+            this.#notesDlg.style.height = 'min(80vh, 480px)'
         }
         this.#notesDlg.style.maxWidth = (this.#reader.containerWidth - 10) + 'px'
         this.#notesDlg.style.maxHeight = (this.#reader.containerHeight - 10) + 'px'
