@@ -112,6 +112,29 @@ class SIMEBV_Viewer extends SIMEBV_Base {
         return $ebook_id;
     }
 
+    public static function create_viewer_markup($ebook_id, $atts, $styles) {
+        ob_start(); ?>
+<section
+    id="simebv-reader-container"
+    data-ebook-id="<?php echo esc_attr($ebook_id); ?>"
+    <?php
+        echo strlen($styles['container']) !== 0 ? 'style="' . esc_attr($styles['container']) . '" ' : '';
+        foreach(self::$shortcode_viewer_atts['html_attributes'] as $name => $vals) {
+            echo strlen($atts[$name]) !== 0 ? $vals['html_name'] . '="' . esc_attr($atts[$name]) . '" ' : '';
+        }
+    ?>
+    tabindex="0"
+    aria-label="Ebook reader"
+>
+    <noscript>
+        <?php esc_html_e("It seems that JavaScript is not enabled in your browser, you need to enable it in order to use the Ebook Viewer.", 'simple-ebook-viewer'); ?>
+    </noscript>
+</section>
+        <?php
+        $viewer_html_code = ob_get_clean();
+        return $viewer_html_code;
+    }
+
     public static function render_ebook_viewer($atts) {
         if (!is_singular() && !apply_filters('simebv_allow_viewer', false)) {
             return;
@@ -135,25 +158,7 @@ class SIMEBV_Viewer extends SIMEBV_Base {
 
         $styles = self::setup_styles($atts);
 
-        ob_start(); ?>
-<section
-    id="simebv-reader-container"
-    data-ebook-id="<?php echo esc_attr($ebook_id); ?>"
-    <?php
-        echo strlen($styles['container']) !== 0 ? 'style="' . esc_attr($styles['container']) . '" ' : '';
-        foreach(self::$shortcode_viewer_atts['html_attributes'] as $name => $vals) {
-            echo strlen($atts[$name]) !== 0 ? $vals['html_name'] . '="' . esc_attr($atts[$name]) . '" ' : '';
-        }
-    ?>
-    tabindex="0"
-    aria-label="Ebook reader"
->
-    <noscript>
-        <?php esc_html_e("It seems that JavaScript is not enabled in your browser, you need to enable it in order to use the Ebook Viewer.", 'simple-ebook-viewer'); ?>
-    </noscript>
-</section>
-        <?php
-        $viewer_html_code = ob_get_clean();
+        $viewer_html_code = self::create_viewer_markup($ebook_id, $atts, $styles);
         return apply_filters('simebv_viewer_html_code', $viewer_html_code);
     }
 
