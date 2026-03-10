@@ -153,7 +153,7 @@ export class Reader {
         this.menu.element.classList.add('simebv-menu')
         this._setMenuMaxBlockSize()
 
-        if (typeof closeViewerCallback === 'function') {
+        if (!this._realFullscreen && typeof closeViewerCallback === 'function') {
             this._headerBar.setAttribute('show-close-button', 'true')
             this._headerBar.addEventListener('close-button', closeViewerCallback)
             if (this._alwaysFullViewport) {
