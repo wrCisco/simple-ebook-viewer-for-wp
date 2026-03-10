@@ -120,7 +120,7 @@ class SIMEBV_Viewer extends SIMEBV_Base {
     <?php
         echo strlen($styles['container']) !== 0 ? 'style="' . esc_attr($styles['container']) . '" ' : '';
         foreach(self::$shortcode_viewer_atts['html_attributes'] as $name => $vals) {
-            echo strlen($atts[$name]) !== 0 ? $vals['html_name'] . '="' . esc_attr($atts[$name]) . '" ' : '';
+            echo strlen($atts[$name]) !== 0 ? esc_attr($vals['html_name']) . '="' . esc_attr($atts[$name]) . '" ' : '';
         }
     ?>
     tabindex="0"
