@@ -4,6 +4,7 @@ const { __, _x, _n, sprintf } = wp.i18n;
 
 export function speechDialog(target, speechOptions, isNote, returnFocus) {
     const dlg = document.createElement('dialog')
+    dlg.setAttribute('aria-label', 'Text-to-Speech controllers')
     const container = document.createElement('div')
     container.classList.add('simebv-speech-dialog-controls')
     container.setAttribute('role', 'toolbar')
