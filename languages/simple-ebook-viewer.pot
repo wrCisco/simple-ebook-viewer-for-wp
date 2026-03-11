@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Simple Ebook Viewer 0.4.1\n"
+"Project-Id-Version: Simple Ebook Viewer 1.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/simple-ebook-viewer\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-03-10T04:18:54+00:00\n"
+"POT-Creation-Date: 2026-03-11T16:59:39+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: simple-ebook-viewer\n"
@@ -60,65 +60,12 @@ msgstr ""
 msgid "Use this slug in the shortcode \"simebv_viewer\" to view the ebook in your pages (e.g. [simebv_viewer book=\"%s\"]). If left empty, the value of post_name will be used instead."
 msgstr ""
 
-#: includes/simebv-viewer.php:127
-msgid "No Web Publication file provided."
-msgstr ""
-
-#: includes/simebv-viewer.php:152
+#: includes/simebv-viewer.php:130
 msgid "It seems that JavaScript is not enabled in your browser, you need to enable it in order to use the Ebook Viewer."
 msgstr ""
 
-#: src/js/simebv-viewer.js:294
-msgid "Start of page "
-msgstr ""
-
-#: src/js/simebv-sidebar.js:277
-#: src/js/simebv-viewer.js:295
-msgid "Page list"
-msgstr ""
-
-#. translators: %1$s: page number
-#: src/js/simebv-viewer.js:878
-#: src/js/simebv-viewer.js:882
-#, js-format
-msgid "Page %1$s"
-msgstr ""
-
-#: src/js/simebv-viewer.js:886
-#: src/js/simebv-viewer.js:887
-msgid "Front matter"
-msgstr ""
-
-#. translators: Location in the book, followed by a numerical fraction
-#: src/js/simebv-viewer.js:892
-#, js-format
-msgid "Location %1$s/%2$s"
-msgstr ""
-
-#. translators: current page number / total pages number
-#: src/js/simebv-viewer.js:896
-#, js-format
-msgid "Page %1$s / %2$s"
-msgstr ""
-
-#: src/js/simebv-viewer.js:1061
-msgid "Loading..."
-msgstr ""
-
-#: src/js/simebv-viewer.js:1062
-msgid "Ebook contents"
-msgstr ""
-
-#: src/js/simebv-viewer.js:1148
-msgid "Error: I couldn't retrieve the book to display."
-msgstr ""
-
-#: src/js/simebv-viewer.js:1154
-msgid "Resource not found on the server"
-msgstr ""
-
-#: src/js/simebv-viewer.js:1169
-msgid "Error while opening the book:"
+#: includes/simebv-viewer.php:150
+msgid "No Web Publication file provided."
 msgstr ""
 
 #: src/js/simebv-annotations-dialog.js:13
@@ -129,25 +76,25 @@ msgstr ""
 msgid "Show Calibre Bookmarks"
 msgstr ""
 
-#: src/js/simebv-annotations-dialog.js:37
-msgid "Show page delimiters"
-msgstr ""
-
-#: src/js/simebv-annotations-dialog.js:37
+#: src/js/simebv-annotations-dialog.js:39
 msgid "(e.g. of the ebook's paper version)"
 msgstr ""
 
-#: src/js/simebv-annotations-dialog.js:46
+#: src/js/simebv-annotations-dialog.js:40
+msgid "Show page delimiters"
+msgstr ""
+
+#: src/js/simebv-annotations-dialog.js:49
 #: src/js/simebv-filters-dialog.js:76
 #: src/js/simebv-fonts-dialog.js:93
 #: src/js/simebv-footnotes.js:101
 #: src/js/simebv-metadata-dialog.js:32
 #: src/js/simebv-show-annotation-dialog.js:13
-#: src/js/simebv-speech-dialog.js:312
+#: src/js/simebv-speech-dialog.js:319
 msgid "OK"
 msgstr ""
 
-#: src/js/simebv-annotations-dialog.js:49
+#: src/js/simebv-annotations-dialog.js:52
 msgid "Cancel"
 msgstr ""
 
@@ -169,6 +116,10 @@ msgstr ""
 
 #: src/js/simebv-filters-dialog.js:69
 msgid "Background color:"
+msgstr ""
+
+#: src/js/simebv-fonts-dialog.js:12
+msgid "Select Font Style"
 msgstr ""
 
 #: src/js/simebv-fonts-dialog.js:26
@@ -193,8 +144,8 @@ msgstr ""
 
 #: src/js/simebv-fonts-dialog.js:96
 #: src/js/simebv-search-dialog.js:61
-#: src/js/simebv-speech-dialog.js:74
-#: src/js/simebv-speech-dialog.js:315
+#: src/js/simebv-speech-dialog.js:75
+#: src/js/simebv-speech-dialog.js:322
 msgid "Close"
 msgstr ""
 
@@ -211,6 +162,11 @@ msgstr ""
 #: src/js/simebv-footnotes.js:65
 #: src/js/simebv-footnotes.js:77
 msgid "Note"
+msgstr ""
+
+#: src/js/simebv-footnotes.js:89
+#: src/js/simebv-menu-items.js:231
+msgid "Read aloud..."
 msgstr ""
 
 #: src/js/simebv-header.js:262
@@ -366,10 +322,6 @@ msgstr ""
 msgid "Show/hide annotations..."
 msgstr ""
 
-#: src/js/simebv-menu-items.js:231
-msgid "Read aloud..."
-msgstr ""
-
 #: src/js/simebv-menu-items.js:241
 msgid "Color filter..."
 msgstr ""
@@ -515,99 +467,152 @@ msgstr ""
 msgid "Table of contents"
 msgstr ""
 
-#: src/js/simebv-speech-dialog.js:15
-msgid "Play"
+#: src/js/simebv-sidebar.js:277
+#: src/js/simebv-viewer.js:295
+msgid "Page list"
 msgstr ""
 
 #: src/js/simebv-speech-dialog.js:16
+msgid "Play"
+msgstr ""
+
+#: src/js/simebv-speech-dialog.js:17
 msgid "Pause"
 msgstr ""
 
-#: src/js/simebv-speech-dialog.js:34
+#: src/js/simebv-speech-dialog.js:35
 msgid "Speech Options"
 msgstr ""
 
-#: src/js/simebv-speech-dialog.js:47
+#: src/js/simebv-speech-dialog.js:48
 msgid "Go to previous section"
 msgstr ""
 
-#: src/js/simebv-speech-dialog.js:58
+#: src/js/simebv-speech-dialog.js:59
 msgid "Go to next section"
 msgstr ""
 
-#: src/js/simebv-speech-dialog.js:199
+#: src/js/simebv-speech-dialog.js:200
 msgid "Text To Speech Options"
 msgstr ""
 
-#: src/js/simebv-speech-dialog.js:213
+#: src/js/simebv-speech-dialog.js:214
 msgid "Volume: "
 msgstr ""
 
-#: src/js/simebv-speech-dialog.js:233
+#: src/js/simebv-speech-dialog.js:234
 msgid "Pitch: "
 msgstr ""
 
-#: src/js/simebv-speech-dialog.js:253
+#: src/js/simebv-speech-dialog.js:254
 msgid "Speed: "
 msgstr ""
 
-#: src/js/simebv-speech-dialog.js:288
+#: src/js/simebv-speech-dialog.js:289
 msgid "Voice: "
 msgstr ""
 
-#: src/js/simebv-speech-dialog.js:296
+#: src/js/simebv-speech-dialog.js:299
 msgid "The voice is automatically selected based on the ebook and the system language. If you have more than one voice for the language, you can select your preferred one in the system settings."
 msgstr ""
 
-#: src/js/simebv-speech-dialog.js:302
+#: src/js/simebv-speech-dialog.js:305
 msgid "If you select a word in the text, the speech will begin from that word."
 msgstr ""
 
-#: src/js/simebv-speech-dialog.js:303
+#: src/js/simebv-speech-dialog.js:306
 msgid "Warning: remote voices may restart from the beginning of the paragraph when they are changed. On Android, all voices may do the same when paused also."
 msgstr ""
 
-#: src/js/simebv-speech.js:26
+#: src/js/simebv-speech.js:27
 msgid "I cannot access the audio output device because it's already in use, maybe by another application."
 msgstr ""
 
-#: src/js/simebv-speech.js:27
+#: src/js/simebv-speech.js:28
 msgid "I cannot identify an audio output channel on this device."
 msgstr ""
 
-#: src/js/simebv-speech.js:28
+#: src/js/simebv-speech.js:29
 msgid "A required network operation to start the speech synthesis failed."
 msgstr ""
 
-#: src/js/simebv-speech.js:29
+#: src/js/simebv-speech.js:30
 msgid "No speech synthesis engine available at this moment."
 msgstr ""
 
-#: src/js/simebv-speech.js:30
+#: src/js/simebv-speech.js:31
 msgid "The speech synthesis engine raised an error."
 msgstr ""
 
-#: src/js/simebv-speech.js:31
+#: src/js/simebv-speech.js:32
 msgid "No appropriate voice available"
 msgstr ""
 
-#: src/js/simebv-speech.js:32
+#: src/js/simebv-speech.js:33
 msgid "The selected voice is not available."
 msgstr ""
 
-#: src/js/simebv-speech.js:33
+#: src/js/simebv-speech.js:34
 msgid "The text is too long to synthesize."
 msgstr ""
 
-#: src/js/simebv-speech.js:34
+#: src/js/simebv-speech.js:35
 msgid "The value of at least one amongst Speed, Pitch and Volume is not valid."
 msgstr ""
 
-#: src/js/simebv-speech.js:35
+#: src/js/simebv-speech.js:36
 msgid "The operation's start was not allowed."
 msgstr ""
 
-#: src/js/simebv-speech.js:172
+#: src/js/simebv-speech.js:174
 #, js-format
 msgid "No appropriate voice available for the language %1$s"
+msgstr ""
+
+#: src/js/simebv-viewer.js:294
+msgid "Start of page "
+msgstr ""
+
+#. translators: %1$s: page number
+#: src/js/simebv-viewer.js:882
+#: src/js/simebv-viewer.js:886
+#, js-format
+msgid "Page %1$s"
+msgstr ""
+
+#: src/js/simebv-viewer.js:890
+#: src/js/simebv-viewer.js:891
+msgid "Front matter"
+msgstr ""
+
+#. translators: Location in the book, followed by a numerical fraction
+#: src/js/simebv-viewer.js:896
+#, js-format
+msgid "Location %1$s/%2$s"
+msgstr ""
+
+#. translators: current page number / total pages number
+#: src/js/simebv-viewer.js:900
+#, js-format
+msgid "Page %1$s / %2$s"
+msgstr ""
+
+#: src/js/simebv-viewer.js:1065
+msgid "Loading..."
+msgstr ""
+
+#: src/js/simebv-viewer.js:1066
+msgid "Ebook contents"
+msgstr ""
+
+#: src/js/simebv-viewer.js:1149
+msgid "Error: I couldn't retrieve the book to display."
+msgstr ""
+
+#: src/js/simebv-viewer.js:1155
+msgid "Resource not found on the server"
+msgstr ""
+
+#: src/js/simebv-viewer.js:1170
+msgid "Error while opening the book:"
 msgstr ""

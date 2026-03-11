@@ -89,7 +89,7 @@
                 "Chiudi"
             ],
             "Auto": [
-                ""
+                "Auto"
             ],
             "Serif": [
                 "Serif"
@@ -102,6 +102,9 @@
             ],
             "OpenDyslexic": [
                 "OpenDyslexic"
+            ],
+            "Select Font Style": [
+                "Stile Font"
             ],
             "Paginated": [
                 "Pagine"
@@ -309,6 +312,9 @@
             ],
             "No appropriate voice available for the language %1$s": [
                 "Nessuna voce appropriata per il linguaggio %1$s"
+            ],
+            "Read aloud...": [
+                "Leggi ad alta voce..."
             ],
             "Bibliography": [
                 "Bibliografia"
