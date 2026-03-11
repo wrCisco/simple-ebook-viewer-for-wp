@@ -48,6 +48,7 @@ export class SpeechManager {
         this.#isAndroid = isAndroid()
         this.#savePreference = savePreference ?? (() => {})
         this.#loadPreference = loadPreference ?? (() => null)
+        globalThis.addEventListener('pagehide', this.#boundPageHideHandler)
     }
 
     #saveVoicePreference(voice) {
@@ -290,6 +291,11 @@ export class SpeechManager {
         }
     }
 
+    #pageHideHandler() {
+        this.speechSynthesis.synthesis?.cancel()
+    }
+    #boundPageHideHandler = this.#pageHideHandler.bind(this)
+
     async #playHandler({ detail }) {
         const { doc } = this.#view.renderer.getContents()[0]
         const selection = doc.getSelection()
@@ -452,6 +458,7 @@ export class SpeechManager {
     }
 
     destroy() {
+        globalThis.removeEventListener('pagehide', this.#boundPageHideHandler)
         this.#target.removeEventListener('simebv-speech-play', this.#boundPlayHandler)
         this.#target.removeEventListener('simebv-speech-pause', this.#boundPauseHandler)
         this.#target.removeEventListener('simebv-speech-close', this.#boundCloseHandler)
