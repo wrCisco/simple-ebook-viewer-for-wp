@@ -86,7 +86,7 @@ export class FootnoteManager {
             <path d="M15 5l-5 4h-4v6h4l5 4V5z"/>
             <path d="M16.5 8.7a15 9 0 0 1 0 7.07"/>
         </svg>`
-        speechIcon.setAttribute('aria-label', __('Read aloud...'))
+        speechIcon.setAttribute('aria-label', __('Read aloud...', 'simple-ebook-viewer'))
         speechIcon.setAttribute('aria-pressed', false)
         speechIcon.addEventListener('click', () => {
             speechIcon.setAttribute('aria-pressed', true)

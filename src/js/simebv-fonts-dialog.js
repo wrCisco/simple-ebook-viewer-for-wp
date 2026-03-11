@@ -9,7 +9,7 @@ export function fontsDialog(reader, injectCSS) {
 
     const header = document.createElement('h2')
     header.classList.add('simebv-header-dialog')
-    header.textContent = 'Select Font Style'
+    header.textContent = __('Select Font Style', 'simple-ebook-viewer')
     header.id = 'simebv-font-dialog-header'
 
     const fieldset = document.createElement('fieldset')

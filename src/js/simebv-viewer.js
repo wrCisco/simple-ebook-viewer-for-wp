@@ -487,7 +487,7 @@ export class Reader {
         this._headerBar.dispatchEvent(newBookEvent)
         this._sideBar.setTitle(ebookTitle)
         if (ebookAuthor) {
-            ebookAuthor.slice(0, 260)
+            ebookAuthor = ebookAuthor.slice(0, 260)
         }
         this._sideBar.setAuthor(ebookAuthor ? ebookAuthor : this._metadataFormatter.formatContributor(book.metadata?.author))
         Promise.resolve(book.getCover?.())?.then(blob =>

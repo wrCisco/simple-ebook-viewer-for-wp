@@ -294,16 +294,22 @@ function speechDialogOptions(target, options) {
     if (isAndroid()) {
         voiceControl.setAttribute('disabled', 'true')
         const androidWarning = document.createElement('p')
-        const androidWarningText = __('The voice is automatically selected based on the ebook and the system language. If you have more than one voice for the language, you can select your preferred one in the system settings.', 'simple-ebook-viewer')
-        androidWarning.innerHTML = `<small>${androidWarningText}</small>`
+        const sm = document.createElement('span')
+        sm.style.fontSize = 'small'
+        sm.textContent = __('The voice is automatically selected based on the ebook and the system language. If you have more than one voice for the language, you can select your preferred one in the system settings.', 'simple-ebook-viewer')
+        androidWarning.append(sm)
         warnings.append(androidWarning)
     }
 
     const warning = document.createElement('p')
     const warningText1 = __('If you select a word in the text, the speech will begin from that word.', 'simple-ebook-viewer')
     const warningText2 = __('Warning: remote voices may restart from the beginning of the paragraph when they are changed. On Android, all voices may do the same when paused also.', 'simple-ebook-viewer')
-    warning.innerHTML = `<small>${warningText1}<br><br>${warningText2}</small>`
-
+    const warningSmall = document.createElement('span')
+    warningSmall.style.fontSize = 'small'
+    warning.append(warningSmall)
+    warningSmall.append(
+        warningText1, document.createElement('br'), document.createElement('br'), warningText2
+    )
     warnings.append(warning)
 
     const buttons = document.createElement('div')

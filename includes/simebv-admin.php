@@ -111,7 +111,7 @@ class SIMEBV_Admin extends SIMEBV_Base {
             );
             $html .= '</p>';
             $html .= '</div>';
-            $form_fields['simebv_ebook_slug'] = array(
+            $fields['simebv_ebook_slug'] = array(
                 'label' => 'Ebook slug',
                 'input' => 'html',
                 'html' => $html,
@@ -119,7 +119,7 @@ class SIMEBV_Admin extends SIMEBV_Base {
                 // 'helps' => 'Use this slug in the shortcode "simebv_viewer" to view the epub in your web pages',
             );
         }
-        return $form_fields;
+        return $fields;
     }
 
     public static function save_media_custom_field($post, $attachment) {
@@ -142,6 +142,7 @@ class SIMEBV_Admin extends SIMEBV_Base {
         $args = array(
             'post_type' => 'attachment',
             'post_status' => 'inherit',
+            'posts_per_page' => -1,
         );
         $query = new WP_Query($args);
         while ($query->have_posts()) {
@@ -153,7 +154,8 @@ class SIMEBV_Admin extends SIMEBV_Base {
             }
             $metadata = get_post_meta($attachment_ID);
             if (!isset($metadata['simebv_ebook_slug'])) {
-                $slug = sanitize_text_field($metadata['post_name']);
+                $post = get_post($attachment_ID);
+                $slug = sanitize_text_field($post->post_name);
                 if (!empty($slug)) {
                     update_post_meta(
                         $attachment_ID,
