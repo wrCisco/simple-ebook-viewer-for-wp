@@ -443,7 +443,7 @@ export class Reader {
         this.view = document.createElement('simebv-foliate-view')
         this._bookContainer.append(this.view)
         const file = await fetchFile(fileUrl)
-        await this.view.open(fileUrl)
+        await this.view.open(file)
         this._openEbookFormat = await ebookFormat(file)
         this._populateMenu(menuItems)
         if (this.view.isFixedLayout) {
