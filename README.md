@@ -1,8 +1,8 @@
 # Simple Ebook Viewer for WordPress
 
-Simple plugin for WordPress that enables you to upload various ebook formats as normal media files and to display them in your site using a shortcode.
+Simple plugin for WordPress that enables you to upload various ebook formats as normal media files and to display them on your site using a shortcode.
 
-Every ebook uploaded in your site will have an "ebook slug" (by default it will be the ebook name) that you can view and edit in the Edit Media page of the Admin Panel.
+Every ebook uploaded on your site will have an "ebook slug" (by default it will be the ebook name) that you can view and edit in the Edit Media page of the Admin Panel.
 
 The plugin uses the library [foliate-js](https://github.com/johnfactotum/foliate-js) by John Factotum to display ebooks in the browser.
 
@@ -83,9 +83,9 @@ The plugin sets some reasonable defaults for these preferences, but if you're no
 
 `Show-annotations` and `show-page-delimiters` let the user see on the pages the Calibre annotations (as highlighted text, if there are Calibre annotations in the ebook) and the page delimiters (as short vertical bars, if the ebook contains a page list).
 
-`Color-scheme`: "auto" means that the Viewer will adapt to the preferred color-scheme set by the user in their device or browser (light or dark).
+`Color-scheme`: "auto" means that the Viewer will adapt to the preferred color-scheme set by the user on their device or browser (light or dark).
 
-For most ebooks these preferences should be enough, but sometimes there are ebooks with style rules that don't play well with the styles set by the Viewer, so the users have also the option to apply some filters to the Viewer's colors (with the menu entry "Color filter...").
+For most ebooks these preferences should be enough, but sometimes there are ebooks with style rules that don't play well with the styles set by the Viewer, so the users also have also the option to apply some filters to the Viewer's colors (with the menu entry "Color filter...").
 
 You can set the default values for these filters with the following shortcode's attributes:
 * **`activate-color-filter`**
@@ -99,19 +99,19 @@ You can set the default values for these filters with the following shortcode's 
 * **`bg-color-filter`**
   - accepted values: a valid CSS hex color code (default: **#FFFFFF**)
 
-Set `activate-color-filter` to "true" is necessary to enable all the other filters, and set `bg-transparent-filter` to false is necessary to enable `bg-color-filter`.
+Setting `activate-color-filter` to "true" is necessary to enable all the other filters, and setting `bg-transparent-filter` to false is necessary to enable `bg-color-filter`.
 
 `Bg-transparent-filter` and `bg-color-filter` are available for reflowable ebooks only.
 
-`Invert-color-filter` inverts the lightness of the colors. With a value of 0 it has no effect, with a value of 1, the white will become black and the black will become white.
+`Invert-color-filter` inverts the lightness of the colors. With a value of 0 it has no effect, with a value of 1, white become black and black become white.
 
-`Rotate-color-filter` rotates the hues of all the colors in the ebook, like in a [Color Wheel](https://developer.mozilla.org/en-US/docs/Glossary/Color_wheel) (so, no effect on black and white).
+`Rotate-color-filter` rotates the hues of all the colors in the ebook, like on a [Color Wheel](https://developer.mozilla.org/en-US/docs/Glossary/Color_wheel) (so, no effect on black and white).
 
 There are some other settings that the users won't be able to change by themselves. These are:
 * **`always-full-viewport`**
   - accepted values: "**true**", "**false**" (default: **false**. If **true**, **return-to-url** is also required)
 * **`return-to-url`**
-  - accepted values: a URL with the same hostname than the page that contains the ebook viewer (default: '')
+  - accepted values: a URL with the same hostname as the page that contains the ebook viewer (default: '')
 * **`real-fullscreen`**
   - accepted values: "**true**", "**false**" (default: **false**)
 * **`allow-js`**
@@ -125,7 +125,7 @@ There are some other settings that the users won't be able to change by themselv
 * **`popup-notes`**
   - accepted values: "**true**", "**false**" (default: **true**)
 
-With `always-full-viewport` set to "true", the ebook viewer will automatically cover the entire webpage when it is opened, and the "full screen" icon will be replaced by a "close viewer" icon. `always-full-viewport="true"` requires that also `return-to-url` is present, with a valid URL that indicates the destination of the user when they choose to close the viewer. The URL can be relative, like "/" or "/books-gallery", or it can be absolute, but it needs to have the same hostname of the webpage that contains the ebook viewer (e.g. if the ebook viewer is opened in https://www.example.com/ebook-viewer, the URL in `return-to-url` needs to start with https://www.example.com).
+With `always-full-viewport` set to "true", the ebook viewer will automatically cover the entire webpage when it is opened, and the "full screen" icon will be replaced by a "close viewer" icon. `always-full-viewport="true"` requires that also `return-to-url` is present, with a valid URL that indicates the destination of the user when they choose to close the viewer. The URL can be relative (e.g., "/" or "/books-gallery") or absolute. In either cases, it must have the same hostname as the webpage containing the ebook viewer (e.g. if the viewer is at https://www.example.com/ebook-viewer, the absolute URL must start with https://www.example.com).
 
 If `real-fullscreen` is set to "true", the ebook viewer will cover the entire screen instead of only the viewport of the webpage when the user clicks on the "full screen" icon. With `real-fullscreen` set to true, `always-full-viewport` is ignored, since the full screen requires an explicit action by the user.
 
@@ -133,12 +133,12 @@ If `real-fullscreen` is set to "true", the ebook viewer will cover the entire sc
 **Caveat 1**: you need to be absolutely certain that the code inside the ebook is not malicious, since it can harm your entire webpage.
 **Caveat 2**: the ebook viewer is not strongly equipped to deal with dynamic content created or removed after the ebook opening, so you might encounter errors or inaccuracies when jumping from one ebook location to another in such a circumstance.
 
-`Math-styles`: in recent years all the major browser have implemented a good deal of the MathML Core specification, so it is now possible to represent natively many mathematical expression without the use of third party libraries. However, not all browsers and systems load automatically appropriate fonts. With math-styles set to "fonts" or "all", all the contents of MathML expression will use the Latin Modern font.
-Another shortcoming in the current support of MathML, is that only Gecko based browsers (i.e. Firefox) implement a breaking lines algorithm, so long math expressions within small screens usually don't fit entirely. With math-styles set to "styles" or "all", the plugin will use some html+css tricks to try to allow either line breaks or horizontal scrolling.
+`Math-styles`: in recent years all the major browsers have implemented a good deal of the MathML Core specification, so it is now possible to represent natively many mathematical expressions without the use of third party libraries. However, not all browsers and systems load automatically appropriate fonts. With math-styles set to "fonts" or "all", all the contents of MathML expression will use the Latin Modern font.
+Another shortcoming in the current support of MathML is that only Gecko based browsers (i.e. Firefox) implement a breaking lines algorithm, so long math expressions within small screens usually don't fit entirely. With math-styles set to "styles" or "all", the plugin will use some html+css tricks to try to allow either line breaks or horizontal scrolling.
 
 `Ebook-author` and `ebook-title`: you can use these optional values to override the ones that the ebook viewer retrieves from the ebook metadata in order to display them to the users.
 
-`Popup-notes`: show footnotes and endnotes as popup instead of just links. The notes (and their references) need to be marked with the appropriate epub:type attributes to ensure that they are displayed as popups (the ebook viewer will try to recognize them anyway, but without guarantees).
+`Popup-notes`: show footnotes and endnotes as popups instead of just links. The notes (and their references) need to be marked with the appropriate epub:type attributes to ensure that they are displayed as popups (the ebook viewer will try to recognize them anyway, but without guarantees).
 
 ### Development
 
@@ -178,7 +178,7 @@ This plugin embeds a slightly modified version of the foliate-js library
 by John Factotum (https://github.com/johnfactotum/foliate-js),
 which is distributed under the MIT license.
 
-As secondary dependencies of the foliate-js library, the plugin embeds other three libraries:
+As secondary dependencies of the foliate-js library, the plugin embeds three other libraries:
 * zip.js (https://github.com/gildas-lormeau/zip.js), licensed under the BSD-3-Clause;
 * fflate (https://github.com/101arrowz/fflate), MIT licensed.
 * PDF.js (https://github.com/mozilla/pdf.js), licensed under the Apache v2.0 license.
@@ -196,4 +196,4 @@ Embedded fonts:
 * Manrope (https://github.com/sharanda/manrope) by The Manrope Project Authors, licensed under the SIL Open Font License v1.1;
 * Latin Modern (https://www.gust.org.pl/projects/e-foundry) by the Polish TeX Users Group, licensed under the GUST Font License.
 
-OpenDyslexic and Latin Modern fonts have been converted from their original OpenType format to the woff2 format for use on the web, without, at the best of my knowledge, modifying their internal parameters and metadata.
+OpenDyslexic and Latin Modern fonts have been converted from their original OpenType format to the woff2 format for use on the web, without, to the best of my knowledge, modifying their internal parameters and metadata.
