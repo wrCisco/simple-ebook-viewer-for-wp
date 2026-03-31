@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Simple Ebook Viewer
  * Description: A plugin to embed and display Ebooks
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Francesco Martini
  * License: GPL-2.0+
  * License URI: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
 }
 
 
-define('SIMEBV_VERSION', '1.0.0');
+define('SIMEBV_VERSION', '1.0.1');
 define('SIMEBV_PLUGIN_DIR', plugin_dir_path( __FILE__ ));
 define('SIMEBV_PLUGIN_URL', plugin_dir_url( __FILE__ ));
 
