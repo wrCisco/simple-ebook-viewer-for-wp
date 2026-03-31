@@ -2,7 +2,7 @@ import { FootnoteHandler } from '../../vendor/foliate-js/footnotes.js'
 import { transformDoc, getCSS } from './simebv-transform-ebook.js'
 import { pluginBaseUrl } from './simebv-utils.js'
 import { SpeechManager } from './simebv-speech.js'
-const { __, _x, _n, sprintf } = wp.i18n
+import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
 
 export class FootnoteManager {

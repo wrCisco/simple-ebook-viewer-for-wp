@@ -1,6 +1,6 @@
 import { isAndroid, isNumeric } from './simebv-utils.js'
 import { speechDialog } from './simebv-speech-dialog.js'
-const { __, _x, _n, sprintf } = wp.i18n
+import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
 export class SpeechManager {
     speechSynthesis = {

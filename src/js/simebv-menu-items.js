@@ -1,5 +1,5 @@
 import { isNumeric } from './simebv-utils.js'
-const { __, _x, _n, sprintf } = wp.i18n;
+import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
 export function createMenuItemsStd(reader, injectCSS) {
     return new Map([

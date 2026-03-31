@@ -1,5 +1,5 @@
 import { commonStyles } from './simebv-component-styles.js'
-const { __, _x, _n, sprintf } = wp.i18n;
+import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
 const template = document.createElement('template')
 template.innerHTML = `

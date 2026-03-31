@@ -22,7 +22,7 @@ import { ebookFormat } from './simebv-ebook-format.js'
 import { TextSearch } from './simebv-search.js'
 import { SpeechManager } from './simebv-speech.js'
 import { FootnoteManager } from './simebv-footnotes.js'
-const { __, _x, _n, sprintf } = wp.i18n;
+import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
 // Import css for the Viewer's container element, as static asset
 import '../css/simebv-container.css'
