@@ -178,7 +178,7 @@ class SIMEBV_Viewer extends SIMEBV_Base {
                 $style_container .= $name . ':' . $attrs[$name] . ';';
             }
         }
-        if (strlen($attrs['max-height']) === 0 && strlen($attrs['height']) === 0) {
+        if (!preg_match("/\b(?:max-)?height\b/", $style_container)) {
             $style_container .= "max-height:95vh;";
         }
         return [
