@@ -4,24 +4,28 @@ import { fileURLToPath } from 'url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
-const src = resolve(__dirname, 'node_modules/speech-rule-engine/lib/mathmaps');
-const dest = resolve(__dirname, 'dist/speech-rule-engine/lib/mathmaps');
+const sreSrc = resolve(__dirname, 'node_modules/speech-rule-engine/lib/mathmaps');
+const sreDest = resolve(__dirname, 'dist/speech-rule-engine/lib/mathmaps');
 
-function copyJsonFiles(srcDir, destDir) {
-  mkdirSync(destDir, { recursive: true });
+function copyFiles(srcDir, destDir, ext) {
+  const root = srcDir
+  copyHelper(srcDir, destDir, ext, root)
 
-  for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
-    const srcPath = join(srcDir, entry.name);
-    const destPath = join(destDir, entry.name);
+  function copyHelper(srcDir, destDir, ext, root) {
+    for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
+      const srcPath = join(srcDir, entry.name);
+      const destPath = join(destDir, entry.name);
 
-    if (entry.isDirectory()) {
-      copyJsonFiles(srcPath, destPath);
-    } else if (entry.isFile() && entry.name.endsWith('.json')) {
-      copyFileSync(srcPath, destPath);
-      console.log(`Copied: ${relative(src, srcPath)}`);
+      if (entry.isDirectory()) {
+        copyHelper(srcPath, destPath, ext, root);
+      } else if (entry.isFile() && entry.name.endsWith(ext)) {
+        mkdirSync(destDir, { recursive: true });
+        copyFileSync(srcPath, destPath);
+        console.log(`Copied: ${relative(root, srcPath)}`);
+      }
     }
   }
 }
 
-copyJsonFiles(src, dest);
-console.log('Done.');
+copyFiles(sreSrc, sreDest, '.json');
+console.log('SRE locales copied.\n');
