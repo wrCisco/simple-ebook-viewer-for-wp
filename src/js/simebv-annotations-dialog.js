@@ -37,7 +37,7 @@ export function annotationsDialog(reader) {
     const pageListLabelSmall = document.createElement('span')
     pageListLabelSmall.style.fontSize = 'small'
     pageListLabelSmall.textContent = __("(e.g. of the ebook's paper version)", 'simple-ebook-viewer')
-    pageListLabel.append(__('Show page delimiters', 'simple-ebook-viewer'), pageListLabelSmall)
+    pageListLabel.append(__('Show page delimiters', 'simple-ebook-viewer'), ' ', pageListLabelSmall)
     pageListContainer.append(pageList, pageListLabel)
 
     fieldset.append(bookmarksContainer, pageListContainer)
