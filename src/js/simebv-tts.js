@@ -64,7 +64,7 @@ const fragmentToSSML = async (fragment, inherited, SRE) => {
         if (!node) return
         if (node.nodeType === 3) return ssml.createTextNode(node.textContent)
         if (node.nodeType === 4) return ssml.createCDATASection(node.textContent)
-        if (node.nodeType !== 1) return
+        if (node.nodeType !== 1 && node.nodeType !== 11) return
 
         let el
         const nodeName = node.nodeName.toLowerCase()
@@ -96,15 +96,15 @@ const fragmentToSSML = async (fragment, inherited, SRE) => {
             }
         }
 
-        const lang = node.lang || node.getAttributeNS(NS.XML, 'lang')
+        const lang = node.lang || node.getAttributeNS?.(NS.XML, 'lang')
         if (lang) {
             if (!el) el = ssml.createElementNS(NS.SSML, 'lang')
             el.setAttributeNS(NS.XML, 'lang', lang)
         }
 
-        const alphabet = node.getAttributeNS(NS.SSML, 'alphabet') || inheritedAlphabet
+        const alphabet = node.getAttributeNS?.(NS.SSML, 'alphabet') || inheritedAlphabet
         if (!el) {
-            const ph = node.getAttributeNS(NS.SSML, 'ph')
+            const ph = node.getAttributeNS?.(NS.SSML, 'ph')
             if (ph) {
                 el = ssml.createElementNS(NS.SSML, 'phoneme')
                 if (alphabet) el.setAttribute('alphabet', alphabet)
@@ -122,7 +122,7 @@ const fragmentToSSML = async (fragment, inherited, SRE) => {
         }
         return el
     }
-    convert(fragment.firstChild, ssml.documentElement, inherited.alphabet)
+    convert(fragment, ssml.documentElement, inherited.alphabet)
     return ssml
 }
 
@@ -162,9 +162,6 @@ function* getBlocks(doc) {
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         const name = node.tagName.toLowerCase()
         if (blockTags.has(name)) {
-            if (name === 'math' && node.getAttribute('display') !== 'block') {
-                continue
-            }
             if (last) {
                 last.setEndBefore(node)
                 if (!rangeIsEmpty(last)) yield last
