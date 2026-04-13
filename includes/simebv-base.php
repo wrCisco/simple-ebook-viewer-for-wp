@@ -98,6 +98,9 @@ class SIMEBV_Base {
             'popup-notes' => [
                 'html_name' => 'data-simebv-popup-notes', 'default' => 'true'
             ],
+            'pagination-style' => [
+                'html_name' => 'data-simebv-positionviewer', 'default' => ''
+            ],
         ],
     ];
 
