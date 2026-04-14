@@ -306,7 +306,16 @@ export class SpeechManager {
         if (!this.speechSynthesis.utterance) {
             this.speechSynthesis.synthesis.cancel()
             setTimeout(async () => {
-                const s = selectedRange ? (await this.#view.tts.from(selectedRange)) : (await this.#view.tts.start())
+                let s
+                if (selectedRange) {
+                    s = await this.#view.tts.from(selectedRange)
+                }
+                else if (this.#view.lastLocation?.range) {
+                    s = await this.#view.tts.from(this.#view.lastLocation.range)
+                }
+                else {
+                    s = await this.#view.tts.start()
+                }
                 const u = this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
                 // Add warmup utterance to avoid the cutting off of the first words by the Windows voices
                 const warmup = new SpeechSynthesisUtterance('Silence...')
