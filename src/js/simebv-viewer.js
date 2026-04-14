@@ -702,9 +702,11 @@ export class Reader {
         if (this.container.requestFullscreen) {
             if (document.fullscreenElement) {
                 document.exitFullscreen()
+                this.view.removeAttribute('autohide-cursor')
             }
             else {
                 this.container.requestFullscreen()
+                    .then(() => this.view.setAttribute('autohide-cursor', ''))
             }
             this._setMenuMaxBlockSize()
         }
@@ -717,10 +719,12 @@ export class Reader {
         const detail = {}
         if (this.container.classList.contains('simebv-view-fullscreen')) {
             this.container.classList.remove('simebv-view-fullscreen')
+            this.view.removeAttribute('autohide-cursor')
             detail.data = 'exit'
         }
         else {
             this.container.classList.add('simebv-view-fullscreen')
+            this.view.setAttribute('autohide-cursor', '')
             detail.data = 'enter'
         }
         this._headerBar.dispatchEvent(new CustomEvent('toggle-fullscreen', { detail }))
