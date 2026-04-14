@@ -76,6 +76,8 @@ The plugin sets some reasonable defaults for these preferences, but if you're no
   - accepted values: "**fit-page**", "**fit-width**" or a number in the range **10 - 400** (default: **fit-page**)
 * **`color-scheme`**
   - accepted values: "**auto**", "**sepia**", "**light**", "**dark**", "**light-forced**", "**dark-forced**" (default: **auto**)
+* **`pagination-style`**
+  - accepted values: "**slider**", "**pages**", "**percent**" (default: **slider**)
 
 `Layout`, `max-pages`, `default-font-size` and `page-margins` are only available for reflowable ebooks, while `zoom` is only available for fixed layout ones.
 
