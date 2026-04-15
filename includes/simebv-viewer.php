@@ -13,6 +13,7 @@ class SIMEBV_Viewer extends SIMEBV_Base {
         add_shortcode('simebv_viewer', [self::class, 'render_ebook_viewer']);
         add_action('wp_enqueue_scripts', [self::class, 'conditionally_enqueue_assets']);
         add_action('wp_enqueue_scripts', [self::class, 'register_javascript_translations'], 100);
+        add_filter('load_script_textdomain_relative_path', [self::class, 'fix_textdomain_path'], 10, 2);
         // add_action('enqueue_block_editor_assets', [self::class, 'enqueue_block_editor_assets']);
 
         do_action('simebv_viewer_after_init');
@@ -40,9 +41,14 @@ class SIMEBV_Viewer extends SIMEBV_Base {
     //     return true;
     // }
 
+    public static function fix_textdomain_path($relative, $src) {
+        $relative = 'dist/assets/simebv-viewer.js';
+        return $relative;
+    }
+
     public static function register_javascript_translations() {
         wp_set_script_translations(
-            self::$js_core_script_handle, 'simple-ebook-viewer', SIMEBV_PLUGIN_DIR . 'languages/'
+            self::$js_core_script_handle, 'simple-ebook-viewer'
         );
     }
 
