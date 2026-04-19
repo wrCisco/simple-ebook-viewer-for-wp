@@ -2,33 +2,23 @@ import { View } from '../../vendor/foliate-js/view.js'
 import * as CFI from '../../vendor/foliate-js/epubcfi.js'
 import { textWalker } from '../../vendor/foliate-js/text-walker.js'
 import { startSREEngine } from './simebv-sre.js'
+import { cfiFilter } from './simebv-utils.js'
 
 export class SimebvView extends View {
-    static cfiFilter = node => {
-        if (node.nodeType !== Node.ELEMENT_NODE) {
-            return NodeFilter.FILTER_ACCEPT
-        }
-        if (node.matches('[data-simebv-inject]')) {
-            return NodeFilter.FILTER_REJECT
-        }
-        if (node.matches('[data-simebv-skip]')) {
-            return NodeFilter.FILTER_SKIP
-        }
-        return NodeFilter.FILTER_ACCEPT
-    }
+    cfiFilter = cfiFilter
 
     getCFI(index, range) {
         const baseCFI = this.book.sections[index].cfi ?? CFI.fake.fromIndex(index)
         if (!range) return baseCFI
-        return CFI.joinIndir(baseCFI, CFI.fromRange(range, SimebvView.cfiFilter))
+        return CFI.joinIndir(baseCFI, CFI.fromRange(range, this.cfiFilter))
     }
     resolveCFI(cfi) {
         if (this.book.resolveCFI)
-            return this.book.resolveCFI(cfi, SimebvView.cfiFilter)
+            return this.book.resolveCFI(cfi, this.cfiFilter)
         else {
             const parts = CFI.parse(cfi)
             const index = CFI.fake.toIndex((parts.parent ?? parts).shift())
-            const anchor = doc => CFI.toRange(doc, parts, SimebvView.cfiFilter)
+            const anchor = doc => CFI.toRange(doc, parts, this.cfiFilter)
             return { index, anchor }
         }
     }
