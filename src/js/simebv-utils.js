@@ -32,8 +32,9 @@ export function isNumeric(v) {
 
 export function getLang(el) {
     while (el) {
-        if (el.hasAttribute('lang')) {
-            return el.getAttribute('lang')
+        const lang = el.lang || el.getAttributeNS?.('http://www.w3.org/XML/1998/namespace', 'lang')
+        if (lang) {
+            return lang
         }
         el = el.parentElement
     }
