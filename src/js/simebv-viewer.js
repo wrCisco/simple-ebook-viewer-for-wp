@@ -574,28 +574,38 @@ export class Reader {
 
         this.view.renderer.setStyles?.(getCSS(this.style))
 
-        if (this._lastReadPage != null) {
-            let lastLocation = this._lastReadPage
-            if (lastLocation <= 1 && lastLocation >= 0) {
-                lastLocation = { fraction: lastLocation }
-            }
-            else if (typeof lastLocation !== 'string') {
-                lastLocation = null
-            }
-            try {
-                if (lastLocation) {
-                    await this.view.init({lastLocation})
-                }
-            }
-            catch (e) {
-                this._lastReadPage = null
-                console.error('Cannot load last read page:', e)
+        this.view.addEventListener('relocate', this._onRelocate.bind(this))
+
+        // With certain formats (e.g. fb2), invalid values of lastLocation
+        // can result in the ebook not opening but without raising errors,
+        // so I try to make a bit of validation beforehand. Accepted values are
+        // a number between 0 and 1, or a string that is a valid epubcfi.
+        let lastLocation = this._lastReadPage ?? 0
+        if (isNumeric(lastLocation)) {
+            if (lastLocation > 1) { lastLocation = 1 }
+            else if (lastLocation < 0) { lastLocation = 0 }
+            lastLocation = {
+                fraction: Number(lastLocation)
             }
         }
+        else if (typeof lastLocation !== 'string' || !CFI.isCFI.test(lastLocation)) {
+            lastLocation = null
+        }
+        if (lastLocation) {
+            try {
+                await this.view.init({lastLocation})
+            }
+            catch(e) {
+                console.error(e)
+                console.error('Cannot load last read page:', this._lastReadPage)
+                lastLocation = null
+            }
+        }
+        if (lastLocation === null) {
+            this._lastReadPage = null
+            await this.view.next()
+        }
 
-        if (!this._lastReadPage) this.view.renderer.next()
-
-        this.view.addEventListener('relocate', this._onRelocate.bind(this))
         // The relocate event fires multiple times from foliate-js during the
         // ebook opening. These initial relocate events should not trigger
         // a change in _canSavePreferences.
