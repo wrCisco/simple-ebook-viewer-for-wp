@@ -117,9 +117,11 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
     })
     dlg.addEventListener('simebv-speech-dlg-pause', () => {
         if (_isPlaying) {
-            setPauseState()
-            target.dispatchEvent(new CustomEvent('simebv-speech-pause'))
+            playPause.click()
         }
+    })
+    dlg.addEventListener('simebv-speech-dlg-toggle-playpause', () => {
+        playPause.click()
     })
 
     let prevClicked = false
@@ -127,7 +129,7 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
         if (!prevClicked) {
             prevClicked = true
             target.dispatchEvent(new CustomEvent('simebv-speech-prev'))
-            setTimeout(() => prevClicked = false, 300)
+            setTimeout(() => prevClicked = false, 350)
         }
     })
     let nextClicked = false
@@ -135,9 +137,11 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
         if (!nextClicked) {
             nextClicked = true
             target.dispatchEvent(new CustomEvent('simebv-speech-next'))
-            setTimeout(() => nextClicked = false, 300)
+            setTimeout(() => nextClicked = false, 350)
         }
     })
+    const goToPrevParagraph = () => prevParagraph.click()
+    const goToNextParagraph = () => nextParagraph.click()
 
     let optionsDlg
     let wasPlaying
@@ -188,15 +192,11 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
         }
     })
 
-    dlg.addEventListener('simebv-speech-dlg-toggle-playpause', () => {
-        playPause.click()
-    })
-
     const focus = () => {
         playPause.focus()
     }
 
-    return { element: dlg, isPlaying, focus }
+    return { element: dlg, isPlaying, focus, goToPrevParagraph, goToNextParagraph }
 }
 
 

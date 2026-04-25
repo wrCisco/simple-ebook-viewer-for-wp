@@ -775,6 +775,13 @@ export class Reader {
                     this.container.focus()
                 }
                 break
+            case 'ArrowUp':
+            case 'ArrowDown':
+                if (this._speechManager?.isActive) {
+                    e.preventDefault()
+                    this._speechManager.keydownHandler(e)
+                }
+                break
             case 'Tab':
                 if (this.menu.element.classList.contains('simebv-show')
                         || this._root.querySelector('#simebv-side-bar')?.classList.contains('simebv-show')) {

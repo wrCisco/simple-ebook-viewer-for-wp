@@ -560,6 +560,17 @@ export class SpeechManager {
         return a.volume !== b.volume || a.pitch !== b.pitch || a.rate !== b.rate || a.voice !== b.voice
     }
 
+    keydownHandler(event) {
+        switch (event.key) {
+            case 'ArrowDown':
+                this.#speechDialog.goToNextParagraph()
+                break
+            case 'ArrowUp':
+                this.#speechDialog.goToPrevParagraph()
+                break
+        }
+    }
+
     destroy() {
         globalThis.removeEventListener('pagehide', this.#boundPageHideHandler)
         this.#target.removeEventListener('simebv-speech-play', this.#boundPlayHandler)
