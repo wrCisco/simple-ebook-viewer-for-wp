@@ -1,4 +1,4 @@
-import { isAndroid, isNumeric } from './simebv-utils.js'
+import { isAndroid, isWindows, isFirefoxOnLinuxOrBSD, isNumeric } from './simebv-utils.js'
 import { speechDialog } from './simebv-speech-dialog.js'
 import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
@@ -12,9 +12,9 @@ export class SpeechManager {
         lang: undefined,
         voice: undefined,
         lastCharRead: 0,
-        paused: false,
         changedUtterance: false,
         warmup: undefined,
+        state: 'initial'
     }
     #view
     #target
@@ -36,6 +36,8 @@ export class SpeechManager {
         'not-allowed': __("The operation's start was not allowed.", 'simple-ebook-viewer'),
     }
     #isAndroid
+    #isWindows
+    #isFirefoxOnLinuxOrBSD
     #savePreference
     #loadPreference
     #speechDialog
@@ -46,6 +48,8 @@ export class SpeechManager {
         this.#target = eventTarget
         this.#localesBaseUrl = localesBaseUrl
         this.#isAndroid = isAndroid()
+        this.#isWindows = isWindows()
+        this.#isFirefoxOnLinuxOrBSD = isFirefoxOnLinuxOrBSD()
         this.#savePreference = savePreference ?? (() => {})
         this.#loadPreference = loadPreference ?? (() => null)
         globalThis.addEventListener('pagehide', this.#boundPageHideHandler)
@@ -91,6 +95,7 @@ export class SpeechManager {
             this.speechSynthesis.voice = voice
         }
         await this.#view.initTTS('word', undefined, this.#localesBaseUrl)
+        this.#isNote = isNote
         if (!this.#speechDialog) {
             const dlg = speechDialog(this.#target, this.speechSynthesis, isNote)
             dlg.element.id = 'simebv-speech-dialog'
@@ -112,6 +117,14 @@ export class SpeechManager {
     onSectionLoad() {
         this.#view.initTTS('word', undefined, this.#localesBaseUrl)
         this.speechSynthesis.utterance = undefined
+        this.speechSynthesis.synthesis.cancel()
+        if (this.speechSynthesis.state === 'speaking') {
+            this.#playHandler()
+        }
+        else {
+            this.#speechDialog.element.dispatchEvent(new CustomEvent('simebv-speech-dlg-pause'))
+            this.speechSynthesis.state = 'initial'
+        }
     }
 
     static getDefaultVoice() {
@@ -203,14 +216,22 @@ export class SpeechManager {
                     utt = this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
                 }
             }
-            if (utt && !this.speechSynthesis.paused) {
+            if (utt && !['paused', 'canceled'].includes(this.speechSynthesis.state)) {
                 this.speechSynthesis.synthesis.speak(utt)
             }
             if (!s) {
-                this.speechSynthesis.utterance = undefined
-                this.#speechDialog.element.dispatchEvent(new CustomEvent('simebv-speech-dlg-toggle-playpause'))
+                let reset = true
+                if (!['paused', 'canceled'].includes(this.speechSynthesis.state) && !this.#isNote) {
+                    const curSection = this.#view.lastLocation?.section?.current
+                    await this.#view.next()
+                    reset = curSection === this.#view.lastLocation?.section?.current
+                }
+                if (reset) {
+                    this.speechSynthesis.utterance = undefined
+                    this.speechSynthesis.state = 'initial'
+                    this.#speechDialog.element.dispatchEvent(new CustomEvent('simebv-speech-dlg-toggle-playpause'))
+                }
             }
-            this.speechSynthesis.paused = false
         }
         u.onpause = e => {
             this.speechSynthesis.lastCharRead = e.charIndex
@@ -219,7 +240,16 @@ export class SpeechManager {
             const type = e.error
             if (this.#speechErrors[type]) {
                 alert('Error: ' + type + '\n' + this.#speechErrors[type])
-                this.speechSynthesis.paused = false
+                this.speechSynthesis.state = 'error'
+            }
+        }
+        u.onstart = () => {
+            // if the user clicks on the pause button at the end of an utterance,
+            // the next one sometimes starts anyway, and the pause command
+            // doesn't work reliably when called from the onstart handler
+            if (this.speechSynthesis.state === 'paused') {
+                this.speechSynthesis.synthesis.cancel()
+                this.speechSynthesis.state = 'canceled'
             }
         }
         u.addEventListener('boundary', e => {
@@ -233,7 +263,6 @@ export class SpeechManager {
     }
 
     #ssmlToStrings(ssml) {
-        // TODO: reconsider direct use of ssml
         const doc = new DOMParser().parseFromString(ssml, 'application/xml')
         const lang = doc.documentElement.getAttributeNS?.('http://www.w3.org/XML/1998/namespace', 'lang')
         try {
@@ -292,11 +321,15 @@ export class SpeechManager {
     }
 
     #pageHideHandler() {
-        this.speechSynthesis.synthesis?.cancel()
+        if (this.speechSynthesis.synthesis) {
+            this.speechSynthesis.synthesis.cancel()
+            this.speechSynthesis.state = 'canceled'
+        }
+
     }
     #boundPageHideHandler = this.#pageHideHandler.bind(this)
 
-    async #playHandler({ detail }) {
+    async #playHandler() {
         const { doc } = this.#view.renderer.getContents()[0]
         const selection = doc.getSelection()
         let selectedRange
@@ -317,29 +350,34 @@ export class SpeechManager {
                     s = await this.#view.tts.start()
                 }
                 const u = this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
-                // Add warmup utterance to avoid the cutting off of the first words by the Windows voices
-                const warmup = new SpeechSynthesisUtterance('Silence...')
-                warmup.volume = 0
-                warmup.onend = () => {
-                    this.speechSynthesis.warmup = undefined
+                if (this.#isWindows) {
+                    // Add warmup utterance so Windows voices don't cut off the first words
+                    const warmup = new SpeechSynthesisUtterance('Silence')
+                    warmup.volume = 0
+                    warmup.onend = () => {
+                        this.speechSynthesis.warmup = undefined
+                        this.speechSynthesis.synthesis.speak(u)
+                    }
+                    warmup.onerror = (e) => {
+                        const type = e.error
+                        if (this.#speechErrors[type]) {
+                            alert('Error: ' + type + '\n' + this.#speechErrors[type])
+                        }
+                        this.speechSynthesis.warmup = undefined
+                    }
+                    this.speechSynthesis.warmup = warmup
+                    this.speechSynthesis.synthesis.speak(warmup)
+                    setTimeout(() => {
+                        // Sometimes Firefox speech synthesis on Windows doesn't start without this
+                        if (!this.#isAndroid) {
+                            this.speechSynthesis.synthesis.pause()
+                            this.speechSynthesis.synthesis.resume()
+                        }
+                    }, 5)
+                }
+                else {
                     this.speechSynthesis.synthesis.speak(u)
                 }
-                warmup.onerror = (e) => {
-                    const type = e.error
-                    if (this.#speechErrors[type]) {
-                        alert('Error: ' + type + '\n' + this.#speechErrors[type])
-                    }
-                    this.speechSynthesis.warmup = undefined
-                }
-                this.speechSynthesis.warmup = warmup
-                this.speechSynthesis.synthesis.speak(warmup)
-                setTimeout(() => {
-                    // Sometimes Firefox speech synthesis on Windows doesn't start without this
-                    if (!this.#isAndroid) {
-                        this.speechSynthesis.synthesis.pause()
-                        this.speechSynthesis.synthesis.resume()
-                    }
-                }, 5)
             }, 50)
         }
         else {
@@ -349,7 +387,7 @@ export class SpeechManager {
                 this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
                 this.speechSynthesis.synthesis.speak(this.speechSynthesis.utterance)
             }
-            else if (this.speechSynthesis.paused && !this.#isAndroid) {
+            else if (this.speechSynthesis.state === 'paused' && !(this.#isAndroid || this.#isFirefoxOnLinuxOrBSD)) {
                 this.speechSynthesis.synthesis.resume()
             }
             else {
@@ -358,27 +396,31 @@ export class SpeechManager {
                 this.speechSynthesis.synthesis.speak(this.speechSynthesis.utterance)
             }
         }
-        this.speechSynthesis.paused = false
+        this.speechSynthesis.state = 'speaking'
         this.#acquireWakeLock()
         document.addEventListener('visibilitychange', this.#boundReacquireWakeLock)
     }
     #boundPlayHandler = this.#playHandler.bind(this)
 
     #pauseHandler() {
+        if (!this.speechSynthesis.utterance) {
+            return
+        }
         if (this.speechSynthesis.warmup) {
             this.speechSynthesis.warmup.onend = () => null
             this.speechSynthesis.synthesis.cancel()
             this.speechSynthesis.warmup = undefined
             this.speechSynthesis.utterance = undefined
         }
-        else if (this.#isAndroid) {
+        else if (this.#isAndroid || this.#isFirefoxOnLinuxOrBSD) {
             this.#updateUtterance()
             this.speechSynthesis.synthesis.cancel()
+            this.speechSynthesis.state = 'canceled'
         }
         else {
             this.speechSynthesis.synthesis.pause()
             this.#view.deselect()
-            this.speechSynthesis.paused = true
+            this.speechSynthesis.state = 'paused'
         }
     }
     #boundPauseHandler = this.#pauseHandler.bind(this)
@@ -386,9 +428,10 @@ export class SpeechManager {
     #closeHandler() {
         this.speechSynthesis.utterance = undefined
         this.speechSynthesis.voice = undefined
-        this.speechSynthesis.paused = false
+        this.speechSynthesis.state = 'initial'
         this.speechSynthesis.warmup = undefined
         this.speechSynthesis.synthesis?.cancel()
+        this.speechSynthesis.synthesis = undefined
         this.#releaseWakeLock()
         document.removeEventListener('visibilitychange', this.#boundReacquireWakeLock)
     }
@@ -409,13 +452,12 @@ export class SpeechManager {
                 this.speechSynthesis.synthesis.cancel()
                 this.speechSynthesis.changedUtterance = true
             }
-            this.speechSynthesis.paused = false
         }
     }
     #boundUpdateHandler = this.#updateHandler.bind(this)
 
     #resumeHandler() {
-        if (!this.#isAndroid && !this.speechSynthesis.changedUtterance) {
+        if (!(this.#isAndroid || this.#isFirefoxOnLinuxOrBSD) && !this.speechSynthesis.changedUtterance) {
             this.speechSynthesis.synthesis.resume()
         }
         else {
@@ -423,34 +465,86 @@ export class SpeechManager {
             setTimeout(() => this.speechSynthesis.synthesis.speak(this.speechSynthesis.utterance), 200)
         }
         this.speechSynthesis.changedUtterance = false
-        this.speechSynthesis.paused = false
+        this.speechSynthesis.state = 'speaking'
     }
     #boundResumeHandler = this.#resumeHandler.bind(this)
 
-    #prevSectionHandler() {
-        const currentSection = this.#view.lastLocation?.section?.current
-        if (currentSection > 0) {
-            this.#view.goTo(currentSection - 1).catch(e => console.error(e))
-            if (!this.speechSynthesis.paused && this.speechSynthesis.utterance) {
-                this.#speechDialog.element.dispatchEvent(new CustomEvent('simebv-speech-dlg-toggle-playpause'))
+    async #nextHandler() {
+        if (this.speechSynthesis.utterance) {
+            if (this.speechSynthesis.warmup) {
+                this.speechSynthesis.warmup.onend = () => null
+                this.speechSynthesis.warmup = undefined
             }
-            this.speechSynthesis.paused = false
+            this.speechSynthesis.synthesis.cancel()
+            this.speechSynthesis.utterance.onend = () => null
+            this.speechSynthesis.utterance = undefined
+            this.speechSynthesis.lastCharRead = 0
+            let utt
+            const s = await this.#view.tts.next(true)
+            if (s) {
+                utt = this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
+            }
+            if (utt && !['paused', 'canceled'].includes(this.speechSynthesis.state)) {
+                this.speechSynthesis.synthesis.speak(utt)
+                this.speechSynthesis.state = 'speaking'
+            }
+            if (!s) {
+                await this.#nextSection()
+            }
+        }
+        else {
+            await this.#view.next()
         }
     }
-    #boundPrevSectionHandler = this.#prevSectionHandler.bind(this)
+    #boundNextHandler = this.#nextHandler.bind(this)
 
-    #nextSectionHandler() {
+    async #prevHandler() {
+        if (this.speechSynthesis.utterance) {
+            if (this.speechSynthesis.warmup) {
+                this.speechSynthesis.warmup.onend = () => null
+                this.speechSynthesis.warmup = undefined
+            }
+            this.speechSynthesis.synthesis.cancel()
+            this.speechSynthesis.utterance.onend = () => null
+            this.speechSynthesis.utterance = undefined
+            this.speechSynthesis.lastCharRead = 0
+            let utt
+            const s = await this.#view.tts.prev(true)
+            if (s) {
+                utt = this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
+            }
+            if (utt && !['paused', 'canceled'].includes(this.speechSynthesis.state)) {
+                this.speechSynthesis.synthesis.speak(utt)
+                this.speechSynthesis.state = 'speaking'
+            }
+            if (!s) {
+                await this.#prevSection()
+            }
+        }
+        else {
+            await this.#view.prev()
+        }
+    }
+    #boundPrevHandler = this.#prevHandler.bind(this)
+
+    async #prevSection(lastPage = true) {
+        const currentSection = this.#view.lastLocation?.section?.current
+        if (!currentSection) return
+        if (lastPage) {
+            await this.#view.goTo(currentSection).then(() => this.#view.prev())
+        }
+        else {
+            await this.#view.goTo(currentSection - 1).catch(e => console.error(e))
+        }
+    }
+
+    async #nextSection() {
         const currentSection = this.#view.lastLocation?.section?.current
         const totSections = this.#view.lastLocation?.section?.total
         if (currentSection < totSections) {
-            this.#view.goTo(currentSection + 1).catch(e => console.error(e))
-            if (!this.speechSynthesis.paused && this.speechSynthesis.utterance) {
-                this.#speechDialog.element.dispatchEvent(new CustomEvent('simebv-speech-dlg-toggle-playpause'))
-            }
-            this.speechSynthesis.paused = false
+            await this.#view.goTo(currentSection + 1).catch(e => console.error(e))
         }
     }
-    #boundNextSectionHandler = this.#nextSectionHandler.bind(this)
 
     #setupEventListeners() {
         this.#target.addEventListener('simebv-speech-play', this.#boundPlayHandler)
@@ -458,8 +552,8 @@ export class SpeechManager {
         this.#target.addEventListener('simebv-speech-close', this.#boundCloseHandler)
         this.#target.addEventListener('simebv-speech-update', this.#boundUpdateHandler)
         this.#target.addEventListener('simebv-speech-resume', this.#boundResumeHandler)
-        this.#target.addEventListener('simebv-speech-prev-section', this.#boundPrevSectionHandler)
-        this.#target.addEventListener('simebv-speech-next-section', this.#boundNextSectionHandler)
+        this.#target.addEventListener('simebv-speech-prev', this.#boundPrevHandler)
+        this.#target.addEventListener('simebv-speech-next', this.#boundNextHandler)
     }
 
     #isSpeechSynthesisToUpdate(a, b) {
@@ -473,8 +567,8 @@ export class SpeechManager {
         this.#target.removeEventListener('simebv-speech-close', this.#boundCloseHandler)
         this.#target.removeEventListener('simebv-speech-update', this.#boundUpdateHandler)
         this.#target.removeEventListener('simebv-speech-resume', this.#boundResumeHandler)
-        this.#target.removeEventListener('simebv-speech-prev-section', this.#boundPrevSectionHandler)
-        this.#target.removeEventListener('simebv-speech-next-section', this.#boundNextSectionHandler)
+        this.#target.removeEventListener('simebv-speech-prev', this.#boundPrevHandler)
+        this.#target.removeEventListener('simebv-speech-next', this.#boundNextHandler)
         this.#speechDialog?.element.remove()
         this.#speechDialog = null
         this.#closeHandler()

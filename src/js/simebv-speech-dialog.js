@@ -42,31 +42,31 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
     </svg>
     `
 
-    const prevSection = document.createElement('button')
-    prevSection.id = 'simebv-speech-prev-section'
-    prevSection.classList.add('simebv-speech-dlg-button')
-    const prevSectionLabel = __('Go to previous section', 'simple-ebook-viewer')
-    prevSection.setAttribute('aria-label', prevSectionLabel)
-    prevSection.title = prevSectionLabel
-    prevSection.innerHTML = `
+    const prevParagraph = document.createElement('button')
+    prevParagraph.id = 'simebv-speech-prev'
+    prevParagraph.classList.add('simebv-speech-dlg-button')
+    const prevParagraphLabel = __('Go to previous paragraph', 'simple-ebook-viewer')
+    prevParagraph.setAttribute('aria-label', prevParagraphLabel)
+    prevParagraph.title = prevParagraphLabel
+    prevParagraph.innerHTML = `
     <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M19 6v12l-10-6zm-10 0v12h-2v-12z"/>
     </svg>`
 
-    const nextSection = document.createElement('button')
-    nextSection.id = 'simebv-speech-next-section'
-    nextSection.classList.add('simebv-speech-dlg-button')
-    const nextSectionLabel = __('Go to next section', 'simple-ebook-viewer')
-    nextSection.setAttribute('aria-label', nextSectionLabel)
-    nextSection.title = nextSectionLabel
-    nextSection.innerHTML = `
+    const nextParagraph = document.createElement('button')
+    nextParagraph.id = 'simebv-speech-next'
+    nextParagraph.classList.add('simebv-speech-dlg-button')
+    const nextParagraphLabel = __('Go to next paragraph', 'simple-ebook-viewer')
+    nextParagraph.setAttribute('aria-label', nextParagraphLabel)
+    nextParagraph.title = nextParagraphLabel
+    nextParagraph.innerHTML = `
     <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M7 6v12l10-6zm10 0v12h2v-12z"/>
     </svg>`
 
     if (isNote) {
-        prevSection.disabled = true
-        nextSection.disabled = true
+        prevParagraph.disabled = true
+        nextParagraph.disabled = true
     }
 
     const closeBtn = document.createElement('button')
@@ -81,7 +81,7 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
     </svg>
     `
 
-    container.append(playPause, prevSection, nextSection, options, closeBtn)
+    container.append(playPause, prevParagraph, nextParagraph, options, closeBtn)
     dlg.append(container)
 
     let _isPlaying = false
@@ -115,12 +115,28 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
             target.dispatchEvent(new CustomEvent('simebv-speech-play'))
         }
     })
-
-    prevSection.addEventListener('click', () => {
-        target.dispatchEvent(new CustomEvent('simebv-speech-prev-section'))
+    dlg.addEventListener('simebv-speech-dlg-pause', () => {
+        if (_isPlaying) {
+            setPauseState()
+            target.dispatchEvent(new CustomEvent('simebv-speech-pause'))
+        }
     })
-    nextSection.addEventListener('click', () => {
-        target.dispatchEvent(new CustomEvent('simebv-speech-next-section'))
+
+    let prevClicked = false
+    prevParagraph.addEventListener('click', () => {
+        if (!prevClicked) {
+            prevClicked = true
+            target.dispatchEvent(new CustomEvent('simebv-speech-prev'))
+            setTimeout(() => prevClicked = false, 300)
+        }
+    })
+    let nextClicked = false
+    nextParagraph.addEventListener('click', () => {
+        if (!nextClicked) {
+            nextClicked = true
+            target.dispatchEvent(new CustomEvent('simebv-speech-next'))
+            setTimeout(() => nextClicked = false, 300)
+        }
     })
 
     let optionsDlg
@@ -159,7 +175,6 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
             returnFocus.focus()
         }
         target.dispatchEvent(new CustomEvent('simebv-speech-close'))
-        speechOptions.synthesis.cancel()
     }
 
     closeBtn.addEventListener('click', close)

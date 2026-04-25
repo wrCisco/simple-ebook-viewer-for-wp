@@ -26,6 +26,15 @@ export function isAndroid() {
     return navigator.userAgentData?.platform === 'Android' || /Android/i.test(navigator.userAgent)
 }
 
+export function isWindows() {
+    return navigator.userAgentData?.platform === 'Windows' || /Windows|Win32|Win64|WOW64/i.test(navigator.userAgent)
+}
+
+export function isFirefoxOnLinuxOrBSD() {
+    const ua = navigator.userAgent
+    return /Firefox\/\d+/.test(ua) && /Linux|X11|FreeBSD|OpenBSD(?!.*CrOS)/.test(ua) && !/Android/.test(ua)
+}
+
 export function isNumeric(v) {
     return parseFloat(v) === Number(v)
 }
