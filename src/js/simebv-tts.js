@@ -1,5 +1,7 @@
 /**
  * Module copied from foliate-js to integrate speech-rule-engine for math expressions
+ * plus subsequent changes (e.g. insert in the ssml output the images's alt text
+ * and don't insert invisible elements).
  */
 
 const NS = {
@@ -65,6 +67,7 @@ const fragmentToSSML = async (fragment, inherited, SRE) => {
         if (node.nodeType === 3) return ssml.createTextNode(node.textContent)
         if (node.nodeType === 4) return ssml.createCDATASection(node.textContent)
         if (node.nodeType !== 1 && node.nodeType !== 11) return
+        if (node.hasAttribute?.('data-foliate-invisible')) return
 
         let el
         const nodeName = node.nodeName.toLowerCase()
@@ -94,6 +97,9 @@ const fragmentToSSML = async (fragment, inherited, SRE) => {
                     'The generation will proceed as it would for normal text.'
                 )
             }
+        }
+        else if (nodeName === 'img' && node.alt) {
+            return ssml.createTextNode(node.alt)
         }
 
         const lang = node.lang || node.getAttributeNS?.(NS.XML, 'lang')
@@ -126,18 +132,39 @@ const fragmentToSSML = async (fragment, inherited, SRE) => {
     return ssml
 }
 
+const markInvisibleElements = (range) => {
+    const root = range.commonAncestorContainer
+    const checkVisibility = typeof root.checkVisibility === 'function'
+        ? node => node.checkVisibility({ opacityProperty: true, visibilityProperty: true })
+        : node => !['script', 'style'].includes(node.nodeName.toLowerCase())
+    const invisibleNodes = []
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT)
+    walker.currentNode = range.startContainer
+    let node = walker.currentNode
+    do {
+        if (!checkVisibility(node)) {
+            node.setAttribute('data-foliate-invisible', '')
+            invisibleNodes.push(node)
+        }
+        if (node === range.endContainer) {
+            break
+        }
+    } while (node = walker.nextNode())
+    return invisibleNodes
+}
+
+const unmarkInvisibleElements = (elems) => {
+    elems.forEach(el => el.removeAttribute('data-foliate-invisible'))
+}
+
 const getFragmentWithMarks = async (range, textWalker, granularity, SRE) => {
     const lang = getLang(range.commonAncestorContainer)
     const alphabet = getAlphabet(range.commonAncestorContainer)
 
     const segmenter = getSegmenter(lang, granularity)
+    const invisibleNodes = markInvisibleElements(range)
     const fragment = range.cloneContents()
-    // Script and style elements direct children of the body element or
-    // between block tags are already skipped, but if they are inside
-    // a block tag, e.g. <div><script>console.log('ha-ha')</script></div>,
-    // they may be read out loud (the textWalker, at least in its default
-    // implementation, skips them).
-    fragment.querySelectorAll('script, style').forEach(el => el.remove())
+    unmarkInvisibleElements(invisibleNodes)
 
     // we need ranges on both the original document (for highlighting)
     // and the document fragment (for inserting marks)
