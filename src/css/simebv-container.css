@@ -77,3 +77,7 @@
 #simebv-reader-container.simebv-view-real-fullscreen {
     border: none !important;
 }
+
+.simebv-overflow-hidden {
+    overflow: hidden !important;
+}

@@ -761,11 +761,13 @@ export class Reader {
         if (this.container.classList.contains('simebv-view-fullscreen')) {
             this.container.classList.remove('simebv-view-fullscreen')
             this.view?.removeAttribute('autohide-cursor')
+            document.body?.classList.remove('simebv-overflow-hidden')
             detail.data = 'exit'
         }
         else {
             this.container.classList.add('simebv-view-fullscreen')
             this.view?.setAttribute('autohide-cursor', '')
+            document.body?.classList.add('simebv-overflow-hidden')
             detail.data = 'enter'
         }
         this._headerBar.dispatchEvent(new CustomEvent('toggle-fullscreen', { detail }))
