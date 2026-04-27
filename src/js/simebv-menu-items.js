@@ -126,6 +126,60 @@ export function createMenuItemsStd(reader, injectCSS) {
             horizontal: false,
         }],
 
+        ['textAlign', {
+            name: 'textAlign',
+            label: __('Text Alignment', 'simple-ebook-viewer'),
+            type: 'radio',
+            items: [
+                [__('Auto', 'simple-ebook-viewer'), 'auto'],
+                [_x('Left', 'Text alignment', 'simple-ebook-viewer'), 'left'],
+                [_x('Center', 'Text alignment', 'simple-ebook-viewer'), 'center'],
+                [_x('Right', 'Text alignment', 'simple-ebook-viewer'), 'right'],
+                [_x('Justified', 'Text alignment', 'simple-ebook-viewer'), 'justify'],
+            ],
+            onclick: value => {
+                reader.style.textAlign = value
+                reader.view?.renderer.setStyles?.(injectCSS(reader.style))
+                reader._savePreference('textAlign', value)
+            },
+            horizontal: false,
+        }],
+
+        ['lineSpacing', {
+            name: 'lineSpacing',
+            label: __('Line Spacing', 'simple-ebook-viewer'),
+            type: 'radio',
+            items: [
+                [__('Auto', 'simple-ebook-viewer'), 0],
+                [_x('Tight', 'Line spacing', 'simple-ebook-viewer'), 1],
+                [_x('Normal', 'Line spacing', 'simple-ebook-viewer'), 1.4],
+                [_x('Loose', 'Line spacing', 'simple-ebook-viewer'), 2.3],
+            ],
+            onclick: value => {
+                reader.style.spacing = value
+                reader.view?.renderer.setStyles?.(injectCSS(reader.style))
+                reader._savePreference('lineSpacing', value)
+            },
+            horizontal: false,
+        }],
+
+        ['hyphenation', {
+            name: 'hyphenation',
+            label: __('Hyphenation', 'simple-ebook-viewer'),
+            type: 'radio',
+            items: [
+                [__('Auto', 'simple-ebook-viewer'), 'auto'],
+                [__('Yes', 'simple-ebook-viewer'), 'yes'],
+                [__('No', 'simple-ebook-viewer'), 'no'],
+            ],
+            onclick: value => {
+                reader.style.hyphenate = value
+                reader.view?.renderer.setStyles?.(injectCSS(reader.style))
+                reader._savePreference('hyphenation', value)
+            },
+            horizontal: false,
+        }],
+
         ['colors', {
             name: 'colors',
             label: __('Colors', 'simple-ebook-viewer'),
@@ -324,6 +378,9 @@ export function getInitialMenuStatusStd() {
             ['fontSize', 18],
             ['maxPages', 2],
             ['margins', '8%'],
+            ['textAlign', 'auto'],
+            ['lineSpacing', 0],
+            ['hyphenation', 'auto'],
             ['layout', 'paginated'],  // the 'scrolled' layout disables other preferences, so this is at the end
         ],
         bothAfter: [],

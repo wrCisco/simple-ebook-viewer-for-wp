@@ -228,8 +228,8 @@ import openDyslexicBoldItalic from "../../resources/fonts/opendyslexic/OpenDysle
 
 export const defaultStyles = Object.freeze({
     spacing: 1.4,
-    justify: true,
-    hyphenate: true,
+    textAlign: 'justify',
+    hyphenate: 'auto',
     fontSize: 1,
     colorScheme: 'light dark',
     bgColor: 'transparent',
@@ -247,10 +247,12 @@ const fontFamilyKeywords = new Set([
 // CSS to inject in iframe of reflowable ebooks
 export const getCSS = (values) => {
     let {
-        spacing, justify, hyphenate, fontSize, colorScheme,
+        spacing, textAlign, hyphenate, fontSize, colorScheme,
         bgColor, forcedColorScheme, fontFamily, popupNotes
     } = values
     spacing = safeCSSString(spacing) ?? defaultStyles.spacing
+    textAlign = safeCSSString(textAlign) ?? defaultStyles.textAlign
+    hyphenate = safeCSSString(hyphenate) ?? defaultStyles.hyphenate
     fontSize = safeCSSString(fontSize) ?? defaultStyles.fontSize
     colorScheme = safeCSSString(colorScheme) ?? defaultStyles.colorScheme
     bgColor = safeCSSString(bgColor) ?? defaultStyles.bgColor
@@ -268,6 +270,10 @@ export const getCSS = (values) => {
         color-scheme: ${colorScheme} !important;
         font-size: ${fontSize}px;
         background-color: ${bgColor};
+    }
+    ${spacing === '0'
+        ? ':where(:root) { line-height: 1.4; }'
+        : '* { line-height: ' + spacing + ' !important; }'
     }
     /* https://github.com/whatwg/html/issues/5426 */
     @media all and (prefers-color-scheme: dark) {
@@ -328,18 +334,25 @@ export const getCSS = (values) => {
         ? 'body, body :not(math):not(math *) { font-family: ' + fontFamily + ' !important; }'
         : ''
     }
-    p, li, blockquote, dd {
-        line-height: ${spacing};
-        text-align: ${justify ? 'justify' : 'start'};
-        -webkit-hyphens: ${hyphenate ? 'auto' : 'manual'};
-        hyphens: ${hyphenate ? 'auto' : 'manual'};
+    ${textAlign === 'auto'
+        ? ':where(p, li, blockquote, dt, dd, td, figure, h1, h2, h3, h4, h5, h6, pre) { text-align: justify; }'
+        : 'p, li, blockquote, dt, dd, td, figure, h1, h2, h3, h4, h5, h6, pre { text-align: ' + textAlign + ' !important; }'
+    }
+    ${hyphenate === 'auto'
+        ? `:where(p, li, blockquote, dt, dd, td, figcaption, h1, h2, h3, h4, h5, h6, pre) {
+            -webkit-hyphens: auto;
+            hyphens: auto;`
+        : `p, li, blockquote, dt, dd, td, figcaption, h1, h2, h3, h4, h5, h6, pre {
+            -webkit-hyphens: ` + (hyphenate === 'yes' ? 'auto' : 'manual') + ` !important;
+            hyphens: ` + (hyphenate === 'yes' ? 'auto' : 'manual') + ' !important;'
+    }
         -webkit-hyphenate-limit-before: 3;
         -webkit-hyphenate-limit-after: 2;
         -webkit-hyphenate-limit-lines: 2;
         hanging-punctuation: allow-end last;
         widows: 2;
     }
-    /* prevent the above from overriding the align attribute */
+    /* do not override the align attribute in case textAlign === 'auto' */
     [align="left"] { text-align: left; }
     [align="right"] { text-align: right; }
     [align="center"] { text-align: center; }

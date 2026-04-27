@@ -101,6 +101,15 @@ class SIMEBV_Base {
             'pagination-style' => [
                 'html_name' => 'data-simebv-positionviewer', 'default' => ''
             ],
+            'text-align' => [
+                'html_name' => 'data-simebv-textalign', 'default' => ''
+            ],
+            'line-spacing' => [
+                'html_name' => 'data-simebv-linespacing', 'default' => ''
+            ],
+            'hyphenation' => [
+                'html_name' => 'data-simebv-hyphenation', 'default' => ''
+            ],
         ],
     ];
 

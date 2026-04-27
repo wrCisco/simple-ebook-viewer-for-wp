@@ -684,6 +684,9 @@ export class Reader {
                 menuItems.get('maxPages'),
                 menuItems.get('fontSize'),
                 menuItems.get('fontFamily'),
+                menuItems.get('textAlign'),
+                menuItems.get('lineSpacing'),
+                menuItems.get('hyphenation'),
                 menuItems.get('margins'),
                 menuItems.get('colors'),
                 menuItems.get('colorFilter'),
@@ -1079,6 +1082,11 @@ export class Reader {
                 large: 22,
                 'x-large': 26,
             },
+            linespacing: {
+                small: 1,
+                medium: 1.4,
+                large: 2.3,
+            },
             activatecolorfilter: {
                 'true': true,
                 'false': false,
@@ -1086,6 +1094,10 @@ export class Reader {
             bgfiltertransparent: {
                 'true': true,
                 'false': false,
+            },
+            hyphenation: {
+                'true': 'yes',
+                'false': 'no',
             },
         }
         if (isNumeric(value)) {
