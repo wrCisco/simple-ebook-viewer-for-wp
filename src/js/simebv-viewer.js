@@ -185,12 +185,6 @@ export class Reader {
             }
         })
 
-        if (screen?.orientation) {
-            screen.orientation.addEventListener('change', () => {
-                this._setMenuMaxBlockSize()
-            })
-        }
-
         this._headerBar.attachMenu(this.menu.element)
         this._headerBar.addEventListener('menu-button', (e) => {
             if (!this.menu.element.classList.contains('simebv-show')) {
@@ -215,10 +209,18 @@ export class Reader {
             else {
                 detail.data = 'exit'
                 this.container.classList.remove('simebv-view-real-fullscreen')
+                this.view.removeAttribute('autohide-cursor')
             }
             this._headerBar.dispatchEvent(new CustomEvent('toggle-fullscreen', { detail }))
-            this._setMenuMaxBlockSize()
         })
+        const viewerResizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                if (entry.target === this.container) {
+                    this._setMenuMaxBlockSize()
+                }
+            }
+        })
+        viewerResizeObserver.observe(this.container)
 
         this.setLocalizedDefaultInterface(this._root)
         this._defaultFontSize = getDefaultFontSize(this._rootDiv)
@@ -749,7 +751,6 @@ export class Reader {
                 this.container.requestFullscreen()
                     .then(() => this.view.setAttribute('autohide-cursor', ''))
             }
-            this._setMenuMaxBlockSize()
         }
         else {
             this._toggleFullViewport()
@@ -771,7 +772,6 @@ export class Reader {
             detail.data = 'enter'
         }
         this._headerBar.dispatchEvent(new CustomEvent('toggle-fullscreen', { detail }))
-        this._setMenuMaxBlockSize()
     }
 
     _handleKeydown(e) {
