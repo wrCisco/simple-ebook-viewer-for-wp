@@ -1083,6 +1083,7 @@ export class Reader {
                 'x-large': 26,
             },
             linespacing: {
+                auto: 0,
                 small: 1,
                 medium: 1.4,
                 large: 2.3,
@@ -1096,6 +1097,7 @@ export class Reader {
                 'false': false,
             },
             hyphenation: {
+                'auto': 'auto',
                 'true': 'yes',
                 'false': 'no',
             },
