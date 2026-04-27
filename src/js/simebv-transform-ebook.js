@@ -230,7 +230,7 @@ export const defaultStyles = Object.freeze({
     spacing: 1.4,
     textAlign: 'justify',
     hyphenate: 'auto',
-    fontSize: 1,
+    fontSize: 18,
     colorScheme: 'light dark',
     bgColor: 'transparent',
     forcedColorScheme: '',
