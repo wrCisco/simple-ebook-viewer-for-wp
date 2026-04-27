@@ -230,6 +230,7 @@ export function createMenuItemsStd(reader, injectCSS) {
             name: 'speechSynthesis',
             label: __('Read aloud...', 'simple-ebook-viewer'),
             type: 'action',
+            shortcut: 'Shift+P',
             onclick: () => reader._speechManager.open(),
             attrs: [
                 ['aria-haspopup', 'dialog'],

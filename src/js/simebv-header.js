@@ -83,9 +83,12 @@ template.innerHTML = `
     padding-inline-start: 6px;
 }
 .simebv-menu p[role^=menuitem] {
-    padding: 6px 12px;
+    --menuitem-inline-padding: 12px;
+    padding: 6px var(--menuitem-inline-padding);
     border-radius: 6px;
     margin: 0;
+    display: inline-block;
+    width: calc(100% - var(--menuitem-inline-padding) * 2);
 }
 .simebv-menu li:not([role="presentation"]):hover,
 .simebv-menu p[role^=menuitem]:hover {

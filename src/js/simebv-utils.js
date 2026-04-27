@@ -35,6 +35,10 @@ export function isFirefoxOnLinuxOrBSD() {
     return /Firefox\/\d+/.test(ua) && /Linux|X11|FreeBSD|OpenBSD(?!.*CrOS)/.test(ua) && !/Android/.test(ua)
 }
 
+export function isElementWritable(el) {
+    return el?.matches('input:is(:not([type]),[type=text],[type=email],[type=number],[type=password],[type=search],[type=tel],[type=time],[type=month],[type=date],[type=datetime-local],[type=url]),textarea') || el?.isContentEditable
+}
+
 export function getColorScheme(elem) {
     const probe = document.createElement('span')
     probe.style.cssText = `

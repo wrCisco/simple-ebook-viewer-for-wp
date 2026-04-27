@@ -7,7 +7,7 @@ import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
 import * as CFI from '../../vendor/foliate-js/epubcfi.js'
 import {
     storageAvailable, isNumeric, getDefaultFontSize,
-    pageListOutline, pluginBaseUrl } from './simebv-utils.js'
+    pageListOutline, pluginBaseUrl, isElementWritable } from './simebv-utils.js'
 import { transformDoc, convertFontSizePxToRem, defaultStyles, getCSS } from './simebv-transform-ebook.js'
 import { searchDialog } from './simebv-search-dialog.js'
 import { colorFiltersDialog } from './simebv-filters-dialog.js'
@@ -235,6 +235,35 @@ export class Reader {
         return this.container.getBoundingClientRect().width
     }
 
+    /**
+     * Look for the active element inside the shadow roots of the viewer's
+     * components (sidebar, headerbar, navbar), then inside the View element
+     * and in the ebook's document inside its iframe, and finally in the
+     * parent document of the viewer. The first found adequate element
+     * is returned.
+     * As a reminder: with no internal focused element, shadowRoot.activeElement
+     * returns null, while document.activeElement returns body or documentElement
+     */
+    getActiveElement() {
+        const bars = [
+            this._sideBar.shadowRoot, this._headerBar.shadowRoot, this._navBar.shadowRoot
+        ]
+        for (const bar of bars) {
+            if (bar.activeElement) return bar.activeElement
+        }
+        let activeElement = this.container.shadowRoot.activeElement
+        if (activeElement === this.view) {
+            const { doc } = this.view.renderer.getContents()[0]
+            if (doc) {
+                activeElement = doc.activeElement
+                if (['body', 'html'].includes(activeElement.nodeName.toLowerCase())) {
+                    activeElement = null
+                }
+            }
+        }
+        return activeElement ?? document.activeElement
+    }
+
     async drawAnnotationHandler(e) {
         const { draw, annotation, doc, range } = e.detail
         switch (annotation.type) {
@@ -460,10 +489,12 @@ export class Reader {
             dir: this.view.book.dir
         }})
         this._navBar.dispatchEvent(newBookEvent)
-        this._speechManager = new SpeechManager(this.view, this._rootDiv, pluginBaseUrl(), {
-            savePreference: this._savePreference.bind(this),
-            loadPreference: this._loadPreference.bind(this),
-        })
+        if (this.menu.groups.speechSynthesis) {
+            this._speechManager = new SpeechManager(this.view, this._rootDiv, pluginBaseUrl(), {
+                savePreference: this._savePreference.bind(this),
+                loadPreference: this._loadPreference.bind(this),
+            })
+        }
 
         const { book } = this.view
         book.transformTarget?.addEventListener('data', ({ detail }) => {
@@ -802,10 +833,29 @@ export class Reader {
                     this._toggleFullViewport()
                 }
                 break
+            case 'F':
             case 'f':
+                if (k === 'F' ^ e.getModifierState('CapsLock')) {
+                    break
+                }
                 if (e.ctrlKey) {
                     this._closeMenus()
                     this.openSearchDialog()
+                    e.preventDefault()
+                }
+                break
+            case 'P':
+            case 'p':
+                if (k === 'p' ^ e.getModifierState('CapsLock')) {
+                    break
+                }
+                if (e.shiftKey && this._speechManager?.isActive === false) {
+                    const activeElement = this.getActiveElement()
+                    if (isElementWritable(activeElement)) {
+                        break
+                    }
+                    this._closeMenus()
+                    this._speechManager.open()
                     e.preventDefault()
                 }
                 break
