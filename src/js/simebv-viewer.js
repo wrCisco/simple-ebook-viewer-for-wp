@@ -679,18 +679,18 @@ export class Reader {
             this.menu.addMenuItems([
                 menuItems.get('search'),
                 menuItems.get('history'),
-                menuItems.get('showAnnotations'),
+                menuItems.get('speechSynthesis'),
                 menuItems.get('layout'),
                 menuItems.get('maxPages'),
-                menuItems.get('fontSize'),
                 menuItems.get('fontFamily'),
+                menuItems.get('fontSize'),
                 menuItems.get('textAlign'),
                 menuItems.get('lineSpacing'),
                 menuItems.get('hyphenation'),
                 menuItems.get('margins'),
                 menuItems.get('colors'),
                 menuItems.get('colorFilter'),
-                menuItems.get('speechSynthesis'),
+                menuItems.get('showAnnotations'),
                 menuItems.get('positionViewer'),
             ])
         }
