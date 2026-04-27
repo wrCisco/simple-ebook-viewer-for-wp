@@ -6,7 +6,7 @@ export function createMenuItemsStd(reader, injectCSS) {
         ['search', {
             name: 'search',
             label: __('Search...', 'simple-ebook-viewer'),
-            shortcut: 'Ctrl+F',
+            shortcut: __('Ctrl+F', 'simple-ebook-viewer'),
             type: 'action',
             onclick: () => reader.openSearchDialog(),
             attrs: [
@@ -284,7 +284,7 @@ export function createMenuItemsStd(reader, injectCSS) {
             name: 'speechSynthesis',
             label: __('Read aloud...', 'simple-ebook-viewer'),
             type: 'action',
-            shortcut: 'Shift+P',
+            shortcut: __('Shift+P', 'simple-ebook-viewer'),
             onclick: () => reader._speechManager.open(),
             attrs: [
                 ['aria-haspopup', 'dialog'],
