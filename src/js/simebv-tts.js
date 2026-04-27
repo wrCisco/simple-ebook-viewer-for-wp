@@ -181,7 +181,18 @@ const getFragmentWithMarks = async (range, textWalker, granularity, SRE) => {
     return { entries, ssml }
 }
 
-const rangeIsEmpty = range => !range.toString().trim()
+const rangeIsEmpty = range => {
+    if (range.toString().trim()) {
+        return false
+    }
+    const imgs = range.cloneContents().querySelectorAll('img')
+    for (const img of imgs) {
+        if (img.alt.trim()) {
+            return false
+        }
+    }
+    return true
+}
 
 function* getBlocks(doc) {
     let last
@@ -298,8 +309,9 @@ export class TTS {
     }
     async start() {
         this.#lastMark = null
-        const [doc] = (await this.#list.first()) ?? []
+        const [doc, range] = (await this.#list.first()) ?? []
         if (!doc) return await this.next(true)
+        if (range) this.highlight(range.cloneRange())
         return this.#speak(doc, ssml => this.#getMarkElement(ssml, this.#lastMark))
     }
     async resume() {
@@ -319,16 +331,20 @@ export class TTS {
         if (paused && range) this.highlight(range.cloneRange())
         return this.#speak(doc)
     }
-    async from(range) {
+    async from(fromRange) {
         this.#lastMark = null
-        const [doc] = await this.#list.find(range_ =>
-            range.compareBoundaryPoints(Range.END_TO_START, range_) <= 0)
+        const [doc, range] = await this.#list.find(range_ =>
+            fromRange.compareBoundaryPoints(Range.END_TO_START, range_) <= 0)
         let mark
+        const toHighlight = doc.createRange()
         for (const [name, range_] of this.#ranges.entries())
-            if (range.compareBoundaryPoints(Range.START_TO_START, range_) <= 0) {
+            if (fromRange.compareBoundaryPoints(Range.START_TO_START, range_) <= 0) {
                 mark = name
+                toHighlight.setStart(range_.startContainer, range_.startOffset)
+                toHighlight.setEnd(range.endContainer, range.endOffset)
                 break
             }
+        if (toHighlight) this.highlight(toHighlight)
         return this.#speak(doc, ssml => this.#getMarkElement(ssml, mark))
     }
     setMark(mark) {

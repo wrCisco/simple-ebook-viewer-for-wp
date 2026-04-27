@@ -302,10 +302,11 @@ input, button, select {
 }
 #simebv-speech-dialog-options {
     max-width: min(480px, 95vw);
-    --label-width: 4em;
+    --label-width: 4.2em;
 }
 .simebv-speech-dlg-options-label {
-    min-width: var(--label-width)
+    min-width: var(--label-width);
+    padding-inline-end: .3rem;
 }
 .simebv-speech-dlg-options-control,
 .simebv-speech-dlg-options-control option {

@@ -35,6 +35,21 @@ export function isFirefoxOnLinuxOrBSD() {
     return /Firefox\/\d+/.test(ua) && /Linux|X11|FreeBSD|OpenBSD(?!.*CrOS)/.test(ua) && !/Android/.test(ua)
 }
 
+export function getColorScheme(elem) {
+    const probe = document.createElement('span')
+    probe.style.cssText = `
+        position: absolute;
+        width: 0; height: 0;
+        visibility: hidden;
+        color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));
+    `
+    elem.append(probe)
+    const color = globalThis.getComputedStyle(probe).color
+    const scheme = color === 'rgb(255, 255, 255)' ? 'dark' : 'light'
+    probe.remove()
+    return scheme
+}
+
 export function isNumeric(v) {
     return parseFloat(v) === Number(v)
 }

@@ -1,5 +1,6 @@
 import { isAndroid, isWindows, isFirefoxOnLinuxOrBSD, isNumeric } from './simebv-utils.js'
 import { speechDialog } from './simebv-speech-dialog.js'
+import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
 import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
 export class SpeechManager {
@@ -14,7 +15,8 @@ export class SpeechManager {
         lastCharRead: 0,
         changedUtterance: false,
         warmup: undefined,
-        state: 'initial'
+        state: 'initial',
+        highlightColor: undefined
     }
     #view
     #target
@@ -42,6 +44,7 @@ export class SpeechManager {
     #loadPreference
     #speechDialog
     #isNote
+    #highlighted = { key: 'simebv-tts-highlighted', range: undefined }
 
     constructor(view, eventTarget, localesBaseUrl, { savePreference, loadPreference } = {}) {
         this.#view = view
@@ -94,7 +97,18 @@ export class SpeechManager {
         if (voice) {
             this.speechSynthesis.voice = voice
         }
-        await this.#view.initTTS('word', undefined, this.#localesBaseUrl)
+        const highlightColors = [
+            this.#loadPreference('speech-highlight'),
+            'light-dark(#7D7D7D, #FFFFFF)',
+            '#ABABAB',
+        ]
+        for (const color of highlightColors) {
+            if (CSS.supports('color', color)) {
+                this.speechSynthesis.highlightColor = color
+                break
+            }
+        }
+        await this.#view.initTTS('word', this.boundHighlight, this.#localesBaseUrl)
         this.#isNote = isNote
         if (!this.#speechDialog) {
             const dlg = speechDialog(this.#target, this.speechSynthesis, isNote)
@@ -115,7 +129,7 @@ export class SpeechManager {
     }
 
     onSectionLoad() {
-        this.#view.initTTS('word', undefined, this.#localesBaseUrl)
+        this.#view.initTTS('word', this.boundHighlight, this.#localesBaseUrl)
         this.speechSynthesis.utterance = undefined
         this.speechSynthesis.synthesis.cancel()
         if (this.speechSynthesis.state === 'speaking') {
@@ -150,6 +164,23 @@ export class SpeechManager {
         }
         return completeMatch[0] ?? langMatch[0]
     }
+
+    #highlight(range) {
+        const { doc, index, overlayer } = this.#view.renderer.getContents()[0]
+        if (overlayer && index !== undefined) {
+            overlayer.remove(this.#highlighted.key)
+            overlayer.add(
+                this.#highlighted.key, range, Overlayer.highlight,
+                { color: this.speechSynthesis.highlightColor }
+            )
+            this.#highlighted.range = range
+            this.#view.renderer.scrollToAnchor(range)
+        }
+        else {
+            this.#view.renderer.scrollToAnchor(range, true)
+        }
+    }
+    boundHighlight = this.#highlight.bind(this)
 
     async #acquireWakeLock() {
         if (!('wakeLock' in navigator) || this.#wakeLock) return
@@ -434,30 +465,46 @@ export class SpeechManager {
         this.speechSynthesis.synthesis = undefined
         this.#releaseWakeLock()
         document.removeEventListener('visibilitychange', this.#boundReacquireWakeLock)
+        if (this.#highlighted.range) {
+            const { overlayer } = this.#view?.renderer.getContents()[0]
+            overlayer?.remove(this.#highlighted.key)
+            this.#highlighted.range = undefined
+        }
     }
     #boundCloseHandler = this.#closeHandler.bind(this)
 
     #updateHandler({ detail }) {
-        if (detail && this.#isSpeechSynthesisToUpdate(this.speechSynthesis, detail)) {
-            this.speechSynthesis.volume = detail.volume
-            this.speechSynthesis.pitch = detail.pitch
-            this.speechSynthesis.rate = detail.rate
-            this.speechSynthesis.voice = detail.voice
-            this.#savePreference('speech-volume', detail.volume)
-            this.#savePreference('speech-pitch', detail.pitch)
-            this.#savePreference('speech-rate', detail.rate)
-            this.#saveVoicePreference(detail.voice)
-            if (this.speechSynthesis.utterance) {
-                this.#updateUtterance()
-                this.speechSynthesis.synthesis.cancel()
-                this.speechSynthesis.changedUtterance = true
+        if (detail) {
+            if (detail.highlightColor !== this.speechSynthesis.highlightColor) {
+                this.speechSynthesis.highlightColor = detail.highlightColor
+                this.#savePreference('speech-highlight', detail.highlightColor)
+                if (this.#highlighted.range) {
+                    this.#highlight(this.#highlighted.range)
+                }
+            }
+            if (this.#isSpeechSynthesisToUpdate(this.speechSynthesis, detail)) {
+                this.speechSynthesis.volume = detail.volume
+                this.speechSynthesis.pitch = detail.pitch
+                this.speechSynthesis.rate = detail.rate
+                this.speechSynthesis.voice = detail.voice
+                this.#savePreference('speech-volume', detail.volume)
+                this.#savePreference('speech-pitch', detail.pitch)
+                this.#savePreference('speech-rate', detail.rate)
+                this.#saveVoicePreference(detail.voice)
+                if (this.speechSynthesis.utterance) {
+                    this.#updateUtterance()
+                    this.speechSynthesis.synthesis.cancel()
+                    this.speechSynthesis.changedUtterance = true
+                }
             }
         }
     }
     #boundUpdateHandler = this.#updateHandler.bind(this)
 
     #resumeHandler() {
-        if (!(this.#isAndroid || this.#isFirefoxOnLinuxOrBSD) && !this.speechSynthesis.changedUtterance) {
+        if (this.speechSynthesis.state === 'paused'
+                && !(this.#isAndroid || this.#isFirefoxOnLinuxOrBSD)
+                && !this.speechSynthesis.changedUtterance) {
             this.speechSynthesis.synthesis.resume()
         }
         else {
@@ -475,22 +522,24 @@ export class SpeechManager {
                 this.speechSynthesis.warmup.onend = () => null
                 this.speechSynthesis.warmup = undefined
             }
-            this.speechSynthesis.synthesis.cancel()
             this.speechSynthesis.utterance.onend = () => null
             this.speechSynthesis.utterance = undefined
+            this.speechSynthesis.synthesis.cancel()
             this.speechSynthesis.lastCharRead = 0
-            let utt
-            const s = await this.#view.tts.next(true)
-            if (s) {
-                utt = this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
-            }
-            if (utt && !['paused', 'canceled'].includes(this.speechSynthesis.state)) {
-                this.speechSynthesis.synthesis.speak(utt)
-                this.speechSynthesis.state = 'speaking'
-            }
-            if (!s) {
-                await this.#nextSection()
-            }
+            setTimeout(async () => {
+                let utt
+                const s = await this.#view.tts.next(true)
+                if (s) {
+                    utt = this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
+                }
+                if (utt && !['paused', 'canceled'].includes(this.speechSynthesis.state)) {
+                    this.speechSynthesis.synthesis.speak(utt)
+                    this.speechSynthesis.state = 'speaking'
+                }
+                if (!s) {
+                    await this.#nextSection()
+                }
+            }, 100)
         }
         else {
             await this.#view.next()
@@ -504,22 +553,24 @@ export class SpeechManager {
                 this.speechSynthesis.warmup.onend = () => null
                 this.speechSynthesis.warmup = undefined
             }
-            this.speechSynthesis.synthesis.cancel()
             this.speechSynthesis.utterance.onend = () => null
             this.speechSynthesis.utterance = undefined
+            this.speechSynthesis.synthesis.cancel()
             this.speechSynthesis.lastCharRead = 0
-            let utt
-            const s = await this.#view.tts.prev(true)
-            if (s) {
-                utt = this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
-            }
-            if (utt && !['paused', 'canceled'].includes(this.speechSynthesis.state)) {
-                this.speechSynthesis.synthesis.speak(utt)
-                this.speechSynthesis.state = 'speaking'
-            }
-            if (!s) {
-                await this.#prevSection()
-            }
+            setTimeout(async () => {
+                let utt
+                const s = await this.#view.tts.prev(true)
+                if (s) {
+                    utt = this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
+                }
+                if (utt && !['paused', 'canceled'].includes(this.speechSynthesis.state)) {
+                    this.speechSynthesis.synthesis.speak(utt)
+                    this.speechSynthesis.state = 'speaking'
+                }
+                if (!s) {
+                    await this.#prevSection()
+                }
+            }, 100)
         }
         else {
             await this.#view.prev()

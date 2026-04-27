@@ -1,4 +1,4 @@
-import { isAndroid } from './simebv-utils.js'
+import { isAndroid, getColorScheme } from './simebv-utils.js'
 import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
 
@@ -125,7 +125,8 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
     })
 
     let prevClicked = false
-    prevParagraph.addEventListener('click', () => {
+    prevParagraph.addEventListener('click', (e) => {
+        e.preventDefault()  // prevent zoom on multiple taps
         if (!prevClicked) {
             prevClicked = true
             target.dispatchEvent(new CustomEvent('simebv-speech-prev'))
@@ -133,7 +134,8 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
         }
     })
     let nextClicked = false
-    nextParagraph.addEventListener('click', () => {
+    nextParagraph.addEventListener('click', (e) => {
+        e.preventDefault()  // prevent zoom on multiple taps
         if (!nextClicked) {
             nextClicked = true
             target.dispatchEvent(new CustomEvent('simebv-speech-next'))
@@ -154,6 +156,7 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
         else {
             optionsDlg.updateVoices()
         }
+        optionsDlg.updateHighlightColor()
         if (_isPlaying) {
             wasPlaying = true
             setPauseState()
@@ -282,8 +285,9 @@ function speechDialogOptions(target, options) {
     voiceControl.id = 'simebv-speech-voice'
     voiceControl.classList.add('simebv-speech-dlg-options-control')
 
+    let voices = []
     const updateVoices = () => {
-        const voices = options.synthesis.getVoices()
+        voices = options.synthesis.getVoices()
         const opts = []
         for (const [i, v] of voices.entries()) {
             const opt = document.createElement('option')
@@ -304,6 +308,44 @@ function speechDialogOptions(target, options) {
     voiceLabel.textContent = __('Voice: ', 'simple-ebook-viewer')
     voiceLabel.htmlFor = voiceControl.id
     voice.append(voiceLabel, ' ', voiceControl)
+
+    const highlight = document.createElement('div')
+    highlight.classList.add('simebv-speech-dlg-input')
+    const highlightControl = document.createElement('input')
+    highlightControl.type = 'color'
+    highlightControl.id = 'simebv-speech-highlight-color'
+    const highlightLabel = document.createElement('label')
+    highlightLabel.classList.add('simebv-speech-dlg-options-label')
+    highlightLabel.textContent = __('Highlight: ', 'simple-ebook-viewer')
+    highlightLabel.htmlFor = highlightControl.id
+    highlight.append(highlightLabel, ' ', highlightControl)
+
+    let initialColor
+    let colorScheme
+    const updateHighlightColor = () => {
+        initialColor = options.highlightColor
+        if (/light-dark/.test(initialColor)) {
+            colorScheme = getColorScheme(dlg)
+            const index = colorScheme === 'dark' ? 1 : 0
+            initialColor = initialColor.match(/(#[0-9A-F]{6})/gi)?.[index]
+        }
+        highlightControl.value = initialColor
+    }
+    const formatHighlightColor = () => {
+        let highlightColor = options.highlightColor
+        if (/light-dark/.test(highlightColor)) {
+            if (colorScheme === 'light') {
+                highlightColor = highlightColor.replace(/\(#[0-9A-F]{6}/i, '(' + highlightControl.value)
+            }
+            else if (colorScheme === 'dark') {
+                highlightColor = highlightColor.replace(/#[0-9A-F]{6}\)/i, highlightControl.value + ')')
+            }
+        }
+        else {
+            highlightColor = highlightControl.value
+        }
+        return highlightColor
+    }
 
     const warnings = document.createElement('div')
     if (isAndroid()) {
@@ -339,7 +381,7 @@ function speechDialogOptions(target, options) {
     dismiss.addEventListener('click', () => dlg.dispatchEvent(new Event('cancel')))
     buttons.append(close, dismiss)
 
-    fieldset.append(volume, pitch, rate, voice, warnings)
+    fieldset.append(volume, pitch, rate, voice, highlight, warnings)
     form.append(header, fieldset, buttons)
     dlg.append(form)
 
@@ -349,7 +391,8 @@ function speechDialogOptions(target, options) {
                 volume: volumeControl.value,
                 pitch: pitchControl.value,
                 rate: rateControl.value,
-                voice: options.synthesis.getVoices()[voiceControl.selectedIndex]
+                voice: voices[voiceControl.selectedIndex],
+                highlightColor: formatHighlightColor(),
             }
         }))
     })
@@ -361,7 +404,8 @@ function speechDialogOptions(target, options) {
         volumeValue.value = volumeControl.value * 10
         pitchValue.value = pitchControl.value * 10
         rateValue.value = rateControl.value + 'x'
-        for (const [i, v] of options.synthesis.getVoices().entries()) {
+        highlightControl.value = initialColor
+        for (const [i, v] of voices.entries()) {
             if (v === options.voice) {
                 voiceControl.selectedIndex = i
                 break
@@ -371,5 +415,5 @@ function speechDialogOptions(target, options) {
         dlg.close()
     })
 
-    return { element: dlg, updateVoices }
+    return { element: dlg, updateVoices, updateHighlightColor }
 }
