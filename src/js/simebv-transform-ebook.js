@@ -270,6 +270,7 @@ export const getCSS = (values) => {
         color-scheme: ${colorScheme} !important;
         font-size: ${fontSize}px;
         background-color: ${bgColor};
+        -webkit-text-size-adjust: 100%;
     }
     ${spacing === '0'
         ? ':where(:root) { line-height: 1.4; }'
