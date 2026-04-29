@@ -177,7 +177,13 @@ export class SpeechManager {
             this.#view.renderer.scrollToAnchor(range)
         }
         else {
-            this.#view.renderer.scrollToAnchor(range, true)
+            if (this.#view.isFixedLayout) {
+                const index = this.#view.lastLocation?.section?.current
+                this.#view.renderer.goTo({index})
+            }
+            else {
+                this.#view.renderer.scrollToAnchor(range, true)
+            }
         }
     }
     boundHighlight = this.#highlight.bind(this)
