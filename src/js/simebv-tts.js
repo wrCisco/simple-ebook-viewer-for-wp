@@ -19,12 +19,12 @@ const blockTags = new Set([
 
 const getLang = el => {
     const x = el.lang || el?.getAttributeNS?.(NS.XML, 'lang')
-    return x ? x : el.parentElement ? getLang(el.parentElement) : null
+    return x ? x : el.parentElement ? getLang(el.parentElement) : undefined
 }
 
 const getAlphabet = el => {
     const x = el?.getAttributeNS?.(NS.XML, 'lang')
-    return x ? x : el.parentElement ? getAlphabet(el.parentElement) : null
+    return x ? x : el.parentElement ? getAlphabet(el.parentElement) : undefined
 }
 
 const getSegmenter = (lang = 'en', granularity = 'word') => {
