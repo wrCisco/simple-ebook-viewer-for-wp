@@ -76,6 +76,7 @@
 }
 #simebv-reader-container.simebv-view-real-fullscreen {
     border: none !important;
+    background-color: Canvas !important;
 }
 
 .simebv-overflow-hidden {
