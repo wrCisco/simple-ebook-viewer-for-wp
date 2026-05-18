@@ -6,8 +6,9 @@ import { createTOCView } from '../../vendor/foliate-js/ui/tree.js'
 import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
 import * as CFI from '../../vendor/foliate-js/epubcfi.js'
 import {
-    storageAvailable, isNumeric, getDefaultFontSize, searchResultsHighlight,
-    pageListOutline, pluginBaseUrl, isElementWritable, getColorScheme } from './simebv-utils.js'
+    storageAvailable, isNumeric, getDefaultFontSize, pageListOutline,
+    searchResultsHighlight, currentSearchOutline, pluginBaseUrl,
+    isElementWritable, getColorScheme, scrollIntoView } from './simebv-utils.js'
 import { transformDoc, convertFontSizePxToRem, defaultStyles, getCSS } from './simebv-transform-ebook.js'
 import { searchDialog } from './simebv-search-dialog.js'
 import { colorFiltersDialog } from './simebv-filters-dialog.js'
@@ -270,7 +271,12 @@ export class Reader {
         const { draw, annotation, doc, range } = e.detail
         switch (annotation.type) {
             case 'current-search':
-                draw(Overlayer.outline, { color: 'green' })
+                const el = draw(currentSearchOutline, {
+                    color: '#FF0000', width: 2, opacity: .8, radius: 0
+                })
+                if (this.view.isFixedLayout) {
+                    scrollIntoView(el, this.view.renderer)
+                }
                 break
             case 'calibre-bookmark':
                 draw(Overlayer.highlight, { color: annotation.color })

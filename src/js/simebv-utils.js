@@ -184,6 +184,25 @@ export function searchResultsHighlight(rects, options = {}) {
     return g
 }
 
+export function currentSearchOutline(rects, options = {}) {
+    const { color = 'red', width: strokeWidth = 3, radius = 3, opacity = 1 } = options
+    const g = document.createElementNS(NS.SVG, 'g')
+    g.setAttribute('fill', 'none')
+    g.setAttribute('stroke', color)
+    g.setAttribute('stroke-width', strokeWidth)
+    g.style.opacity = opacity
+    for (const { left, top, height, width } of rects) {
+        const el = document.createElementNS(NS.SVG, 'rect')
+        el.setAttribute('x', left)
+        el.setAttribute('y', top)
+        el.setAttribute('height', height)
+        el.setAttribute('width', width)
+        el.setAttribute('rx', radius)
+        g.append(el)
+    }
+    return g
+}
+
 export function cfiFilter(node) {
     if (node.nodeType !== Node.ELEMENT_NODE) {
         return NodeFilter.FILTER_ACCEPT
@@ -195,4 +214,55 @@ export function cfiFilter(node) {
         return NodeFilter.FILTER_SKIP
     }
     return NodeFilter.FILTER_ACCEPT
+}
+
+export function scrollIntoView(element, renderer) {
+    const containerBBox = renderer.getBoundingClientRect()
+    const elBBox = el.getBoundingClientRect()
+    if (elBBox.right > containerBBox.right
+            || elBBox.left < containerBBox.left
+            || elBBox.bottom > containerBBox.bottom
+            || elBBox.top < containerBBox.top) {
+        // TODO: investigate why this doesn't work in Firefox, it would be much simpler...
+        //     el.scrollIntoView({
+        //         behavior: 'instant',
+        //         container: 'nearest',
+        //         block: 'center',
+        //         inline: contents.length > 1
+        //             ? (contents[0].doc === doc ^ this.view.renderer.rtl ? 'end' : 'start')
+        //             : 'center'
+        //     })
+        const contents = renderer.getContents()
+        let inlineTo = contents.length > 1
+            ? (contents[0].doc === doc ^ !renderer.rtl ? 'left' : 'right')
+            : 'center'
+        // let blockTo = 'center'
+        // const { vertical } = getDirection(doc)
+        // if (vertical) [inlineTo, blockTo] = [blockTo, inlineTo]
+        const relativeLeft = renderer.scrollLeft + elBBox.left - containerBBox.left
+        const relativeRight = renderer.scrollLeft + elBBox.right - containerBBox.left
+        const moveInline = inlineTo === 'left'
+            ? Math.min(relativeLeft - 20, renderer.scrollWidth - containerBBox.width)
+            : inlineTo === 'right'
+                ? Math.max(relativeRight + 20 - containerBBox.width, 0)
+                : relativeLeft + Math.min(elBBox.width / 2 - containerBBox.width / 2, -10)
+        const relativeTop = renderer.scrollTop + elBBox.top - containerBBox.top
+        const moveBlock = Math.min(
+            relativeTop + Math.min(elBBox.height / 2 - containerBBox.height / 2, -10),
+            renderer.scrollHeight - containerBBox.height
+        )
+        renderer.scroll(moveInline, moveBlock)
+    }
+}
+
+// from foliate-js/paginator.js
+export function getDirection(doc) {
+    const { defaultView } = doc
+    const { writingMode, direction } = defaultView.getComputedStyle(doc.body)
+    const vertical = writingMode === 'vertical-rl'
+        || writingMode === 'vertical-lr'
+    const rtl = doc.body.dir === 'rtl'
+        || direction === 'rtl'
+        || doc.documentElement.dir === 'rtl'
+    return { vertical, rtl }
 }
