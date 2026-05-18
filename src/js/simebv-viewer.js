@@ -6,8 +6,8 @@ import { createTOCView } from '../../vendor/foliate-js/ui/tree.js'
 import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
 import * as CFI from '../../vendor/foliate-js/epubcfi.js'
 import {
-    storageAvailable, isNumeric, getDefaultFontSize,
-    pageListOutline, pluginBaseUrl, isElementWritable } from './simebv-utils.js'
+    storageAvailable, isNumeric, getDefaultFontSize, searchResultsHighlight,
+    pageListOutline, pluginBaseUrl, isElementWritable, getColorScheme } from './simebv-utils.js'
 import { transformDoc, convertFontSizePxToRem, defaultStyles, getCSS } from './simebv-transform-ebook.js'
 import { searchDialog } from './simebv-search-dialog.js'
 import { colorFiltersDialog } from './simebv-filters-dialog.js'
@@ -440,16 +440,37 @@ export class Reader {
         const textSearch = new TextSearch(eventsTarget)
         textSearch.target.addEventListener('simebv-search-new', ({detail}) => {
             const { newSearch, query } = detail
-            newSearch.newSearch = this.view.search({query})
+            const isFxl = this.view.isFixedLayout
+            const isDark = getColorScheme(this._rootDiv) === 'dark'
+            const color = isFxl ? 'transparent' : 'light-dark(#706766, #DDF4FF)'
+            newSearch.newSearch = this.view.search({
+                query,
+                draw: searchResultsHighlight,
+                drawOptions: {
+                    color,
+                    opacity: isFxl ? 1 : isDark ? .4 : .3,
+                    mixBlendMode: isFxl ? 'normal' : isDark ? 'screen' : 'darken',
+                    invert: isFxl
+                }
+            })
             newSearch.lastLocation = this.view.lastLocation
         })
         textSearch.target.addEventListener('simebv-search-next', ({detail}) => {
-            const { oldCFI, newCFI } = detail
-            if (oldCFI) {
+            const { oldCFI, newCFI, deleteOld } = detail
+            if (oldCFI && deleteOld) {
                 this.view.deleteAnnotation({value: oldCFI})
             }
             detail.register((async () => {
-                await this.view.goTo(newCFI)
+                if (this.view.isFixedLayout) {
+                    const oldIndex = oldCFI ? this.view.resolveCFI(oldCFI).index : undefined
+                    const newIndex = this.view.resolveCFI(newCFI).index
+                    if (oldIndex !== newIndex) {
+                        await this.view.goTo(newCFI)
+                    }
+                }
+                else {
+                    await this.view.goTo(newCFI)
+                }
                 await this.view.addAnnotation({value: newCFI, type: 'current-search'})
             })())
         })

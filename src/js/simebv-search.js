@@ -24,7 +24,14 @@ export class TextSearch {
         this.#currentSearch = newSearch.newSearch
         this.#currentLocation = newSearch.lastLocation
         await this.matchUntilCurrentLocation()
-        await this.nextMatch()
+        const i = this.#currentSearchResultIndex
+        const r = this.#currentSearchResult
+        if (r.length > 0 && i === r.length - 2) {
+            await this.goToNextMatch({useOldCFI: false})
+        }
+        else {
+            await this.nextMatch()
+        }
     }
     boundDoSearch = this.doSearch.bind(this)
 
@@ -58,6 +65,24 @@ export class TextSearch {
         this.#currentSearchResultIndex = this.#currentSearchResult.length - 2
     }
 
+    async goToNextMatch({ previous = false, useOldCFI = true } = {}) {
+        const oldCFI = useOldCFI
+            ? this.#currentSearchResult[this.#currentSearchResultIndex]?.cfi
+            : null
+        this.#currentSearchResultIndex += previous ? -1 : 1
+        const newCFI = this.#currentSearchResult[this.#currentSearchResultIndex].cfi
+        const promises = []
+        this.target.dispatchEvent(new CustomEvent(
+            'simebv-search-next',
+            { detail: {
+                oldCFI, newCFI,
+                deleteOld: useOldCFI,
+                register(promise) { promises.push(promise) }
+            }}
+        ))
+        await Promise.all(promises)
+    }
+
     async nextMatch() {
         if (!this.#currentSearch) {
             return
@@ -66,15 +91,7 @@ export class TextSearch {
                 && this.#currentSearchResult.length > 0
                 && this.#currentSearchResultIndex < this.#currentSearchResult.length - 1
         ) {
-            const oldCFI = this.#currentSearchResult[this.#currentSearchResultIndex]?.cfi
-            this.#currentSearchResultIndex++
-            const newCFI = this.#currentSearchResult[this.#currentSearchResultIndex].cfi
-            const promises = []
-            this.target.dispatchEvent(new CustomEvent(
-                'simebv-search-next',
-                { detail: { oldCFI, newCFI, register(promise) { promises.push(promise) }}}
-            ))
-            await Promise.all(promises)
+            await this.goToNextMatch()
             return
         }
         let result = await this.#currentSearch.next()
@@ -83,15 +100,7 @@ export class TextSearch {
         }
         if (result.value?.subitems) {
             this.#currentSearchResult.push(...result.value.subitems)
-            const oldCFI = this.#currentSearchResult[this.#currentSearchResultIndex]?.cfi
-            this.#currentSearchResultIndex++
-            const newCFI = this.#currentSearchResult[this.#currentSearchResultIndex].cfi
-            const promises = []
-            this.target.dispatchEvent(new CustomEvent(
-                'simebv-search-next',
-                { detail: { oldCFI, newCFI, register(promise) { promises.push(promise) }}}
-            ))
-            await Promise.all(promises)
+            await this.goToNextMatch()
             return
         }
         else {
@@ -108,15 +117,7 @@ export class TextSearch {
                 && this.#currentSearchResult.length > 0
                 && this.#currentSearchResultIndex > 0
         ) {
-            const oldCFI = this.#currentSearchResult[this.#currentSearchResultIndex]?.cfi
-            this.#currentSearchResultIndex--
-            const newCFI = this.#currentSearchResult[this.#currentSearchResultIndex].cfi
-            const promises = []
-            this.target.dispatchEvent(new CustomEvent(
-                'simebv-search-next',
-                { detail: { oldCFI, newCFI, register(promise) { promises.push(promise) }}}
-            ))
-            await Promise.all(promises)
+            await this.goToNextMatch({previous: true})
             return
         }
     }
