@@ -4,7 +4,7 @@ import './simebv-header.js'
 import './simebv-sidebar.js'
 import { createTOCView } from '../../vendor/foliate-js/ui/tree.js'
 import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
-import * as CFI from '../../vendor/foliate-js/epubcfi.js'
+import { CFI } from './simebv-epubcfi.js'
 import {
     storageAvailable, isNumeric, getDefaultFontSize, pageListOutline,
     searchResultsHighlight, currentSearchOutline, pluginBaseUrl,
@@ -501,7 +501,7 @@ export class Reader {
         this.view = document.createElement('simebv-foliate-view')
         this._bookContainer.append(this.view)
         const file = await fetchFile(fileUrl)
-        await this.view.open(file)
+        await this.view.open(file, { CFI })
         this._openEbookFormat = await ebookFormat(file)
         this._populateMenu(menuItems)
         if (this.view.isFixedLayout) {
@@ -1356,6 +1356,6 @@ export * from './simebv-menu.js'
 export * from './simebv-menu-items.js'
 export * from './simebv-ebook-format.js'
 export * from './simebv-search.js'
+export * from './simebv-epubcfi.js'
 export * from '../../vendor/foliate-js/ui/tree.js'
 export * from '../../vendor/foliate-js/overlayer.js'
-export * as CFI from '../../vendor/foliate-js/epubcfi.js'

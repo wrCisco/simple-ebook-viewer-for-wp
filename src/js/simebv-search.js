@@ -1,4 +1,4 @@
-import * as CFI from '../../vendor/foliate-js/epubcfi.js'
+import { CFI } from './simebv-epubcfi.js'
 
 export class TextSearch {
     #currentSearch

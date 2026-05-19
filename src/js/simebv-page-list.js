@@ -1,6 +1,4 @@
-import * as CFI from '../../vendor/foliate-js/epubcfi.js'
-import { cfiFilter } from './simebv-utils.js'
-
+import { CFI } from './simebv-epubcfi.js'
 
 function getLastNode(cfi) {
     for (let i = cfi.length - 1; i > 0; i--) {
@@ -112,7 +110,7 @@ export function createPageListForAnnotations(reader, bookPageList, index, doc) {
             range.setEnd(endContainer, endContainer.nodeType === Node.TEXT_NODE ? 1 : 0)
         }
         const sectionCFI = reader.view.getCFI(index)
-        const cfiRange = sectionCFI.replace(/\)$/, '!') + CFI.fromRange(range, cfiFilter).replace(/^epubcfi\(/, '')
+        const cfiRange = sectionCFI.replace(/\)$/, '!') + CFI.fromRange(range).replace(/^epubcfi\(/, '')
         const annotation = { value: cfiRange, type: 'page-list', label: p.label, href: p.href }
         pageList.push(annotation)
         pageListByValue.set(annotation.value, annotation)

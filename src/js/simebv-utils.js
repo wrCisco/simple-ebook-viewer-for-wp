@@ -203,19 +203,6 @@ export function currentSearchOutline(rects, options = {}) {
     return g
 }
 
-export function cfiFilter(node) {
-    if (node.nodeType !== Node.ELEMENT_NODE) {
-        return NodeFilter.FILTER_ACCEPT
-    }
-    if (node.matches('[data-simebv-inject]')) {
-        return NodeFilter.FILTER_REJECT
-    }
-    if (node.matches('[data-simebv-skip]')) {
-        return NodeFilter.FILTER_SKIP
-    }
-    return NodeFilter.FILTER_ACCEPT
-}
-
 export function scrollIntoView(element, renderer) {
     const containerBBox = renderer.getBoundingClientRect()
     const elBBox = element.getBoundingClientRect()
