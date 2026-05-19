@@ -7,18 +7,26 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const sreSrc = resolve(__dirname, 'node_modules/speech-rule-engine/lib/mathmaps');
 const sreDest = resolve(__dirname, 'dist/speech-rule-engine/lib/mathmaps');
 
-function copyFiles(srcDir, destDir, ext) {
-  const root = srcDir
-  copyHelper(srcDir, destDir, ext, root)
+const pdfjsSrc = resolve(__dirname, 'vendor/foliate-js/vendor/pdfjs');
+const pdfjsDest = resolve(__dirname, 'dist/vendor/pdfjs');
 
-  function copyHelper(srcDir, destDir, ext, root) {
+function copyFiles(srcDir, destDir, { include, exclude } = {}) {
+  const root = srcDir;
+  let test;
+  if (include && exclude) test = name => include.test(name) && !exclude.test(name);
+  else if (include) test = name => include.test(name);
+  else if (exclude) test = name => !exclude.test(name);
+  else test = name => true;
+  copyHelper(srcDir, destDir, root, test);
+
+  function copyHelper(srcDir, destDir, root, test) {
     for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
       const srcPath = join(srcDir, entry.name);
       const destPath = join(destDir, entry.name);
 
       if (entry.isDirectory()) {
-        copyHelper(srcPath, destPath, ext, root);
-      } else if (entry.isFile() && entry.name.endsWith(ext)) {
+        copyHelper(srcPath, destPath, root, test);
+      } else if (entry.isFile() && test(entry.name)) {
         mkdirSync(destDir, { recursive: true });
         copyFileSync(srcPath, destPath);
         console.log(`Copied: ${relative(root, srcPath)}`);
@@ -27,5 +35,8 @@ function copyFiles(srcDir, destDir, ext) {
   }
 }
 
-copyFiles(sreSrc, sreDest, '.json');
+copyFiles(sreSrc, sreDest, { include: /\.json$/ });
 console.log('SRE locales copied.\n');
+
+copyFiles(pdfjsSrc, pdfjsDest, { exclude: /js\.map$/ });
+console.log('Pdfjs files copied.\n');
