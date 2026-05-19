@@ -1166,6 +1166,8 @@ export class Reader {
                 if (this.menu.groups.zoom?.validate(savedCustomZoom)) {
                     // this will not trigger the change event
                     this.menu.element.querySelector('#simebv-zoom-numeric').value = savedCustomZoom
+                    const smItem = this.menu.element.querySelector('#simebv-zoom-numeric-sm')
+                    smItem.textContent = smItem.textContent.replace(/\d+/, savedCustomZoom)
                 }
             }
             let savedVal = JSON.parse(localStorage.getItem('simebv-' + name))
