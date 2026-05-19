@@ -971,7 +971,8 @@ export class Reader {
     _onRelocate({ detail }) {
         const { fraction, section, location, tocItem, pageItem } = detail
         this._savePreference(
-            (this.getBookIdentifier() ?? this.getCurrentTitle()) + '_LastPage', detail.cfi ?? fraction
+            this._lastReadPagePrefName(),
+            this.view.isFixedLayout ? section.current : (detail.cfi ?? fraction)
         )
         const percent = percentFormat.format(fraction)
         let currentPage = location.current + 1
@@ -1008,7 +1009,7 @@ export class Reader {
         }
         this._navBar.dispatchEvent(new CustomEvent('relocate', { detail: {
             sliderValue: fraction,
-            sliderTitle: `${percent} · ${loc}`,
+            sliderTitle: `${percent} · ${this.view.isFixedLayout ? page : loc}`,
             percent,
             page,
         }}))
@@ -1024,9 +1025,12 @@ export class Reader {
         return this._ebookTitle
     }
 
+    _lastReadPagePrefName() {
+        return this.getBookIdentifier() ?? this.getCurrentTitle() + '_LastPage'
+    }
+
     _getLastReadPage() {
-        const iden = this.getBookIdentifier() ?? this.getCurrentTitle()
-        return this._loadPreference(iden + '_LastPage')
+        return this._loadPreference(this._lastReadPagePrefName())
     }
 
     _setInitialAnnotationOptions(showAnnotationsAttr, showPageDelimitAttr) {
