@@ -241,7 +241,7 @@ export class Reader {
     /**
      * Look for the active element inside the shadow roots of the viewer's
      * components (sidebar, headerbar, navbar), then inside the View element
-     * and in the ebook's document inside its iframe, and finally in the
+     * and in the ebook's documents inside their iframes, and finally in the
      * parent document of the viewer. The first found adequate element
      * is returned.
      * As a reminder: with no internal focused element, shadowRoot.activeElement
@@ -256,11 +256,13 @@ export class Reader {
         }
         let activeElement = this.container.shadowRoot.activeElement
         if (activeElement === this.view) {
-            const { doc } = this.view.renderer.getContents()[0]
-            if (doc) {
+            for (const { doc } of this.view.renderer.getContents()) {
                 activeElement = doc.activeElement
                 if (['body', 'html'].includes(activeElement.nodeName.toLowerCase())) {
                     activeElement = null
+                }
+                if (activeElement) {
+                    break
                 }
             }
         }
