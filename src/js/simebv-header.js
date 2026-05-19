@@ -60,7 +60,7 @@ template.innerHTML = `
     box-shadow: var(--menu-box-shadow);
     padding: 6px;
     cursor: default;
-    inline-size: 24ch;
+    inline-size: 28ch;
     max-inline-size: 80vw;
     max-block-size: 80vh;
     overflow: auto;
@@ -134,14 +134,56 @@ template.innerHTML = `
     float: right;
     float: inline-end;
     color: var(--gray-text);
+    padding-inline-start: .1em;
 }
 #simebv-zoom-numeric {
     inline-size: 5ch;
     margin-inline-end: .2em;
 }
+#simebv-zoom-numeric-sm {
+    inline-size: 5ch;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
 #simebv-zoom-numeric-container {
     white-space: pre;
     margin-inline-start: .5em;
+}
+#simebv-zoom-numeric-container-sm {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px;
+    padding-inline-start: .3em;
+    user-select: none;
+    vertical-align: middle;
+}
+@media screen and (max-width: 768px) {
+    #simebv-zoom-numeric-container {
+        display: none;
+    }
+    #simebv-zoom-numeric-container-sm {
+        display: inline-flex;
+    }
+}
+.simebv-numeric-btn-sm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+}
+.simebv-numeric-btn-sm:hover {
+    background: var(--active-bg-2);
+}
+.simebv-numeric-btn-sm:active {
+    transform: scale(0.95);
 }
 </style>
 <div id="header-bar" class="simebv-toolbar">

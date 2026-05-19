@@ -318,12 +318,18 @@ export function createMenuItemsStd(reader, injectCSS) {
                         step: 10,
                         value: 100,
                     },
-                    onchange: () => {
-                        reader.menu.groups.zoom.select('custom')
+                    events: {
+                        onchange: () => {
+                            reader.menu.groups.zoom.select('custom')
+                        },
                     },
                     suffix: '%',
                     prefix: '',
                     labelID: 'simebv-zoom-label',
+                    labelsSmall: [
+                        __('Zoom out', 'simple-ebook-viewer'),
+                        __('Zoom in', 'simple-ebook-viewer'),
+                    ],
                 }],
             ],
             onclick: (value) => {

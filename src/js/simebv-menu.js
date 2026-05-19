@@ -56,12 +56,29 @@ export class Menu {
         return (...args) => (this.hide(), func(...args))
     }
 
-    #updateFocus(current, next) {
+    #updateFocus(current, next, reverse = false) {
+        if (current?.subItems) {
+            let subItems = current.subItems.filter(item => this.#isVisible(item))
+            if (reverse) subItems.reverse()
+            let isNext
+            for (const item of subItems) {
+                if (isNext) {
+                    item.focus()
+                    return
+                }
+                if (item === current.getRootNode().activeElement) isNext = true
+            }
+        }
         if (current) {
             current.tabIndex = -1
         }
         next.tabIndex = 0
-        const subItem = next.querySelector('input')
+        let subItem
+        if (next.subItems) {
+            let subItems = next.subItems.filter(item => this.#isVisible(item))
+            if (reverse) subItems.reverse()
+            subItem = subItems.at(0)
+        }
         if (subItem) {
             subItem.focus()
         }
@@ -171,7 +188,7 @@ export class Menu {
                         this.#moveMenuWalkerTo(currentTarget)
                         const prev = this.#menuWalker.previousNode()
                         if (prev) {
-                            this.#updateFocus(currentTarget, prev)
+                            this.#updateFocus(currentTarget, prev, true)
                         }
                         stop = true
                         break
@@ -270,12 +287,13 @@ export class Menu {
             const item = document.createElement('li')
             item.setAttribute('role', 'menuitemradio')
             item.innerText = label
+            let subItems = []
             let v
             if (typeof value === 'string' || typeof value === 'number') {
                 v = value
             }
             else {
-                const { val, type, attrs, onchange, prefix = '', suffix = '', labelID } = value
+                const { val, type, attrs, events, prefix = '', suffix = '', labelID, labelsSmall } = value
                 const containerInput = document.createElement('span')
                 if (attrs.id)
                     containerInput.id = attrs.id + '-container'
@@ -284,18 +302,40 @@ export class Menu {
                 for (const [attr, val] of Object.entries(attrs)) {
                     input.setAttribute(attr, val)
                 }
-                input.onchange = onchange
+                for (const [event, handler] of Object.entries(events)) {
+                    input[event] = handler
+                }
                 if (labelID) {
                     item.id = labelID
                     input.setAttribute('aria-labelledby', labelID)
                 }
                 containerInput.append(prefix, input, suffix)
                 item.append(containerInput)
+                subItems.push(input)
+                if (type === 'number') {
+                    subItems.push(...numericInputWithButtons(item, input, val, select, {
+                        attrs, labels: labelsSmall, prefix, suffix, deferAriaLive: false
+                    }))
+                }
                 v = val
             }
+            if (subItems.length) {
+                item.subItems = subItems
+                for (const subItem of subItems) {
+                    subItem.addEventListener('blur', () => {
+                        if (!this.#isVisible(subItem)) this.#updateFocus(this.#currentItem, item)
+                    })
+                }
+            }
             item.onclick = () => {
-                select(v)
-                this.#updateFocus(this.#currentItem, item)
+                if (item.subItems && item.subItems.includes(item.getRootNode().activeElement)) {
+                    item.getRootNode().activeElement.onclick?.()
+                    select(v)
+                }
+                else {
+                    select(v)
+                    this.#updateFocus(this.#currentItem, item)
+                }
             }
             item.onkeydown = (e) => { if (e.key === ' ') select(v) }
             map.set(v, item)
@@ -394,4 +434,69 @@ export class Menu {
         return menuGroup
     }
 
+}
+
+
+function numericInputWithButtons(
+        container, input, fieldValue, selectField,
+        { attrs, labels, prefix, suffix, deferAriaLive, }) {
+    const smContainerInput = document.createElement('span')
+    if (attrs.id)
+        smContainerInput.id = attrs.id + '-container-sm'
+    const minus = document.createElement('button')
+    minus.setAttribute('aria-label', labels[0])
+    minus.classList.add('simebv-numeric-btn-sm')
+    minus.innerHTML = `
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path d="M7 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <circle cx="12" cy="12" r="12" stroke-width="0" fill="currentColor" fill-opacity="0.2" />
+        </svg>
+    `
+    const plus = document.createElement('button')
+    plus.classList.add('simebv-numeric-btn-sm')
+    plus.setAttribute('aria-label', labels[1])
+    plus.innerHTML = `
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path d="M12 6v12M6 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <circle cx="12" cy="12" r="12" stroke-width="0" fill="currentColor" fill-opacity="0.2" />
+        </svg>
+    `
+    const displayValue = document.createElement('span')
+    displayValue.id = attrs.id + '-sm'
+    displayValue.textContent = prefix + attrs.value + suffix
+    if (!deferAriaLive) {
+        displayValue.setAttribute('aria-live', 'polite')
+        displayValue.setAttribute('aria-atomic', 'true')
+    }
+    const prefixPattern = prefix ? new RegExp(`^${prefix}\s*`) : ''
+    minus.onclick = e => {
+        const value = parseInt(displayValue.textContent.replace(prefixPattern, ''))
+        const newV = value - (value % 5 || 5)
+        if (newV < parseInt(attrs.min)) return
+        input.value = newV
+        displayValue.textContent = prefix + newV + suffix
+        if (e) {
+            selectField(fieldValue)
+            e.preventDefault()
+            e.stopPropagation()
+        }
+    }
+    plus.onclick = e => {
+        const value = parseInt(displayValue.textContent.replace(prefixPattern, ''))
+        const newV = value + 5 - (value % 5)
+        if (newV > parseInt(attrs.max)) return
+        input.value = newV
+        displayValue.textContent = prefix + newV + suffix
+        if (e) {
+            selectField(fieldValue)
+            e.preventDefault()
+            e.stopPropagation()
+        }
+    }
+    input.addEventListener('change', () => {
+        displayValue.textContent = prefix + input.value + suffix
+    })
+    smContainerInput.append(minus, displayValue, plus)
+    container.append(smContainerInput)
+    return [minus, plus]
 }
