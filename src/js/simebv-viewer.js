@@ -569,7 +569,7 @@ export class Reader {
         // load and show page delimiters if the ebook contains a page list
         const pageList = book.pageList
         if (pageList) {
-            if (this._showPageDelimiters) {
+            if (this._showPageDelimiters && !this.view.isFixedLayout) {
                 this.view.addEventListener('create-overlay', this.boundPageListCreateOverlay)
                 this.view.addEventListener('show-annotation', this.boundPageListShowAnnotation)
             }
