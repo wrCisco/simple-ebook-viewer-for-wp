@@ -34,7 +34,7 @@ const readerMarkup = `
 <style>
 ${viewerUiCss}
 </style>
-<div id="simebv-reader-root">
+<div id="simebv-reader-root" class="simebv-supports-dark">
     <div id="simebv-loading-overlay" class="simebv-show">
         <p id="simebv-loading-overlay-text">Loading...</p>
     </div>
@@ -691,10 +691,12 @@ export class Reader {
         }
         const menuItems = createMenuItemsStd(this, getCSS)
         if (this.view.isFixedLayout) {
+            const maxPages = menuItems.get('maxPages')
+            maxPages.items = maxPages.items.slice(0, 2)
             this.menu.addMenuItems([
                 menuItems.get('search'),
                 menuItems.get('history'),
-                menuItems.get('colors'),
+                menuItems.get('maxPages'),
                 menuItems.get('colorFilter'),
                 menuItems.get('zoom'),
             ])

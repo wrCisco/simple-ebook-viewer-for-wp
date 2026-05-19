@@ -376,13 +376,13 @@ export function getInitialMenuStatusStd() {
         bothBefore: [
             ['colors', 'auto'],
             ['positionViewer', 'slider'],
+            ['maxPages', 2],
         ],
         fixedLayout: [
             ['zoom', 'fit-page'],
         ],
         reflowable: [
             ['fontSize', 18],
-            ['maxPages', 2],
             ['margins', '8%'],
             ['textAlign', 'auto'],
             ['lineSpacing', 0],
