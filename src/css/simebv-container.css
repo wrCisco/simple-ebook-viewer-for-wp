@@ -83,3 +83,8 @@
 .simebv-overflow-hidden {
     overflow: hidden !important;
 }
+
+.hiddenCanvasElement {
+    word-spacing: normal;
+    letter-spacing: normal;
+}
