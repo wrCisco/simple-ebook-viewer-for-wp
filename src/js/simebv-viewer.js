@@ -151,7 +151,6 @@ export class Reader {
         }
         this.menu = menu
         this.menu.element.classList.add('simebv-menu')
-        this._setMenuMaxBlockSize()
 
         if (!this._realFullscreen && typeof closeViewerCallback === 'function') {
             this._headerBar.setAttribute('show-close-button', 'true')
@@ -216,7 +215,7 @@ export class Reader {
         const viewerResizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
                 if (entry.target === this.container) {
-                    this._setMenuMaxBlockSize()
+                    this._setMenuMaxSize()
                 }
             }
         })
@@ -745,12 +744,19 @@ export class Reader {
         this._loadMenuPreferences(prefs)
     }
 
-    _setMenuMaxBlockSize() {
+    _setMenuMaxSize() {
         if (this.menu) {
             const headerHeight = this._headerBar
                 ? this._headerBar.root.getBoundingClientRect().bottom - this.container.getBoundingClientRect().top
                 : 62
-            this.menu.element.style.maxBlockSize = 'min(85svh, ' + Math.round(this.containerHeight - headerHeight) + 'px)'
+            const scaleY = this.containerHeight / this.container.offsetHeight
+            this.menu.element.style.maxBlockSize = 'min(85vh, ' + Math.round((this.containerHeight - headerHeight) / scaleY) + 'px)'
+
+            const rightGap = this._headerBar
+                ? this.container.getBoundingClientRect().right - this._headerBar.root.querySelector('#menu-button').getBoundingClientRect().right + 5
+                : 48
+            const scaleX = this.containerWidth / this.container.offsetWidth
+            this.menu.element.style.maxInlineSize = 'min(85vw, ' + Math.round((this.containerWidth - rightGap) / scaleX) + 'px)'
         }
     }
 
