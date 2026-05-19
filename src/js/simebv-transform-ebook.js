@@ -191,7 +191,8 @@ function useMathStyles(doc, what) {
         }
         if (['styles', 'all'].includes(what)) {
             for (const math of mathElems) {
-                if (math.getAttribute('display') === 'block') {
+                if (math.getAttribute('display') === 'block'
+                        || (math.children.length === 1 && math.firstElementChild.tagName.toLowerCase() === 'mtable')) {
                     if (math.closest('[data-simebv-math-style]')) {
                         continue
                     }
