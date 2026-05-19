@@ -218,13 +218,13 @@ export function cfiFilter(node) {
 
 export function scrollIntoView(element, renderer) {
     const containerBBox = renderer.getBoundingClientRect()
-    const elBBox = el.getBoundingClientRect()
+    const elBBox = element.getBoundingClientRect()
     if (elBBox.right > containerBBox.right
             || elBBox.left < containerBBox.left
             || elBBox.bottom > containerBBox.bottom
             || elBBox.top < containerBBox.top) {
         // TODO: investigate why this doesn't work in Firefox, it would be much simpler...
-        //     el.scrollIntoView({
+        //     element.scrollIntoView({
         //         behavior: 'instant',
         //         container: 'nearest',
         //         block: 'center',
