@@ -71,7 +71,6 @@ export class Reader {
         // the speech synthesis dialog is handled directly by the speech manager
     }
     _textSearch
-    _lastReadPage
     // don't save user preferences during page load, but only upon user interaction
     _canSavePreferences = false
     _appliedFilter = {
@@ -514,7 +513,6 @@ export class Reader {
         }
         this.view.addEventListener('load', this._onLoad.bind(this))
         this.view.history.addEventListener('index-change', this._updateHistoryMenuItems.bind(this))
-        this._lastReadPage = this._getLastReadPage()
         const newBookEvent = new CustomEvent('new-book', { detail: {
             fractions: this.view.getSectionFractions(),
             dir: this.view.book.dir
@@ -641,13 +639,17 @@ export class Reader {
         // With certain formats (e.g. fb2), invalid values of lastLocation
         // can result in the ebook not opening but without raising errors,
         // so I try to make a bit of validation beforehand. Accepted values are
-        // a number between 0 and 1, or a string that is a valid epubcfi.
-        let lastLocation = this._lastReadPage ?? 0
+        // a non negative number, or a string that is a valid epubcfi.
+        let lastLocation = this._getLastReadPage() ?? 0
         if (isNumeric(lastLocation)) {
-            if (lastLocation > 1) { lastLocation = 1 }
-            else if (lastLocation < 0) { lastLocation = 0 }
-            lastLocation = {
-                fraction: Number(lastLocation)
+            if (lastLocation < 0) { lastLocation = 0 }
+            if (lastLocation < 1) {
+                lastLocation = {
+                    fraction: Number(lastLocation)
+                }
+            }
+            else {
+                lastLocation = parseInt(lastLocation)
             }
         }
         else if (typeof lastLocation !== 'string' || !CFI.isCFI.test(lastLocation)) {
@@ -659,12 +661,11 @@ export class Reader {
             }
             catch(e) {
                 console.error(e)
-                console.error('Cannot load last read page:', this._lastReadPage)
+                console.error('Cannot load last read page:', lastLocation)
                 lastLocation = null
             }
         }
         if (lastLocation === null) {
-            this._lastReadPage = null
             await this.view.next()
         }
 
