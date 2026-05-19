@@ -14,6 +14,7 @@ class SIMEBV_Base {
         'mobi' => 'application/x-mobipocket-ebook',
         'azw' => 'application/vnd.amazon.ebook',
         'azw3' => 'application/vnd.amazon.ebook',
+        'pdf' => 'application/pdf',
     ];
 
     public static $shortcode_viewer_atts = [
