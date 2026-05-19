@@ -518,7 +518,8 @@ export class Reader {
         }})
         this._navBar.dispatchEvent(newBookEvent)
         if (this.menu.groups.speechSynthesis) {
-            this._speechManager = new SpeechManager(this.view, this._rootDiv, pluginBaseUrl(), {
+            this._speechManager = new SpeechManager(
+                this.view, this._rootDiv, pluginBaseUrl(), this._openEbookFormat, {
                 savePreference: this._savePreference.bind(this),
                 loadPreference: this._loadPreference.bind(this),
             })
@@ -634,6 +635,9 @@ export class Reader {
         this.view.renderer.setStyles?.(getCSS(this.style))
 
         this.view.addEventListener('relocate', this._onRelocate.bind(this))
+        if (this.view.isFixedLayout) {
+            this.view.renderer.addEventListener('relocate', this._onFxlRelocate.bind(this))
+        }
 
         // With certain formats (e.g. fb2), invalid values of lastLocation
         // can result in the ebook not opening but without raising errors,
@@ -899,6 +903,7 @@ export class Reader {
                     }
                     this._closeMenus()
                     this._speechManager.open()
+                    this._canSavePreferences = true
                     e.preventDefault()
                 }
                 break
@@ -910,7 +915,7 @@ export class Reader {
         if (loadingOverlay) {
             loadingOverlay.classList.remove('simebv-show');
         }
-        if (this._speechManager?.isActive) {
+        if (this._speechManager?.isActive && !this.view.isFixedLayout) {
             this._speechManager.onSectionLoad()
         }
         doc.addEventListener('keydown', this._handleKeydown.bind(this))
@@ -1023,6 +1028,16 @@ export class Reader {
         }}))
         if (tocItem?.href) this._tocView?.setCurrentHref?.(tocItem.href)
         if (pageItem?.href) this._pageListView?.setCurrentHref?.(pageItem.href)
+    }
+
+    _onFxlRelocate({ detail }) {
+        const current = this.view.lastLocation.section.current
+        if (this._speechManager?.isActive) {
+            if (this._speechManager._lastSection !== current) {
+                this._speechManager.onSectionLoad(detail.reason)
+            }
+            this._speechManager._lastSection = current
+        }
     }
 
     getBookIdentifier() {

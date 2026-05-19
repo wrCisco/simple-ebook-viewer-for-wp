@@ -1,7 +1,10 @@
 /**
- * Module copied from foliate-js to integrate speech-rule-engine for math expressions
- * plus subsequent changes (e.g. insert in the ssml output the images's alt text
- * and don't insert invisible elements).
+ * Module copied from foliate-js to:
+ * - integrate speech-rule-engine for math expressions
+ * - insert images's alt text in ssml output
+ * - don't insert invisible elements in ssml output
+ * - add pdf heuristics in getBlocks
+ * - add highlight in TTS.start
  */
 
 const NS = {
@@ -201,6 +204,19 @@ function* getBlocks(doc) {
         const name = node.tagName.toLowerCase()
         if (blockTags.has(name)) {
             if (last) {
+                // the text layer of pdfs is just a sequence of span and br,
+                // so I add a bit of heuristics to split the blocks
+                if (name === 'br') {
+                    const next = node.nextElementSibling
+                    const prev = node.previousElementSibling
+                    if ([next?.tagName.toLowerCase(), prev?.tagName.toLowerCase()].includes('span')) {
+                        const nextSize = next.style.getPropertyValue('--font-height')
+                        const prevSize = prev.style?.getPropertyValue('--font-height')
+                        if (!/[\n\p{Sentence_Terminal}\p{Terminal_Punctuation}]\s*$/u.test(prev.textContent) && nextSize === prevSize) {
+                            continue
+                        }
+                    }
+                }
                 last.setEndBefore(node)
                 if (!rangeIsEmpty(last)) yield last
             }
@@ -281,7 +297,8 @@ export class TTS {
     #ranges
     #lastMark
     #serializer = new XMLSerializer()
-    constructor(doc, textWalker, highlight, granularity, SRE) {
+    constructor(doc, textWalker, highlight, granularity, SRE, ebookFormat) {
+        if (ebookFormat === 'pdf') blockTags.add('br')
         this.doc = doc
         this.highlight = highlight
         this.#list = new ListIterator(getBlocks(doc), async range => {

@@ -21,6 +21,7 @@ export class SpeechManager {
     #view
     #target
     #localesBaseUrl
+    #ebookFormat
     #wakeLock
     #prefix = '<?xml version="1.0"?>'
     #speechErrors = {
@@ -46,10 +47,11 @@ export class SpeechManager {
     #isNote
     #highlighted = { key: 'simebv-tts-highlighted', range: undefined }
 
-    constructor(view, eventTarget, localesBaseUrl, { savePreference, loadPreference } = {}) {
+    constructor(view, eventTarget, localesBaseUrl, ebookFormat, { savePreference, loadPreference } = {}) {
         this.#view = view
         this.#target = eventTarget
         this.#localesBaseUrl = localesBaseUrl
+        this.#ebookFormat = ebookFormat
         this.#isAndroid = isAndroid()
         this.#isWindows = isWindows()
         this.#isFirefoxOnLinuxOrBSD = isFirefoxOnLinuxOrBSD()
@@ -97,18 +99,23 @@ export class SpeechManager {
         if (voice) {
             this.speechSynthesis.voice = voice
         }
-        const highlightColors = [
-            this.#loadPreference('speech-highlight'),
-            'light-dark(#7D7D7D, #FFFFFF)',
-            '#ABABAB',
-        ]
+        const highlightColors = this.#view.isFixedLayout
+            ? [
+                this.#loadPreference('speech-highlight-fxd-layout'),
+                '#ABABAB'
+            ]
+            : [
+                this.#loadPreference('speech-highlight'),
+                'light-dark(#7D7D7D, #FFFFFF)',
+                '#ABABAB',
+            ]
         for (const color of highlightColors) {
             if (CSS.supports('color', color)) {
                 this.speechSynthesis.highlightColor = color
                 break
             }
         }
-        await this.#view.initTTS('word', this.boundHighlight, this.#localesBaseUrl)
+        await this.#view.initTTS('word', this.boundHighlight, this.#localesBaseUrl, this.#ebookFormat)
         this.#isNote = isNote
         if (!this.#speechDialog) {
             const dlg = speechDialog(this.#target, this.speechSynthesis, isNote)
@@ -128,12 +135,15 @@ export class SpeechManager {
         return !!this.speechSynthesis.synthesis
     }
 
-    onSectionLoad() {
-        this.#view.initTTS('word', this.boundHighlight, this.#localesBaseUrl)
+    onSectionLoad(reason) {
+        this.#view.initTTS('word', this.boundHighlight, this.#localesBaseUrl, this.#ebookFormat)
         this.speechSynthesis.utterance = undefined
         this.speechSynthesis.synthesis.cancel()
         if (this.speechSynthesis.state === 'speaking') {
-            this.#playHandler()
+            this.#playHandler({ detail: {
+                goToLastBlock: reason === 'tts-prev',
+                alreadySpeaking: true
+            }})
         }
         else {
             this.#speechDialog.element.dispatchEvent(new CustomEvent('simebv-speech-dlg-pause'))
@@ -166,27 +176,29 @@ export class SpeechManager {
     }
 
     #highlight(range) {
-        const { doc, index, overlayer } = this.#view.renderer.getContents()[0]
-        if (overlayer && index !== undefined) {
+        const currentIndex = this.#view.lastLocation?.section?.current
+        const { doc, index, overlayer } = this.#view.getCurrentContents()
+        if (overlayer) {
             overlayer.remove(this.#highlighted.key)
             overlayer.add(
                 this.#highlighted.key, range, Overlayer.highlight,
                 { color: this.speechSynthesis.highlightColor }
             )
             this.#highlighted.range = range
-            this.#view.renderer.scrollToAnchor(range)
         }
-        else {
-            if (this.#view.isFixedLayout) {
-                const index = this.#view.lastLocation?.section?.current
-                this.#view.renderer.goTo({index})
-            }
-            else {
-                this.#view.renderer.scrollToAnchor(range, true)
-            }
+        if (!this.#view.isFixedLayout) {
+            this.#view.renderer.scrollToAnchor(range, !overlayer)
         }
     }
     boundHighlight = this.#highlight.bind(this)
+
+    #cleanHighlight() {
+        if (this.#highlighted.range) {
+            const { overlayer } = this.#view.getCurrentContents()
+            overlayer?.remove(this.#highlighted.key)
+            this.#highlighted.range = undefined
+        }
+    }
 
     async #acquireWakeLock() {
         if (!('wakeLock' in navigator) || this.#wakeLock) return
@@ -260,7 +272,8 @@ export class SpeechManager {
                 let reset = true
                 if (!['paused', 'canceled'].includes(this.speechSynthesis.state) && !this.#isNote) {
                     const curSection = this.#view.lastLocation?.section?.current
-                    await this.#view.next()
+                    this.#cleanHighlight()
+                    await this.#nextSection()
                     reset = curSection === this.#view.lastLocation?.section?.current
                 }
                 if (reset) {
@@ -284,7 +297,7 @@ export class SpeechManager {
             // if the user clicks on the pause button at the end of an utterance,
             // the next one sometimes starts anyway, and the pause command
             // doesn't work reliably when called from the onstart handler
-            if (this.speechSynthesis.state === 'paused') {
+            if (['paused', 'initial'].includes(this.speechSynthesis.state)) {
                 this.speechSynthesis.synthesis.cancel()
                 this.speechSynthesis.state = 'canceled'
             }
@@ -307,45 +320,66 @@ export class SpeechManager {
         }
         catch (err) {
             console.warn(err)
+            this.speechSynthesis.lang = 'en'
         }
-        // Replace with punctuation the ssml pauses inserted
-        // for math expressions by the Speech Rule Engine
+        // Replace ssml pauses with punctuation (tags <break> with
+        // the time attribute are inserted by the Speech Rule Engine,
+        // without the time attribute by the internal tts engine).
         doc.querySelectorAll('break').forEach(el => {
-            el.replaceWith(parseInt(el.getAttribute('time')) > 250 ? '...' : ',')
+            const time = parseInt(el.getAttribute('time'))
+            el.replaceWith(time > 250 ? '...' : (!isNaN(time) ? ', ' : '\n'))
         })
-        const text = doc.documentElement.textContent
+        // Limit to 3 the length of long sequences of identical characters
+        // that are probably used as decorators
+        const text = doc.documentElement.textContent.replace(/([.\-_*=~·•…])\1{5,}/gu, '$1$1$1')
+
         // with longer chunks Google voices may not start
         const maxLength = 4000
-        if (text.length > maxLength) {
-            const boundaries = [0]
-            const segmenter = new Intl.Segmenter(this.speechSynthesis.lang, { granularity: "sentence" })
-            const segments = segmenter.segment(text)
-            let i = boundaries.at(-1)
-            for (const s of segments) {
-                if (s.index <= boundaries.at(-1) + maxLength - 1) {
-                    i = s.index
+        if (text.length <= maxLength) {
+            return [text, []]
+        }
+
+        const isSurrogateTrail = codePoint => codePoint >= 0xdc00 && codePoint <= 0xdfff
+
+        const boundaries = [0]
+        const segmenter = new Intl.Segmenter(this.speechSynthesis.lang, { granularity: "sentence" })
+        const segments = segmenter.segment(text)
+        let i = boundaries.at(-1)
+        for (const s of segments) {
+            if (s.index <= boundaries.at(-1) + maxLength - 1) {
+                i = s.index
+            }
+            else {
+                if (i > boundaries.at(-1)) {
+                    boundaries.push(i)
                 }
                 else {
-                    if (i > boundaries.at(-1)) {
-                        boundaries.push(i)
+                    i = boundaries.at(-1) + maxLength - 1
+                    const codePoint = text[i].codePointAt(0)
+                    if (isSurrogateTrail(codePoint)) {
+                        i--
                     }
-                    else {
-                        i = boundaries.at(-1) + maxLength - 1
-                        // check that text[i] is not the trail of a surrogate pair
-                        let codePoint = text[i].codePointAt(0)
-                        if (codePoint >= 0xdc00 && codePoint <= 0xdfff) {
-                            i--
-                            codePoint = text[i].codePointAt(0)
-                        }
-                        boundaries.push(i)
-                    }
-                    i = boundaries.at(-1)
+                    boundaries.push(i)
                 }
+                i = boundaries.at(-1)
             }
-            const texts = boundaries.map((e, i) => text.slice(e, boundaries[i + 1]))
-            return [texts[0], texts.slice(1)]
         }
-        return [text, []]
+        if (i > boundaries.at(-1) && text.length - boundaries.at(-1) > maxLength) {
+            boundaries.push(i)
+        }
+        let texts = boundaries.map((e, i) => text.slice(e, boundaries[i + 1]))
+        for (const [i, t] of texts.entries()) {
+            if (t.length > maxLength) {
+                let split = Math.floor(t.length / 2)
+                const codePoint = t[split].codePointAt(0)
+                if (isSurrogateTrail(codePoint)) {
+                    split--
+                }
+                texts[i] = [t.slice(0, split), t.slice(split)]
+            }
+        }
+        texts = texts.flat(1)
+        return [texts[0], texts.slice(1)]
     }
 
     #updateUtterance() {
@@ -366,12 +400,26 @@ export class SpeechManager {
     }
     #boundPageHideHandler = this.#pageHideHandler.bind(this)
 
-    async #playHandler() {
-        const { doc } = this.#view.renderer.getContents()[0]
-        const selection = doc.getSelection()
+    async #playHandler({ detail }) {
+        const contents = this.#view.renderer.getContents()
+        let { doc, index } = this.#view.getCurrentContents()
         let selectedRange
-        if (selection?.type === 'Range') {
-            selectedRange = selection.getRangeAt(0)
+        for (const c of contents) {
+            const d = c.doc
+            const selection = d.getSelection()
+            if (selection?.type === 'Range') {
+                selectedRange = selection.getRangeAt(0)
+            }
+            if (selectedRange) {
+                if (d !== doc) {
+                    this.speechSynthesis.state = 'speaking'
+                    this.#cleanHighlight()
+                    await this.#view.renderer.goTo({index: c.index})
+                    return
+                }
+                selection.removeAllRanges()
+                break
+            }
         }
         if (!this.speechSynthesis.utterance) {
             this.speechSynthesis.synthesis.cancel()
@@ -386,8 +434,15 @@ export class SpeechManager {
                 else {
                     s = await this.#view.tts.start()
                 }
+                if (s && detail?.goToLastBlock) {
+                    while (true) {
+                        let newS = await this.#view.tts.next(true)
+                        if (!newS) break
+                        s = newS
+                    }
+                }
                 const u = this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
-                if (this.#isWindows) {
+                if (this.#isWindows && !detail?.alreadySpeaking) {
                     // Add warmup utterance so Windows voices don't cut off the first words
                     const warmup = new SpeechSynthesisUtterance('Silence')
                     warmup.volume = 0
@@ -471,11 +526,7 @@ export class SpeechManager {
         this.speechSynthesis.synthesis = undefined
         this.#releaseWakeLock()
         document.removeEventListener('visibilitychange', this.#boundReacquireWakeLock)
-        if (this.#highlighted.range) {
-            const { overlayer } = this.#view?.renderer.getContents()[0]
-            overlayer?.remove(this.#highlighted.key)
-            this.#highlighted.range = undefined
-        }
+        this.#cleanHighlight()
     }
     #boundCloseHandler = this.#closeHandler.bind(this)
 
@@ -483,7 +534,9 @@ export class SpeechManager {
         if (detail) {
             if (detail.highlightColor !== this.speechSynthesis.highlightColor) {
                 this.speechSynthesis.highlightColor = detail.highlightColor
-                this.#savePreference('speech-highlight', detail.highlightColor)
+                this.#view.isFixedLayout
+                    ? this.#savePreference('speech-highlight-fxd-layout', detail.highlightColor)
+                    : this.#savePreference('speech-highlight', detail.highlightColor)
                 if (this.#highlighted.range) {
                     this.#highlight(this.#highlighted.range)
                 }
@@ -538,11 +591,17 @@ export class SpeechManager {
                 if (s) {
                     utt = this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
                 }
-                if (utt && !['paused', 'canceled'].includes(this.speechSynthesis.state)) {
-                    this.speechSynthesis.synthesis.speak(utt)
-                    this.speechSynthesis.state = 'speaking'
+                if (utt) {
+                    if (['paused', 'canceled'].includes(this.speechSynthesis.state)) {
+                        this.speechSynthesis.state = 'canceled'
+                    }
+                    else {
+                        this.speechSynthesis.synthesis.speak(utt)
+                        this.speechSynthesis.state = 'speaking'
+                    }
                 }
                 if (!s) {
+                    this.#cleanHighlight()
                     await this.#nextSection()
                 }
             }, 100)
@@ -569,11 +628,17 @@ export class SpeechManager {
                 if (s) {
                     utt = this.#newUtterance(...this.#ssmlToStrings(this.#prefix + s))
                 }
-                if (utt && !['paused', 'canceled'].includes(this.speechSynthesis.state)) {
-                    this.speechSynthesis.synthesis.speak(utt)
-                    this.speechSynthesis.state = 'speaking'
+                if (utt) {
+                    if (['paused', 'canceled'].includes(this.speechSynthesis.state)) {
+                        this.speechSynthesis.state = 'canceled'
+                    }
+                    else {
+                        this.speechSynthesis.synthesis.speak(utt)
+                        this.speechSynthesis.state = 'speaking'
+                    }
                 }
                 if (!s) {
+                    this.#cleanHighlight()
                     await this.#prevSection()
                 }
             }, 100)
@@ -584,14 +649,16 @@ export class SpeechManager {
     }
     #boundPrevHandler = this.#prevHandler.bind(this)
 
-    async #prevSection(lastPage = true) {
+    async #prevSection() {
         const currentSection = this.#view.lastLocation?.section?.current
         if (!currentSection) return
-        if (lastPage) {
-            await this.#view.goTo(currentSection).then(() => this.#view.prev())
+        if (this.#view.isFixedLayout) {
+            await this.#view.renderer
+                .goTo({ index: currentSection - 1, reason: 'tts-prev' })
+                .catch(e => console.error(e))
         }
         else {
-            await this.#view.goTo(currentSection - 1).catch(e => console.error(e))
+            await this.#view.goTo(currentSection).then(() => this.#view.prev())
         }
     }
 
@@ -599,7 +666,14 @@ export class SpeechManager {
         const currentSection = this.#view.lastLocation?.section?.current
         const totSections = this.#view.lastLocation?.section?.total
         if (currentSection < totSections) {
-            await this.#view.goTo(currentSection + 1).catch(e => console.error(e))
+            if (this.#view.isFixedLayout) {
+                await this.#view.renderer
+                    .goTo({ index: currentSection + 1, reason: 'tts-next' })
+                    .catch(e => console.error(e))
+            }
+            else {
+                await this.#view.goTo(currentSection + 1).catch(e => console.error(e))
+            }
         }
     }
 

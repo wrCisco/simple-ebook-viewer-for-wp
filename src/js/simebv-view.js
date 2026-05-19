@@ -22,13 +22,13 @@ export class SimebvView extends View {
             return { index, anchor }
         }
     }
-    async initTTS(granularity = 'word', highlight, sreBaseUrl) {
-        const doc = this.renderer.getContents()[0].doc
+    async initTTS(granularity = 'word', highlight, sreBaseUrl, format) {
+        const { doc } = this.getCurrentContents()
         if (this.tts && this.tts.doc === doc) return
         const { TTS } = await import('./simebv-tts.js')
         const speechRuleEngine = await startSREEngine(sreBaseUrl)
         this.tts = new TTS(doc, textWalker, highlight || (range =>
-            this.renderer.scrollToAnchor(range, true)), granularity, speechRuleEngine)
+            this.renderer.scrollToAnchor(range, true)), granularity, speechRuleEngine, format)
     }
 }
 
