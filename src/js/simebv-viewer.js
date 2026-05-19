@@ -906,7 +906,7 @@ export class Reader {
             this._speechManager.onSectionLoad()
         }
         doc.addEventListener('keydown', this._handleKeydown.bind(this))
-        if (this.view.isFixedLayout) {
+        if (this._openEbookFormat === 'cbz') {
             doc.addEventListener('dblclick', () => {
                 if (['fit-page', 'fit-width'].includes(this.menu.groups.zoom?.current())) {
                     this.menu.groups.zoom?.select('custom')
