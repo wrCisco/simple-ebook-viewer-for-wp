@@ -2,9 +2,9 @@ import { CFI } from './simebv-epubcfi.js'
 
 export class TextSearch {
     #currentSearch
-    #currentSearchQuery
-    #currentSearchResult = []
-    #currentSearchResultIndex = -1
+    #query
+    #results = []
+    #index = -1
     #currentLocation
     target
 
@@ -13,20 +13,18 @@ export class TextSearch {
     }
 
     async doSearch(str, reverse = false) {
-        if (this.#currentSearch && this.#currentSearchQuery === str) {
+        if (this.#currentSearch && this.#query === str) {
             reverse ? await this.prevMatch() : await this.nextMatch()
             return
         }
         this.searchCleanUp()
-        this.#currentSearchQuery = str
+        this.#query = str
         let newSearch = { newSearch: undefined, lastLocation: undefined }
         this.target.dispatchEvent(new CustomEvent('simebv-search-new', { detail: { newSearch, query: str }}))
         this.#currentSearch = newSearch.newSearch
         this.#currentLocation = newSearch.lastLocation
         await this.matchUntilCurrentLocation()
-        const i = this.#currentSearchResultIndex
-        const r = this.#currentSearchResult
-        if (r.length > 0 && i === r.length - 2) {
+        if (this.#results.length > 0 && this.#index === this.#results.length - 2) {
             await this.goToNextMatch({useOldCFI: false})
         }
         else {
@@ -46,31 +44,31 @@ export class TextSearch {
                 break
             }
             if (result.value?.subitems) {
-                this.#currentSearchResult.push(...result.value.subitems)
-                let resultCfi = this.#currentSearchResult[this.#currentSearchResult.length - 1].cfi
+                this.#results.push(...result.value.subitems)
+                let resultCfi = this.#results[this.#results.length - 1].cfi
                 if (CFI.compare(this.#currentLocation.cfi, resultCfi) > 0) {  // 1: resultCfi precedes this.viewer.view.lastLocation.cfi
-                    this.#currentSearchResultIndex = this.#currentSearchResult.length - 1
+                    this.#index = this.#results.length - 1
                     continue
                 }
-                while (this.#currentSearchResultIndex < this.#currentSearchResult.length - 1) {
-                    this.#currentSearchResultIndex++
-                    resultCfi = this.#currentSearchResult[this.#currentSearchResultIndex].cfi
+                while (this.#index < this.#results.length - 1) {
+                    this.#index++
+                    resultCfi = this.#results[this.#index].cfi
                     if (CFI.compare(this.#currentLocation.cfi, resultCfi) <= 0) {
-                        this.#currentSearchResultIndex--
+                        this.#index--
                         return
                     }
                 }
             }
         }
-        this.#currentSearchResultIndex = this.#currentSearchResult.length - 2
+        this.#index = this.#results.length - 2
     }
 
     async goToNextMatch({ previous = false, useOldCFI = true } = {}) {
         const oldCFI = useOldCFI
-            ? this.#currentSearchResult[this.#currentSearchResultIndex]?.cfi
+            ? this.#results[this.#index]?.cfi
             : null
-        this.#currentSearchResultIndex += previous ? -1 : 1
-        const newCFI = this.#currentSearchResult[this.#currentSearchResultIndex].cfi
+        this.#index += previous ? -1 : 1
+        const newCFI = this.#results[this.#index].cfi
         const promises = []
         this.target.dispatchEvent(new CustomEvent(
             'simebv-search-next',
@@ -87,10 +85,7 @@ export class TextSearch {
         if (!this.#currentSearch) {
             return
         }
-        if (this.#currentSearchResult
-                && this.#currentSearchResult.length > 0
-                && this.#currentSearchResultIndex < this.#currentSearchResult.length - 1
-        ) {
+        if (this.#results.length > 0 && this.#index < this.#results.length - 1) {
             await this.goToNextMatch()
             return
         }
@@ -99,7 +94,7 @@ export class TextSearch {
             return
         }
         if (result.value?.subitems) {
-            this.#currentSearchResult.push(...result.value.subitems)
+            this.#results.push(...result.value.subitems)
             await this.goToNextMatch()
             return
         }
@@ -113,10 +108,7 @@ export class TextSearch {
         if (!this.#currentSearch) {
             return
         }
-        if (this.#currentSearchResult
-                && this.#currentSearchResult.length > 0
-                && this.#currentSearchResultIndex > 0
-        ) {
+        if (this.#results.length > 0 && this.#index > 0) {
             await this.goToNextMatch({previous: true})
             return
         }
@@ -124,10 +116,10 @@ export class TextSearch {
     boundPrevMatch = this.prevMatch.bind(this)
 
     async searchCleanUp() {
-        const lastCFI = this.#currentSearchResult[this.#currentSearchResultIndex]?.cfi
+        const lastCFI = this.#results[this.#index]?.cfi
         this.#currentSearch = undefined
-        this.#currentSearchResult = []
-        this.#currentSearchResultIndex = -1
+        this.#results = []
+        this.#index = -1
         this.target.dispatchEvent(new CustomEvent('simebv-search-cleanup', { detail: { lastCFI }}))
     }
     boundSearchCleanUp = this.searchCleanUp.bind(this)
