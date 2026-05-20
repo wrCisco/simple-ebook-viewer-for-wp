@@ -95,10 +95,16 @@ export class NavBar extends HTMLElement {
 
     connectedCallback() {
         this.buttonLeft.addEventListener(
-            'click', () => this.dispatchEvent(new CustomEvent('go-left', { bubbles: true }))
+            'click', e => {
+                e.preventDefault()  // prevent zoom on multiple taps
+                this.dispatchEvent(new CustomEvent('go-left', { bubbles: true }))
+            }
         )
         this.buttonRight.addEventListener(
-            'click', () => this.dispatchEvent(new CustomEvent('go-right', { bubbles: true }))
+            'click', e => {
+                e.preventDefault()  // prevent zoom on multiple taps
+                this.dispatchEvent(new CustomEvent('go-right', { bubbles: true }))
+            }
         )
         this.slider.addEventListener(
             'input',

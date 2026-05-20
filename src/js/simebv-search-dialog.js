@@ -103,8 +103,14 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
         }
     })
 
-    prevButton.addEventListener('click', prevMatch)
-    nextButton.addEventListener('click', nextMatch)
+    prevButton.addEventListener('click', e => {
+        e.preventDefault()  // prevent zoom on multiple taps
+        prevMatch()
+    })
+    nextButton.addEventListener('click', e => {
+        e.preventDefault()  // prevent zoom on multiple taps
+        nextMatch()
+    })
     closeButton.addEventListener('click', close)
 
     dlg.addEventListener('keydown', (e) => {
