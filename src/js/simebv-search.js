@@ -1,4 +1,6 @@
 import { CFI } from './simebv-epubcfi.js'
+import { searchDialog } from './simebv-search-dialog.js'
+import { getColorScheme, searchResultsHighlight } from './simebv-utils.js'
 
 export class TextSearch {
     #currentSearch
@@ -6,10 +8,31 @@ export class TextSearch {
     #results = []
     #index = -1
     #currentLocation
+    #view
+    #container
+    #dlg
     target
 
-    constructor(target) {
-        this.target = target
+    constructor(view, container) {
+        this.#view = view
+        this.#container = container
+        this.target = new EventTarget()
+    }
+
+    openDialog(returnFocusTo) {
+        if (!this.#dlg) {
+            this.#dlg = searchDialog(
+                this.boundDoSearch,
+                this.boundPrevMatch,
+                this.boundNextMatch,
+                this.boundSearchCleanUp,
+                returnFocusTo,
+            )
+            this.#dlg.id = 'simebv-search-dialog'
+            this.#container.append(this.#dlg)
+        }
+        this.#dlg.show()
+        this.#dlg.classList.add('simebv-show')
     }
 
     async doSearch(str, reverse = false) {
@@ -19,13 +42,11 @@ export class TextSearch {
         }
         this.searchCleanUp()
         this.#query = str
-        let newSearch = { newSearch: undefined, lastLocation: undefined }
-        this.target.dispatchEvent(new CustomEvent('simebv-search-new', { detail: { newSearch, query: str }}))
-        this.#currentSearch = newSearch.newSearch
-        this.#currentLocation = newSearch.lastLocation
-        await this.matchUntilCurrentLocation()
+        this.#currentSearch = this.#newSearch(str)
+        this.#currentLocation = this.#view.lastLocation
+        await this.#matchUntilCurrentLocation()
         if (this.#results.length > 0 && this.#index === this.#results.length - 2) {
-            await this.goToNextMatch({useOldCFI: false})
+            await this.#goToNextMatch({ useOldCFI: false })
         }
         else {
             await this.nextMatch()
@@ -33,7 +54,23 @@ export class TextSearch {
     }
     boundDoSearch = this.doSearch.bind(this)
 
-    async matchUntilCurrentLocation() {
+    #newSearch(query) {
+        const isFxl = this.#view.isFixedLayout
+        const isDark = getColorScheme(this.#container) === 'dark'
+        const color = isFxl ? 'transparent' : 'light-dark(#706766, #DDF4FF)'
+        return this.#view.search({
+            query,
+            draw: searchResultsHighlight,
+            drawOptions: {
+                color,
+                opacity: isFxl ? 1 : isDark ? .4 : .3,
+                mixBlendMode: isFxl ? 'normal' : isDark ? 'screen' : 'darken',
+                invert: isFxl
+            }
+        })
+    }
+
+    async #matchUntilCurrentLocation() {
         while (true) {
             if (!this.#currentSearch) {
                 // this can happen if the user closes the search panel during the search
@@ -63,22 +100,28 @@ export class TextSearch {
         this.#index = this.#results.length - 2
     }
 
-    async goToNextMatch({ previous = false, useOldCFI = true } = {}) {
+    async #goToNextMatch({ previous = false, useOldCFI = true } = {}) {
         const oldCFI = useOldCFI
             ? this.#results[this.#index]?.cfi
             : null
         this.#index += previous ? -1 : 1
         const newCFI = this.#results[this.#index].cfi
-        const promises = []
-        this.target.dispatchEvent(new CustomEvent(
-            'simebv-search-next',
-            { detail: {
-                oldCFI, newCFI,
-                deleteOld: useOldCFI,
-                register(promise) { promises.push(promise) }
-            }}
-        ))
-        await Promise.all(promises)
+        if (oldCFI && useOldCFI) {
+            this.#view.deleteAnnotation({ value: oldCFI })
+        }
+        if (this.#view.isFixedLayout) {
+            const oldIndex = oldCFI
+                ? this.#view.resolveCFI(oldCFI).index
+                : undefined
+            const newIndex = this.#view.resolveCFI(newCFI).index
+            if (oldIndex !== newIndex) {
+                await this.#view.goTo(newCFI)
+            }
+        }
+        else {
+            await this.#view.goTo(newCFI)
+        }
+        await this.#view.addAnnotation({ value: newCFI, type: 'current-search' })
     }
 
     async nextMatch() {
@@ -86,7 +129,7 @@ export class TextSearch {
             return
         }
         if (this.#results.length > 0 && this.#index < this.#results.length - 1) {
-            await this.goToNextMatch()
+            await this.#goToNextMatch()
             return
         }
         let result = await this.#currentSearch.next()
@@ -95,7 +138,7 @@ export class TextSearch {
         }
         if (result.value?.subitems) {
             this.#results.push(...result.value.subitems)
-            await this.goToNextMatch()
+            await this.#goToNextMatch()
             return
         }
         else {
@@ -109,7 +152,7 @@ export class TextSearch {
             return
         }
         if (this.#results.length > 0 && this.#index > 0) {
-            await this.goToNextMatch({previous: true})
+            await this.#goToNextMatch({ previous: true })
             return
         }
     }
@@ -117,11 +160,15 @@ export class TextSearch {
 
     async searchCleanUp() {
         const lastCFI = this.#results[this.#index]?.cfi
+        if (lastCFI) {
+            this.#view.deleteAnnotation({ value: lastCFI })
+        }
         this.#currentSearch = undefined
         this.#results = []
         this.#index = -1
-        this.target.dispatchEvent(new CustomEvent('simebv-search-cleanup', { detail: { lastCFI }}))
+        this.#view.clearSearch()
+        this.#view.deselect()
+        this.target.dispatchEvent(new CustomEvent('simebv-search-cleanup'))
     }
     boundSearchCleanUp = this.searchCleanUp.bind(this)
-
 }

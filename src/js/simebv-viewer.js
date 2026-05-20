@@ -6,11 +6,10 @@ import { createTOCView } from '../../vendor/foliate-js/ui/tree.js'
 import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
 import { CFI } from './simebv-epubcfi.js'
 import {
-    storageAvailable, isNumeric, getDefaultFontSize, pageListOutline,
-    searchResultsHighlight, currentSearchOutline, pluginBaseUrl,
-    isElementWritable, getColorScheme, scrollIntoView } from './simebv-utils.js'
+    storageAvailable, isNumeric, getDefaultFontSize,
+    pageListOutline, currentSearchOutline, pluginBaseUrl,
+    isElementWritable, scrollIntoView } from './simebv-utils.js'
 import { transformDoc, convertFontSizePxToRem, defaultStyles, getCSS } from './simebv-transform-ebook.js'
-import { searchDialog } from './simebv-search-dialog.js'
 import { colorFiltersDialog } from './simebv-filters-dialog.js'
 import { metadataDialog, MetadataFormatter } from './simebv-metadata-dialog.js'
 import { fontsDialog } from './simebv-fonts-dialog.js'
@@ -65,10 +64,6 @@ export class Reader {
         metadata: undefined,
         colorsFilter: undefined,
         fonts: undefined,
-    }
-    _modelessDialogs = {
-        search: undefined,
-        // the speech synthesis dialog is handled directly by the speech manager
     }
     _textSearch
     // don't save user preferences during page load, but only upon user interaction
@@ -223,7 +218,6 @@ export class Reader {
 
         this.setLocalizedDefaultInterface(this._root)
         this._defaultFontSize = getDefaultFontSize(this._rootDiv)
-        this._textSearch = this.setupTextSearch(this.container)
 
         document.dispatchEvent(new CustomEvent('simebv-viewer-loaded'))
     }
@@ -426,72 +420,6 @@ export class Reader {
         this._modalDialogs.fonts.element.showModal()
     }
 
-    openSearchDialog() {
-        if (!this._modelessDialogs.search) {
-            this._modelessDialogs.search = searchDialog(
-                this._textSearch.boundDoSearch,
-                this._textSearch.boundPrevMatch,
-                this._textSearch.boundNextMatch,
-                this._textSearch.boundSearchCleanUp,
-                this.container
-            )
-            this._modelessDialogs.search.id = 'simebv-search-dialog'
-            this._rootDiv.append(this._modelessDialogs.search)
-        }
-        this._modelessDialogs.search.show()
-        this._modelessDialogs.search.classList.add('simebv-show')
-    }
-
-    setupTextSearch(eventsTarget) {
-        const textSearch = new TextSearch(eventsTarget)
-        textSearch.target.addEventListener('simebv-search-new', ({detail}) => {
-            const { newSearch, query } = detail
-            const isFxl = this.view.isFixedLayout
-            const isDark = getColorScheme(this._rootDiv) === 'dark'
-            const color = isFxl ? 'transparent' : 'light-dark(#706766, #DDF4FF)'
-            newSearch.newSearch = this.view.search({
-                query,
-                draw: searchResultsHighlight,
-                drawOptions: {
-                    color,
-                    opacity: isFxl ? 1 : isDark ? .4 : .3,
-                    mixBlendMode: isFxl ? 'normal' : isDark ? 'screen' : 'darken',
-                    invert: isFxl
-                }
-            })
-            newSearch.lastLocation = this.view.lastLocation
-        })
-        textSearch.target.addEventListener('simebv-search-next', ({detail}) => {
-            const { oldCFI, newCFI, deleteOld } = detail
-            if (oldCFI && deleteOld) {
-                this.view.deleteAnnotation({value: oldCFI})
-            }
-            detail.register((async () => {
-                if (this.view.isFixedLayout) {
-                    const oldIndex = oldCFI ? this.view.resolveCFI(oldCFI).index : undefined
-                    const newIndex = this.view.resolveCFI(newCFI).index
-                    if (oldIndex !== newIndex) {
-                        await this.view.goTo(newCFI)
-                    }
-                }
-                else {
-                    await this.view.goTo(newCFI)
-                }
-                await this.view.addAnnotation({value: newCFI, type: 'current-search'})
-            })())
-        })
-        textSearch.target.addEventListener('simebv-search-cleanup', ({detail}) => {
-            const { lastCFI } = detail
-             if (lastCFI) {
-                this.view.deleteAnnotation({ value: lastCFI })
-            }
-            this.view.clearSearch()
-            this.view.deselect()
-            this._closeMenus()
-        })
-        return textSearch
-    }
-
     async open(fileUrl, options) {
         let {
             menuItems, initialMenuStatus, ebookTitle, ebookAuthor,
@@ -524,6 +452,11 @@ export class Reader {
                 loadPreference: this._loadPreference.bind(this),
             })
         }
+
+        this._textSearch = new TextSearch(this.view, this._rootDiv)
+        this._textSearch.target.addEventListener('simebv-search-cleanup', () => {
+            this._closeMenus()
+        })
 
         const { book } = this.view
         book.transformTarget?.addEventListener('data', ({ detail }) => {
@@ -868,8 +801,7 @@ export class Reader {
                 break
             case 'Escape':
                 if (this.menu.element.classList.contains('simebv-show')
-                        || this._root.querySelector('#simebv-side-bar')?.classList.contains('simebv-show')
-                        || this._modelessDialogs.search?.classList.contains('simebv-show')) {
+                        || this._root.querySelector('#simebv-side-bar')?.classList.contains('simebv-show')) {
                     this._closeMenus()
                 }
                 else if (this._realFullscreen && document.fullscreenElement) {
@@ -887,7 +819,7 @@ export class Reader {
                 }
                 if (e.ctrlKey) {
                     this._closeMenus()
-                    this.openSearchDialog()
+                    this._textSearch.openDialog(this.container)
                     e.preventDefault()
                 }
                 break

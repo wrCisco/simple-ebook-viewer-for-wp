@@ -8,7 +8,7 @@ export function createMenuItemsStd(reader, injectCSS) {
             label: __('Search...', 'simple-ebook-viewer'),
             shortcut: __('Ctrl+F', 'simple-ebook-viewer'),
             type: 'action',
-            onclick: () => reader.openSearchDialog(),
+            onclick: () => reader._textSearch?.openDialog(reader.container),
             attrs: [
                 ['aria-haspopup', 'dialog'],
             ],
