@@ -2,7 +2,7 @@ import { isAndroid, getColorScheme } from './simebv-utils.js'
 import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
 
-export function speechDialog(target, speechOptions, isNote, returnFocus) {
+export function speechDialog(target, speechOptions, isNote, isRtl, returnFocus) {
     const dlg = document.createElement('dialog')
     dlg.setAttribute('aria-label', 'Text-to-Speech controllers')
     const container = document.createElement('div')
@@ -42,16 +42,21 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
     </svg>
     `
 
+    const toLeft = `
+    <svg id="simebv-speech-left-btn" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M19 6v12l-10-6zm-10 0v12h-2v-12z"/>
+    </svg>`
+    const toRight = `
+    <svg id="simebv-speech-right-btn" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M7 6v12l10-6zm10 0v12h2v-12z"/>
+    </svg>`
     const prevParagraph = document.createElement('button')
     prevParagraph.id = 'simebv-speech-prev'
     prevParagraph.classList.add('simebv-speech-dlg-button')
     const prevParagraphLabel = __('Go to previous paragraph', 'simple-ebook-viewer')
     prevParagraph.setAttribute('aria-label', prevParagraphLabel)
     prevParagraph.title = prevParagraphLabel
-    prevParagraph.innerHTML = `
-    <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M19 6v12l-10-6zm-10 0v12h-2v-12z"/>
-    </svg>`
+    prevParagraph.innerHTML = isRtl ? toRight : toLeft
 
     const nextParagraph = document.createElement('button')
     nextParagraph.id = 'simebv-speech-next'
@@ -59,10 +64,7 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
     const nextParagraphLabel = __('Go to next paragraph', 'simple-ebook-viewer')
     nextParagraph.setAttribute('aria-label', nextParagraphLabel)
     nextParagraph.title = nextParagraphLabel
-    nextParagraph.innerHTML = `
-    <svg id="playIcon" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M7 6v12l10-6zm10 0v12h2v-12z"/>
-    </svg>`
+    nextParagraph.innerHTML = isRtl ? toLeft : toRight
 
     if (isNote) {
         prevParagraph.disabled = true
@@ -81,7 +83,13 @@ export function speechDialog(target, speechOptions, isNote, returnFocus) {
     </svg>
     `
 
-    container.append(playPause, prevParagraph, nextParagraph, options, closeBtn)
+    container.append(
+        playPause,
+        isRtl ? nextParagraph : prevParagraph,
+        isRtl ? prevParagraph : nextParagraph,
+        options,
+        closeBtn,
+    )
     dlg.append(container)
 
     let _isPlaying = false

@@ -118,7 +118,7 @@ export class SpeechManager {
         await this.#view.initTTS('word', this.boundHighlight, this.#localesBaseUrl, this.#ebookFormat)
         this.#isNote = isNote
         if (!this.#speechDialog) {
-            const dlg = speechDialog(this.#target, this.speechSynthesis, isNote)
+            const dlg = speechDialog(this.#target, this.speechSynthesis, isNote, this.#view.book.dir === 'rtl')
             dlg.element.id = 'simebv-speech-dialog'
             this.#target.append(dlg.element)
             this.#speechDialog = dlg
@@ -320,6 +320,7 @@ export class SpeechManager {
         }
         catch (err) {
             console.warn(err)
+            console.log('in ssmlToStrings')
             this.speechSynthesis.lang = 'en'
         }
         // Replace ssml pauses with punctuation (tags <break> with
