@@ -4,22 +4,9 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
     const dlg = document.createElement('dialog')
     const inputContainer = document.createElement('div')
     inputContainer.id = 'simebv-search-input'
-    inputContainer.innerHTML = `
-    <svg width="20" height="20" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" id="simebv-busy-circle">
-        <rect x="24" y="12" rx="2" ry="2" width="4" height="4" transform="rotate(30 14 14)" fill="rgb(0, 0, 0)" />
-        <rect x="24" y="12" rx="2" ry="2" width="4" height="4" transform="rotate(60 14 14)" fill="rgb(21, 21, 21)" />
-        <rect x="24" y="12" rx="2" ry="2" width="4" height="4" transform="rotate(90 14 14)" fill="rgb(42, 42, 42)" />
-        <rect x="24" y="12" rx="2" ry="2" width="4" height="4" transform="rotate(120 14 14)" fill="rgb(64, 64, 64)" />
-        <rect x="24" y="12" rx="2" ry="2" width="4" height="4" transform="rotate(150 14 14)" fill="rgb(85, 85, 85)" />
-        <rect x="24" y="12" rx="2" ry="2" width="4" height="4" transform="rotate(180 14 14)" fill="rgb(106, 106, 106)" />
-        <rect x="24" y="12" rx="2" ry="2" width="4" height="4" transform="rotate(210 14 14)" fill="rgb(128, 128, 128)" />
-        <rect x="24" y="12" rx="2" ry="2" width="4" height="4" transform="rotate(240 14 14)" fill="rgb(149, 149, 149)" />
-        <rect x="24" y="12" rx="2" ry="2" width="4" height="4" transform="rotate(270 14 14)" fill="rgb(170, 170, 170)" />
-        <rect x="24" y="12" rx="2" ry="2" width="4" height="4" transform="rotate(300 14 14)" fill="rgb(192, 192, 192)" />
-        <rect x="24" y="12" rx="2" ry="2" width="4" height="4" transform="rotate(330 14 14)" fill="rgb(213, 213, 213)" />
-        <rect x="24" y="12" rx="2" ry="2" width="4" height="4" transform="rotate(360 14 14)" fill="rgb(234, 234, 234)" />
-    </svg>`
-    const iconBusy = inputContainer.querySelector('#simebv-busy-circle')
+    const iconBusy = document.createElement('span')
+    iconBusy.id = 'simebv-busy-circle'
+    inputContainer.append(iconBusy)
 
     const input = document.createElement('input')
     input.type = 'search'
@@ -29,50 +16,208 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
     inputContainer.append(input)
 
     const buttons = document.createElement('menu')
+
     const prevButton = document.createElement('button')
-    prevButton.classList.add('simebv-button-icon')
+    prevButton.classList.add('simebv-button-icon', 'simebv-hidden')
     prevButton.innerHTML = `
-<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="-1 -2 18 18">
-  <path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5"/>
-</svg>`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"
+    fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path fill-rule="evenodd" d="M6 15l6 -6l6 6" />
+    </svg>
+    `
     prevButton.type = 'button'
     const prevButtonLabel = __('Previous result', 'simple-ebook-viewer')
     prevButton.setAttribute('aria-label', prevButtonLabel)
     prevButton.title = prevButtonLabel
     prevButton.setAttribute('disabled', true)
     const nextButton = document.createElement('button')
-    nextButton.classList.add('simebv-button-icon')
+    nextButton.classList.add('simebv-button-icon', 'simebv-hidden')
     nextButton.innerHTML = `
-<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" viewBox="-1 -2 18 18">
-  <path fill-rule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1"/>
-</svg>`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"
+        fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path fill-rule="evenodd" d="M6 10l6 6l6 -6" />
+    </svg>
+    `
     nextButton.type = 'button'
     const nextButtonLabel = __('Next result', 'simple-ebook-viewer')
     nextButton.setAttribute('aria-label', nextButtonLabel)
     nextButton.title = nextButtonLabel
     nextButton.setAttribute('disabled', true)
+
+    const menuContainer = document.createElement('div')
+    menuContainer.classList.add('simebv-button-icon-container')
+    const menuButton = document.createElement('button')
+    menuButton.classList.add('simebv-button-icon')
+    menuButton.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"
+        fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path fill-rule="evenodd" d="M5 7h14M5 13h14M5 19h14" />
+    </svg>
+    `
+    const menuLabel = __('Search Options', 'simple-ebook-viewer')
+    menuButton.setAttribute('aria-label', menuLabel)
+    menuButton.setAttribute('aria-expanded', false)
+    menuButton.setAttribute('aria-controls', 'simebv-search-options')
+    menuButton.title = menuLabel
+    menuContainer.append(menuButton)
+
     const closeButton = document.createElement('button')
     closeButton.classList.add('simebv-button-icon')
     closeButton.innerHTML = `
-<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="CanvasText" viewBox="2 1 12 12">
-  <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
-</svg>`
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"
+        fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path fill-rule="evenodd" d="M6 6l12 12M6 18l12 -12" />
+    </svg>
+    `
     closeButton.type = 'reset'
     const closeButtonLabel = __('Close', 'simple-ebook-viewer')
     closeButton.setAttribute('aria-label', closeButtonLabel)
     closeButton.title = closeButtonLabel
-    buttons.append(prevButton, nextButton, closeButton)
+
+    buttons.append(prevButton, nextButton, menuContainer, closeButton)
+
+    const popup = document.createElement('div')
+    popup.id = 'simebv-search-options'
+    popup.classList.add('simebv-search-options')
+    const caseSensitive = document.createElement('button')
+    caseSensitive.classList.add('simebv-button-icon')
+    caseSensitive.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"
+        fill="CanvasText" stroke-width="0">
+      <text textLength="90%" x="5%" y="80%">aA</text>
+    </svg>
+    `
+    const caseSensitiveLabel = __('Case sensitive', 'simple-ebook-viewer')
+    caseSensitive.setAttribute('aria-label', caseSensitiveLabel)
+    caseSensitive.setAttribute('aria-checked', false)
+    caseSensitive.title = caseSensitiveLabel
+    caseSensitive.role = 'switch'
+    const wholeWords = document.createElement('button')
+    wholeWords.classList.add('simebv-button-icon')
+    wholeWords.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"
+        fill="CanvasText" stroke-width="0" style="border-bottom:dashed 2.5px;border-radius:25%;box-sizing:border-box;">
+      <text textLength="90%" x="5%" y="80%" lengthAdjust="spacingAndGlyphs">ab</text>
+    </svg>
+    `
+    const wholeWordsLabel = __('Whole words', 'simple-ebook-viewer')
+    wholeWords.setAttribute('aria-label', wholeWordsLabel)
+    wholeWords.setAttribute('aria-checked', false)
+    wholeWords.title = wholeWordsLabel
+    wholeWords.role = 'switch'
+
+    popup.append(caseSensitive, wholeWords)
+    menuContainer.append(popup)
 
     dlg.append(inputContainer, buttons)
+
+    const showOptions = () => {
+        menuButton.setAttribute('aria-expanded', true)
+        menuButton.classList.add('simebv-active')
+        popup.classList.add('simebv-show')
+        popup.firstElementChild?.focus({preventScroll: true})
+    }
+    const hideOptions = () => {
+        menuButton.setAttribute('aria-expanded', false)
+        menuButton.classList.remove('simebv-active')
+        popup.classList.remove('simebv-show')
+    }
+    menuButton.addEventListener('click', () => {
+        menuButton.ariaExpanded === 'true' ? hideOptions() : showOptions()
+    })
+    const showOptionsElements = [
+        dlg, input, closeButton, menuButton, ...Array.from(popup.children)
+    ]
+    showOptionsElements.forEach(el => {
+        el.addEventListener('blur', () => {
+            setTimeout(() => {
+                const active = menuButton.getRootNode().activeElement
+                if (!showOptionsElements.includes(active)) {
+                    hideOptions()
+                }
+            }, 0)
+        })
+    })
+    caseSensitive.addEventListener('click', () => {
+        if (caseSensitive.simebvActive) {
+            caseSensitive.simebvActive = false
+            caseSensitive.setAttribute('aria-checked', false)
+            caseSensitive.classList.remove('simebv-active')
+        }
+        else {
+            caseSensitive.simebvActive = true
+            caseSensitive.setAttribute('aria-checked', true)
+            caseSensitive.classList.add('simebv-active')
+        }
+    })
+    wholeWords.addEventListener('click', () => {
+        if (wholeWords.simebvActive) {
+            wholeWords.simebvActive = false
+            wholeWords.setAttribute('aria-checked', false)
+            wholeWords.classList.remove('simebv-active')
+        }
+        else {
+            wholeWords.simebvActive = true
+            wholeWords.setAttribute('aria-checked', true)
+            wholeWords.classList.add('simebv-active')
+        }
+    })
+
+    // Show temporary floating labels after prolonged touch
+    const showOptionLabel = label => {
+        const container = document.createElement('div')
+        container.classList.add('simebv-search-option-label')
+        container.setAttribute('aria-hidden', true)
+        const p = document.createElement('p')
+        p.innerText = label
+        container.append(p)
+        popup.append(container)
+        setTimeout(() => {
+            container.remove()
+        }, 2000)
+        return container
+    }
+    let sensitiveTimeout
+    let wholeWordsTimeout
+    let tempLabel
+    caseSensitive.addEventListener('touchstart', () => {
+        sensitiveTimeout = setTimeout(() => {
+            tempLabel?.remove()
+            tempLabel = showOptionLabel(caseSensitiveLabel)
+        }, 500)
+    })
+    caseSensitive.addEventListener('touchend', () => {
+        clearTimeout(sensitiveTimeout)
+        sensitiveTimeout = undefined
+    })
+    caseSensitive.addEventListener('touchmove', () => {
+        clearTimeout(sensitiveTimeout)
+        sensitiveTimeout = undefined
+    })
+    wholeWords.addEventListener('touchstart', () => {
+        wholeWordsTimeout = setTimeout(() => {
+            tempLabel?.remove()
+            tempLabel = showOptionLabel(wholeWordsLabel)
+        }, 500)
+    })
+    wholeWords.addEventListener('touchend', () => {
+        clearTimeout(wholeWordsTimeout)
+        wholeWordsTimeout = undefined
+    })
+    wholeWords.addEventListener('touchmove', () => {
+        clearTimeout(wholeWordsTimeout)
+        wholeWordsTimeout = undefined
+    })
 
     const close = () => {
         cleanup()
         prevButton.disabled = true
         nextButton.disabled = true
+        hideOptions()
         dlg.classList.remove('simebv-show')
         dlg.close('')
         if (returnFocus) {
-            returnFocus.focus()
+            returnFocus.focus({preventScroll: true})
         }
     }
 
@@ -86,9 +231,16 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
                     searching = true
                     iconBusy.classList.add('simebv-show')
                     try {
-                        await onSearch(txt, e.shiftKey)
+                        await onSearch(txt, {
+                            reverse: e.shiftKey,
+                            matchCase: caseSensitive.simebvActive,
+                            matchWholeWords: wholeWords.simebvActive,
+                        })
                         prevButton.disabled = false
                         nextButton.disabled = false
+                        prevButton.classList.remove('simebv-hidden')
+                        nextButton.classList.remove('simebv-hidden')
+                        hideOptions()
                     }
                     finally {
                         searching = false
@@ -102,7 +254,14 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
                 break
         }
     })
-
+    input.addEventListener('focus', () => {
+        prevButton.classList.add('simebv-hidden')
+        nextButton.classList.add('simebv-hidden')
+    })
+    input.addEventListener('blur', () => {
+        prevButton.classList.remove('simebv-hidden')
+        nextButton.classList.remove('simebv-hidden')
+    })
     prevButton.addEventListener('click', e => {
         e.preventDefault()  // prevent zoom on multiple taps
         prevMatch()

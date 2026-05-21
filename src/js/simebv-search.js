@@ -5,6 +5,10 @@ import { getColorScheme, searchResultsHighlight } from './simebv-utils.js'
 export class TextSearch {
     #currentSearch
     #query
+    #opts = {
+        matchCase: false,
+        matchWholeWords: false,
+    }
     #results = []
     #index = -1
     #currentLocation
@@ -35,14 +39,17 @@ export class TextSearch {
         this.#dlg.classList.add('simebv-show')
     }
 
-    async doSearch(str, reverse = false) {
-        if (this.#currentSearch && this.#query === str) {
+    async doSearch(str, opts) {
+        const { reverse, matchCase, matchWholeWords } = opts
+        if (this.#currentSearch && this.#isSameSearch(str, {matchCase, matchWholeWords})) {
             reverse ? await this.prevMatch() : await this.nextMatch()
             return
         }
         this.searchCleanUp()
         this.#query = str
-        this.#currentSearch = this.#newSearch(str)
+        this.#opts.matchCase = matchCase
+        this.#opts.matchWholeWords = matchWholeWords
+        this.#currentSearch = this.#newSearch(str, { matchCase, matchWholeWords })
         this.#currentLocation = this.#view.lastLocation
         await this.#matchUntilCurrentLocation()
         if (this.#results.length > 0 && this.#index === this.#results.length - 2) {
@@ -54,7 +61,11 @@ export class TextSearch {
     }
     boundDoSearch = this.doSearch.bind(this)
 
-    #newSearch(query) {
+    #isSameSearch(str, opts) {
+        return this.#query === str && Object.entries(opts).every(opt => opt[1] === this.#opts[opt[0]])
+    }
+
+    #newSearch(query, opts) {
         const isFxl = this.#view.isFixedLayout
         const isDark = getColorScheme(this.#container) === 'dark'
         const color = isFxl ? 'transparent' : 'light-dark(#706766, #DDF4FF)'
@@ -66,7 +77,8 @@ export class TextSearch {
                 opacity: isFxl ? 1 : isDark ? .4 : .3,
                 mixBlendMode: isFxl ? 'normal' : isDark ? 'screen' : 'darken',
                 invert: isFxl
-            }
+            },
+            ...opts,
         })
     }
 

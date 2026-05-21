@@ -333,10 +333,45 @@ input, button, select {
     background-color: var(--menu-bg);
     border: none;
     box-shadow: var(--menu-box-shadow);
+    --search-icon-size: 40px;
 }
 #simebv-search-dialog.simebv-show,
 #simebv-speech-dialog.simebv-show {
     display: flex;
+}
+#simebv-search-dialog .simebv-search-options {
+    display: none;
+    justify-content: safe center;
+    align-items: safe center;
+    flex-direction: row;
+    gap: 6px;
+    padding: 3px;
+    border-radius: 3px;
+    position: absolute;
+    top: calc(var(--search-icon-size) + 2px);
+    right: 1px;
+    background-color: var(--menu-bg);
+    border: none;
+    box-shadow: var(--menu-box-shadow);
+}
+#simebv-search-dialog .simebv-search-options.simebv-show {
+    display: flex;
+}
+#simebv-search-dialog .simebv-search-option-label {
+    position: absolute;
+    top: calc(var(--search-icon-size) + 12px);
+    right: 0;
+    padding: 1px 5px;
+    border: none;
+    box-shadow: var(--menu-box-shadow);
+    background-color: var(--menu-bg);
+    white-space: nowrap;
+    font-weight: bold;
+}
+#simebv-search-dialog .simebv-search-option-label p {
+    margin: 0;
+    -webkit-user-select: none;
+    user-select: none;
 }
 #simebv-search-dialog menu {
     display: flex;
@@ -352,27 +387,50 @@ input, button, select {
     border-radius: 6px;
     padding: 3px;
     border: 1px solid GrayText;
+    color: CanvasText;
+    stroke: CanvasText;
 }
 #simebv-search-dialog button:disabled {
     color: var(--gray-text);
+    stroke: var(--gray-text);
 }
 #simebv-search-dialog button:hover:not(:disabled) {
     background-color: var(--active-bg);
     cursor: pointer;
 }
+#simebv-search-dialog .simebv-button-icon-container {
+    position: relative;
+}
 #simebv-search-dialog .simebv-button-icon {
     background: none;
     border: 0;
     text-align: center;
-    width: 40px;
-    height: 40px;
+    width: var(--search-icon-size);
+    height: var(--search-icon-size);
+    opacity: 1;
+    transition: opacity .3s ease-out, width .3s ease-out;
+}
+@media screen and (max-width:768px) {
+    #simebv-search-dialog .simebv-button-icon.simebv-hidden {
+        width: 0;
+        opacity: 0;
+        padding: 0;
+    }
+}
+#simebv-search-dialog .simebv-button-icon svg {
+    margin-block: 2px;
+    -webkit-user-select: none;
+    user-select: none;
+}
+#simebv-search-dialog .simebv-button-icon.simebv-active {
+    box-shadow: var(--border-box-shadow);
+    transform: scale(0.9);
 }
 #simebv-search-input {
     box-shadow: var(--border-box-shadow);
     border-radius: 2px;
     color: CanvasText;
     flex: auto 1 1;
-    min-inline-size: 15ch;
     position: relative;
 }
 #simebv-search-input > input {
@@ -392,13 +450,26 @@ input, button, select {
 }
 #simebv-busy-circle {
     display: none;
-    animation: 1s steps(12) infinite simebv-rotate-circle;
     position: absolute;
     right: 26px;
     top: calc(50% - 10px);
+    animation: 1s steps(8) infinite simebv-rotate-circle;
+    width: 20px;
+    height: 20px;
+    background: conic-gradient(black, white);
+    --d: radial-gradient(circle 3px at center, black 99%, transparent 100%);
+    mask:
+        var(--d) 78% 78% / 2px 2px no-repeat,
+        var(--d) 50% 90% / 2px 2px no-repeat,
+        var(--d) 22% 78% / 2px 2px no-repeat,
+        var(--d) 10% 50% / 2px 2px no-repeat,
+        var(--d) 22% 22% / 2px 2px no-repeat,
+        var(--d) 50% 10% / 2px 2px no-repeat,
+        var(--d) 78% 22% / 2px 2px no-repeat,
+        var(--d) 90% 50% / 2px 2px no-repeat;
 }
 #simebv-busy-circle.simebv-show {
-    display: inline;
+    display: block;
 }
 .simebv-form-dialog {
     min-width: 20rem;
