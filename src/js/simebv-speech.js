@@ -320,7 +320,6 @@ export class SpeechManager {
         }
         catch (err) {
             console.warn(err)
-            console.log('in ssmlToStrings')
             this.speechSynthesis.lang = 'en'
         }
         // Replace ssml pauses with punctuation (tags <break> with
