@@ -231,34 +231,38 @@ export class Reader {
     }
 
     /**
-     * Look for the active element inside the shadow roots of the viewer's
-     * components (sidebar, headerbar, navbar), then inside the View element
-     * and in the ebook's documents inside their iframes, and finally in the
-     * parent document of the viewer. The first found adequate element
-     * is returned.
+     * Look for the document's active element, checking also open shadow roots
+     * and same origin iframes, including the ebook's displayed documents.
+     * If the focus is on the body or the html node of one of the ebook's documents,
+     * the function returns this.view as the active element (this.view is a closed
+     * shadow root, so unless there is a specific focused element inside one of the
+     * ebook's documents, I cannot know which one has the focus, if any).
      * As a reminder: with no internal focused element, shadowRoot.activeElement
      * returns null, while document.activeElement returns body or documentElement
      */
     getActiveElement() {
-        const bars = [
-            this._sideBar.shadowRoot, this._headerBar.shadowRoot, this._navBar.shadowRoot
-        ]
-        for (const bar of bars) {
-            if (bar.activeElement) return bar.activeElement
+        let activeElement = document.activeElement
+        while (activeElement) {
+            if (activeElement?.shadowRoot?.activeElement) {
+                activeElement = activeElement.shadowRoot.activeElement
+            }
+            else if (activeElement?.tagName.toLowerCase() === 'iframe') {
+                const inner = activeElement.contentDocument?.activeElement
+                if (!inner) break
+                activeElement = inner
+            }
+            else break
         }
-        let activeElement = this.container.shadowRoot.activeElement
         if (activeElement === this.view) {
             for (const { doc } of this.view.renderer.getContents()) {
-                activeElement = doc.activeElement
-                if (['body', 'html'].includes(activeElement.nodeName.toLowerCase())) {
-                    activeElement = null
-                }
-                if (activeElement) {
+                const inner = doc.activeElement
+                if (!['body', 'html'].includes(inner.nodeName.toLowerCase())) {
+                    activeElement = inner
                     break
                 }
             }
         }
-        return activeElement ?? document.activeElement
+        return activeElement
     }
 
     async drawAnnotationHandler(e) {
