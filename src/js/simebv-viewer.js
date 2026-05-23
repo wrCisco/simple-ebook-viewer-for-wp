@@ -22,6 +22,7 @@ import { ebookFormat } from './simebv-ebook-format.js'
 import { TextSearch } from './simebv-search.js'
 import { SpeechManager } from './simebv-speech.js'
 import { FootnoteManager } from './simebv-footnotes.js'
+import { setMousePanEvents } from './simebv-fxl-mousepan.js'
 import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
 // Import css for the Viewer's container element, as static asset
@@ -985,6 +986,7 @@ export class Reader {
             }
             this._speechManager._lastSection = current
         }
+        setMousePanEvents(this.view.renderer)
     }
 
     getBookIdentifier() {
