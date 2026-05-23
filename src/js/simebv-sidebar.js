@@ -224,7 +224,8 @@ export class SideBar extends HTMLElement {
                         this.dispatchEvent(new CustomEvent('side-bar-close'))
                     }
                 }
-                else if (this.shadowRoot.activeElement === this.details && e.shiftKey) {
+                else if (this.shadowRoot.activeElement === this.details
+                        && (e.shiftKey || (!this.hasToc() && !this.hasPageList()))) {
                     this.dispatchEvent(new CustomEvent('side-bar-close'))
                 }
             }

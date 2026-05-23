@@ -89,16 +89,16 @@ export class Reader {
     _defaultFontSize
     _speechManager
 
-    _closeMenus() {
-        let focusTo
+    _closeMenus(focusTo) {
         if (this._sideBar.isVisible()) {
             this._sideBar.saveLastFocus()
-            focusTo = this._headerBar.buttonSideBar
+            if (!focusTo) focusTo = this._headerBar.buttonSideBar
             this._headerBar.buttonSideBar.setAttribute('aria-expanded', 'false')
         }
         this._overlay.classList.remove('simebv-show')
         this._sideBar.hide()
-        this.menu.hide()
+        this.menu.hide(false)
+        this._headerBar.target.dispatchEvent(new CustomEvent('close-menus'))
         if (focusTo) {
             focusTo.focus()
         }
@@ -163,28 +163,29 @@ export class Reader {
                     this._overlay.classList.add('simebv-show')
                     this._sideBar.show()
                     this._sideBar.setInitialFocus()
+                    this._headerBar.target.dispatchEvent(new CustomEvent('open-menus'))
                 }
             }, 20)
         })
         this._overlay.addEventListener('click', () => {
-            this._closeMenus()
+            this._closeMenus(this.container)
         })
         this._sideBar.addEventListener('side-bar-clicked', () => {
             this._tocView.getCurrentItem()?.focus()
         })
-        this._sideBar.addEventListener('side-bar-close', this._closeMenus.bind(this))
+        this._sideBar.addEventListener('side-bar-close', () => this._closeMenus())
         this.menu.element.addEventListener('closeMenu', () => {
-            if (!this._sideBar.isVisible()) {
-                this._overlay.classList.remove('simebv-show')
-            }
+            this._closeMenus()
         })
 
         this._headerBar.attachMenu(this.menu.element)
         this._headerBar.addEventListener('menu-button', (e) => {
-            if (!this.menu.element.classList.contains('simebv-show')) {
+            const close = e.detail?.close
+            if (!close && !this.menu.element.classList.contains('simebv-show')) {
                 this._canSavePreferences = true
                 this.menu.show(this._headerBar.buttonMenu)
                 this._overlay.classList.add('simebv-show')
+                this._headerBar.target.dispatchEvent(new CustomEvent('open-menus'))
             }
             else {
                 this._closeMenus()
@@ -195,17 +196,21 @@ export class Reader {
             realFullscreen ? this._toggleFullScreen.bind(this) : this._toggleFullViewport.bind(this)
         )
         this.container.addEventListener('fullscreenchange', (e) => {
-            const detail = {}
+            const detail = { fxl: this.view.isFixedLayout }
             if (document.fullscreenElement) {
                 detail.data = 'enter'
                 this.container.classList.add('simebv-view-real-fullscreen')
+                this._bookContainer.classList.add('simebv-fullscreen')
             }
             else {
                 detail.data = 'exit'
                 this.container.classList.remove('simebv-view-real-fullscreen')
+                this._bookContainer.classList.remove('simebv-fullscreen')
                 this.view.removeAttribute('autohide-cursor')
             }
-            this._headerBar.dispatchEvent(new CustomEvent('toggle-fullscreen', { detail }))
+            const toggleFullscreen = new CustomEvent('toggle-fullscreen', { detail })
+            this._headerBar.dispatchEvent(toggleFullscreen)
+            this._navBar.dispatchEvent(toggleFullscreen)
         })
         const viewerResizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
@@ -742,20 +747,24 @@ export class Reader {
     }
 
     _toggleFullViewport() {
-        const detail = {}
+        const detail = { fxl: this.view.isFixedLayout }
         if (this.container.classList.contains('simebv-view-fullscreen')) {
             this.container.classList.remove('simebv-view-fullscreen')
+            this._bookContainer.classList.remove('simebv-fullscreen')
             this.view?.removeAttribute('autohide-cursor')
             document.body?.classList.remove('simebv-overflow-hidden')
             detail.data = 'exit'
         }
         else {
             this.container.classList.add('simebv-view-fullscreen')
+            this._bookContainer.classList.add('simebv-fullscreen')
             this.view?.setAttribute('autohide-cursor', '')
             document.body?.classList.add('simebv-overflow-hidden')
             detail.data = 'enter'
         }
-        this._headerBar.dispatchEvent(new CustomEvent('toggle-fullscreen', { detail }))
+        const toggleFullscreen = new CustomEvent('toggle-fullscreen', { detail })
+        this._headerBar.dispatchEvent(toggleFullscreen)
+        this._navBar.dispatchEvent(toggleFullscreen)
     }
 
     _handleKeydown(e) {

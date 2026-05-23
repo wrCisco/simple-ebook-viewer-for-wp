@@ -6,6 +6,17 @@ template.innerHTML = `
 <style>
 #nav-bar {
     bottom: 0;
+    transition: opacity .3s linear;
+}
+#nav-bar.fullscreen {
+    background-color: var(--reader-bg);
+}
+#nav-bar.hide {
+    opacity: 0;
+}
+.hide :is(button, input) {
+    height: 0;
+    overflow: hidden;
 }
 #position-viewer {
     flex-grow: 1;
@@ -50,6 +61,7 @@ export class NavBar extends HTMLElement {
     slider
     percent
     pages
+    controls
 
     constructor() {
         super()
@@ -65,6 +77,7 @@ export class NavBar extends HTMLElement {
         this.slider = this.shadowRoot.getElementById('progress-slider')
         this.percent = this.shadowRoot.getElementById('progress-percent')
         this.pages = this.shadowRoot.getElementById('progress-pages')
+        this.controls = [this.buttonLeft, this.buttonRight, this.slider]
 
         this.setLocalizedLabels()
 
@@ -94,26 +107,96 @@ export class NavBar extends HTMLElement {
     }
 
     connectedCallback() {
+        // Guard against Safari on iOS, which queues the click
+        // for a bit even if the button is disabled or invisible
+        const wasJustRestored = el => performance.now() - el.simebvRestoredAt < 300
         this.buttonLeft.addEventListener(
             'click', e => {
+                if (wasJustRestored(this.buttonLeft)) return
                 e.preventDefault()  // prevent zoom on multiple taps
-                this.dispatchEvent(new CustomEvent('go-left', { bubbles: true }))
+                this.dispatchEvent(new CustomEvent('go-left'))
             }
         )
         this.buttonRight.addEventListener(
             'click', e => {
+                if (wasJustRestored(this.buttonRight)) return
                 e.preventDefault()  // prevent zoom on multiple taps
-                this.dispatchEvent(new CustomEvent('go-right', { bubbles: true }))
+                this.dispatchEvent(new CustomEvent('go-right'))
             }
         )
         this.slider.addEventListener(
             'input',
             e => {
+                if (wasJustRestored(this.slider)) {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    return
+                }
                 this.changedPageSlider = true
                 this.dispatchEvent(new CustomEvent('changed-page-slider', { detail: { newLocation: e.target.value }, bubbles: true }))
             }
         )
+        this.addEventListener('toggle-fullscreen', ({ detail }) => {
+            if (!detail.fxl) return
+            if (detail.data === 'enter') {
+                this.root.classList.add('fullscreen')
+                this.setFullscreenListeners()
+                this.hideBar()
+            }
+            else {
+                this.root.classList.remove('hide', 'fullscreen')
+                this.removeFullscreenListeners()
+                this.showBar()
+            }
+        })
     }
+
+    setFullscreenListeners() {
+        this.root.addEventListener('touchstart', this.boundShowBar)
+        this.root.addEventListener('touchend', this.boundHideBar)
+        this.root.addEventListener('mouseenter', this.boundShowBar)
+        this.root.addEventListener('mouseleave', this.boundHideBar)
+        this.controls.forEach(el => {
+            el.addEventListener('focus', this.boundShowBar)
+            el.addEventListener('blur', this.boundHideBar)
+        })
+    }
+
+    removeFullscreenListeners() {
+        this.root.removeEventListener('touchstart', this.boundShowBar)
+        this.root.removeEventListener('touchend', this.boundHideBar)
+        this.root.removeEventListener('mouseenter', this.boundShowBar)
+        this.root.removeEventListener('mouseleave', this.boundHideBar)
+        this.controls.forEach(el => {
+            el.removeEventListener('focus', this.boundShowBar)
+            el.removeEventListener('blur', this.boundHideBar)
+        })
+    }
+
+    showBar() {
+        if (this.root.classList.contains('hide')) {
+            this.root.classList.remove('hide')
+            this.controls.forEach(el => el.simebvRestoredAt = performance.now())
+            this.slider.style.pointerEvents = 'none'
+            setTimeout(() => this.slider.style.pointerEvents = '', 500)
+        }
+        if (this.hideTimeout) {
+            clearTimeout(this.hideTimeout)
+            this.hideTimeout = undefined
+        }
+    }
+    boundShowBar = this.showBar.bind(this)
+
+    hideBar() {
+        if (this.hideTimeout) {
+            clearTimeout(this.hideTimeout)
+            this.hideTimeout = undefined
+        }
+        this.hideTimeout = setTimeout(() => {
+            this.root.classList.add('hide')
+        }, 2000)
+    }
+    boundHideBar = this.hideBar.bind(this)
 
     attributeChangedCallback(name, oldValue, newValue) {
         switch (oldValue) {

@@ -7,6 +7,13 @@ template.innerHTML = `
 #header-bar {
     top: 0;
     z-index: 2;
+    transition: opacity .3s linear;
+}
+#header-bar.fullscreen {
+    background-color: var(--reader-bg);
+}
+#header-bar.hide {
+    opacity: 0;
 }
 .reader-headline {
     flex: 1 1 fit-content;
@@ -20,6 +27,10 @@ template.innerHTML = `
     white-space: pre;
     text-overflow: ellipsis;
     text-align: center;
+}
+.hide button {
+    height: 0px;
+    overflow: hidden;
 }
 .right-side-buttons,
 .left-side-buttons {
@@ -231,6 +242,7 @@ template.innerHTML = `
 
 export class HeaderBar extends HTMLElement {
     static observedAttributes = ["show-close-button"]
+    target = new EventTarget()
     root
     header
     buttonSideBar
@@ -240,6 +252,7 @@ export class HeaderBar extends HTMLElement {
     buttonFullscreen
     iconEnterFullscreen
     iconExitFullscreen
+    buttons
 
     constructor() {
         super()
@@ -257,36 +270,60 @@ export class HeaderBar extends HTMLElement {
         this.buttonFullscreen = this.shadowRoot.getElementById('full-screen-button')
         this.iconEnterFullscreen = this.shadowRoot.getElementById('icon-enter-fullscreen')
         this.iconExitFullscreen = this.shadowRoot.getElementById('icon-exit-fullscreen')
+        this.buttons = [this.buttonSideBar, this.buttonMenu, this.buttonClose, this.buttonFullscreen]
         this.setLocalizedLabels()
     }
 
     connectedCallback() {
+        // Guard against Safari on iOS, which queues the click
+        // for a bit even if the button is disabled or invisible
+        const wasJustRestored = el => performance.now() - el.simebvRestoredAt < 300
         this.buttonSideBar.addEventListener(
             'click', () => {
+                if (wasJustRestored(this.buttonSideBar)) return
                 const state = this.buttonSideBar.getAttribute('aria-expanded')
                 if (state === 'false') {
                     this.buttonSideBar.setAttribute('aria-expanded', 'true')
                 }
-                this.dispatchEvent(new CustomEvent('side-bar-button', { bubbles: true }))
+                this.dispatchEvent(new CustomEvent('side-bar-button'))
             }
         )
         this.buttonMenu.addEventListener(
-            'click', () => this.dispatchEvent(new CustomEvent('menu-button', { bubbles: true }))
+            'click', () => {
+                if (wasJustRestored(this.buttonMenu)) return
+                this.dispatchEvent(new CustomEvent('menu-button'))
+            }
         )
         this.buttonFullscreen.addEventListener(
-            'click', () => this.dispatchEvent(new CustomEvent('fullscreen-button', { bubbles: true }))
+            'click', () => {
+                if (wasJustRestored(this.buttonFullscreen)) return
+                this.dispatchEvent(new CustomEvent('fullscreen-button'))
+            }
         )
         this.buttonClose.addEventListener(
-            'click', () => this.dispatchEvent(new CustomEvent('close-button', { bubbles: true }))
+            'click', () => {
+                if (wasJustRestored(this.buttonClose)) return
+                this.dispatchEvent(new CustomEvent('close-button'))
+            }
         )
         this.addEventListener('toggle-fullscreen', ({ detail }) => {
             if (detail.data === 'enter') {
                 this.iconEnterFullscreen.classList.add('simebv-icon-hidden')
                 this.iconExitFullscreen.classList.remove('simebv-icon-hidden')
+                if (detail.fxl) {
+                    this.root.classList.add('fullscreen')
+                    this.#setFullscreenListeners()
+                    this.hideBar()
+                }
             }
             else {
                 this.iconEnterFullscreen.classList.remove('simebv-icon-hidden')
                 this.iconExitFullscreen.classList.add('simebv-icon-hidden')
+                if (detail.fxl) {
+                    this.root.classList.remove('fullscreen')
+                    this.#removeFullscreenListeners()
+                    this.showBar()
+                }
             }
         })
         this.addEventListener('new-book', () => this.root.style.visibility = 'visible')
@@ -302,6 +339,75 @@ export class HeaderBar extends HTMLElement {
             this.buttonClose.style.display = ''
         }
     }
+
+    #addStdEventListeners() {
+        this.root.addEventListener('touchstart', this.boundShowBar)
+        this.root.addEventListener('touchend', this.boundHideBar)
+        this.root.addEventListener('mouseenter', this.boundShowBar)
+        this.root.addEventListener('mouseleave', this.boundHideBar)
+        this.buttons.forEach(button => {
+            button.addEventListener('focus', this.boundShowBar)
+            button.addEventListener('blur', this.boundHideBar)
+        })
+    }
+
+    #removeStdEventListeners() {
+        this.root.removeEventListener('touchstart', this.boundShowBar)
+        this.root.removeEventListener('touchend', this.boundHideBar)
+        this.root.removeEventListener('mouseenter', this.boundShowBar)
+        this.root.removeEventListener('mouseleave', this.boundHideBar)
+        this.buttons.forEach(button => {
+            button.removeEventListener('focus', this.boundShowBar)
+            button.removeEventListener('blur', this.boundHideBar)
+        })
+    }
+
+    #setFullscreenListeners() {
+        this.#addStdEventListeners()
+        this.target.addEventListener('open-menus', this.boundOpenMenus)
+        this.target.addEventListener('close-menus', this.boundCloseMenus)
+    }
+
+    #removeFullscreenListeners() {
+        this.#removeStdEventListeners()
+        this.target.removeEventListener('open-menus', this.boundOpenMenus)
+        this.target.removeEventListener('close-menus', this.boundCloseMenus)
+    }
+
+    openMenus() {
+        this.#removeStdEventListeners()
+        this.showBar()
+    }
+    boundOpenMenus = this.openMenus.bind(this)
+
+    closeMenus() {
+        this.#addStdEventListeners()
+        this.hideBar()
+    }
+    boundCloseMenus = this.closeMenus.bind(this)
+
+    showBar(e) {
+        if (this.root.classList.contains('hide')) {
+            this.root.classList.remove('hide')
+            this.buttons.forEach(el => el.simebvRestoredAt = performance.now())
+        }
+        if (this.hideTimeout) {
+            clearTimeout(this.hideTimeout)
+            this.hideTimeout = undefined
+        }
+    }
+    boundShowBar = this.showBar.bind(this)
+
+    hideBar() {
+        if (this.hideTimeout) {
+            clearTimeout(this.hideTimeout)
+            this.hideTimeout = undefined
+        }
+        this.hideTimeout = setTimeout(() => {
+            this.root.classList.add('hide')
+        }, 2000)
+    }
+    boundHideBar = this.hideBar.bind(this)
 
     setLocalizedLabels() {
         this.setHeader(__('No title', 'simple-ebook-viewer'))

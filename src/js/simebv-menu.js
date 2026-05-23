@@ -39,7 +39,7 @@ export class Menu {
         }
     }
 
-    hide() {
+    hide(emit = true) {
         this.#element.classList.remove('simebv-show')
         if (this.#currentItem) {
             this.#currentItem.tabIndex = -1
@@ -48,8 +48,10 @@ export class Menu {
             this.#returnFocusTo.focus()
             this.#returnFocusTo = undefined
         }
-        const e = new CustomEvent('closeMenu', { bubbles: true })
-        this.#element.dispatchEvent(e)
+        if (emit) {
+            const e = new CustomEvent('closeMenu', { bubbles: true })
+            this.#element.dispatchEvent(e)
+        }
     }
 
     #hideAnd(func) {
