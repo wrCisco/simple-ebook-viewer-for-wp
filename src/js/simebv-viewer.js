@@ -931,17 +931,17 @@ export class Reader {
             // Turn pages by swiping left or right.
             // In the paginator this is implemented directly in foliate-js.
             const fxl = this.view.renderer
-            let swipePos
+            let startPos
             let touchId
             doc.addEventListener('touchstart', e => {
                 if (fxl.scrollWidth - fxl.clientWidth > 0) return
                 if (hScrolling || selectionExistedAtStart) return
                 const touch = e.changedTouches[0]
                 touchId = touch.identifier
-                swipePos = touch.screenX
+                startPos = { client: touch.clientX, screen: touch.screenX }
             })
             doc.addEventListener('touchend', e => {
-                if (swipePos) {
+                if (startPos) {
                     let touch
                     for (const t of Array.from(e.changedTouches)) {
                         if (t.identifier === touchId) {
@@ -949,14 +949,14 @@ export class Reader {
                             break
                         }
                     }
-                    if (touch) {
-                        const delta = swipePos - touch.screenX
-                        if (delta > 60) this.view.goRight()
-                        else if (delta < -60) this.view.goLeft()
+                    if (touch && Math.abs(startPos.client - touch.clientX) > 10) {
+                        const delta = startPos.screen - touch.screenX
+                        if (delta > 100) this.view.goRight()
+                        else if (delta < -100) this.view.goLeft()
                     }
                 }
                 touchId = undefined
-                swipePos = undefined
+                startPos = undefined
             })
         }
     }
