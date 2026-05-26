@@ -100,7 +100,7 @@ export class Reader {
         this._overlay.classList.remove('simebv-show')
         this._sideBar.hide()
         this.menu.hide(false)
-        this._headerBar.target.dispatchEvent(new CustomEvent('close-menus'))
+        this._headerBar.dispatchEvent(new CustomEvent('close-menus'))
         if (focusTo) {
             focusTo.focus()
         }
@@ -165,7 +165,7 @@ export class Reader {
                     this._overlay.classList.add('simebv-show')
                     this._sideBar.show()
                     this._sideBar.setInitialFocus()
-                    this._headerBar.target.dispatchEvent(new CustomEvent('open-menus'))
+                    this._headerBar.dispatchEvent(new CustomEvent('open-menus'))
                 }
             }, 20)
         })
@@ -187,7 +187,7 @@ export class Reader {
                 this._prefsManager.userInteraction()
                 this.menu.show(this._headerBar.buttonMenu)
                 this._overlay.classList.add('simebv-show')
-                this._headerBar.target.dispatchEvent(new CustomEvent('open-menus'))
+                this._headerBar.dispatchEvent(new CustomEvent('open-menus'))
             }
             else {
                 this._closeMenus()

@@ -242,7 +242,6 @@ template.innerHTML = `
 
 export class HeaderBar extends HTMLElement {
     static observedAttributes = ["show-close-button"]
-    target = new EventTarget()
     root
     header
     buttonSideBar
@@ -364,15 +363,15 @@ export class HeaderBar extends HTMLElement {
 
     #setFullscreenListeners() {
         this.#addStdEventListeners()
-        this.target.addEventListener('open-menus', this.boundOpenMenus)
-        this.target.addEventListener('close-menus', this.boundCloseMenus)
+        this.addEventListener('open-menus', this.boundOpenMenus)
+        this.addEventListener('close-menus', this.boundCloseMenus)
         this.addEventListener('click-on-document', this.boundOnDocumentClick)
     }
 
     #removeFullscreenListeners() {
         this.#removeStdEventListeners()
-        this.target.removeEventListener('open-menus', this.boundOpenMenus)
-        this.target.removeEventListener('close-menus', this.boundCloseMenus)
+        this.removeEventListener('open-menus', this.boundOpenMenus)
+        this.removeEventListener('close-menus', this.boundCloseMenus)
         this.removeEventListener('click-on-document', this.boundOnDocumentClick)
     }
 
