@@ -160,6 +160,7 @@ export class NavBar extends HTMLElement {
             el.addEventListener('focus', this.boundShowBar)
             el.addEventListener('blur', this.boundHideBar)
         })
+        this.addEventListener('click-on-document', this.boundOnDocumentClick)
     }
 
     removeFullscreenListeners() {
@@ -171,7 +172,14 @@ export class NavBar extends HTMLElement {
             el.removeEventListener('focus', this.boundShowBar)
             el.removeEventListener('blur', this.boundHideBar)
         })
+        this.removeEventListener('click-on-document', this.boundOnDocumentClick)
     }
+
+    onDocumentClick() {
+        this.showBar()
+        this.hideBar()
+    }
+    boundOnDocumentClick = this.onDocumentClick.bind(this)
 
     showBar() {
         if (this.root.classList.contains('hide')) {

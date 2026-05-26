@@ -366,12 +366,14 @@ export class HeaderBar extends HTMLElement {
         this.#addStdEventListeners()
         this.target.addEventListener('open-menus', this.boundOpenMenus)
         this.target.addEventListener('close-menus', this.boundCloseMenus)
+        this.addEventListener('click-on-document', this.boundOnDocumentClick)
     }
 
     #removeFullscreenListeners() {
         this.#removeStdEventListeners()
         this.target.removeEventListener('open-menus', this.boundOpenMenus)
         this.target.removeEventListener('close-menus', this.boundCloseMenus)
+        this.removeEventListener('click-on-document', this.boundOnDocumentClick)
     }
 
     openMenus() {
@@ -385,6 +387,12 @@ export class HeaderBar extends HTMLElement {
         this.hideBar()
     }
     boundCloseMenus = this.closeMenus.bind(this)
+
+    onDocumentClick() {
+        this.showBar()
+        this.hideBar()
+    }
+    boundOnDocumentClick = this.onDocumentClick.bind(this)
 
     showBar(e) {
         if (this.root.classList.contains('hide')) {

@@ -966,6 +966,11 @@ export class Reader {
                 touchId = undefined
                 startPos = undefined
             })
+            doc.addEventListener('click', e => {
+                const ev = new CustomEvent('click-on-document')
+                this._headerBar.dispatchEvent(ev)
+                this._navBar.dispatchEvent(ev)
+            })
         }
     }
 
