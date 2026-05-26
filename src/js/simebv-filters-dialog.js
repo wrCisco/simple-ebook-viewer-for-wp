@@ -1,6 +1,6 @@
 import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
-export function colorFiltersDialog(bookContainer, appliedFilters, fixedLayout = false) {
+export function colorFiltersDialog(bookContainer, view, appliedFilters, fixedLayout = false) {
     const dlg = document.createElement('dialog')
     const form = document.createElement('form')
     form.setAttribute('method', 'dialog')
@@ -87,10 +87,9 @@ export function colorFiltersDialog(bookContainer, appliedFilters, fixedLayout = 
             }
         }
         const val = invertFilter.disabled ? 'none' : `invert(${invertFilter.value}) hue-rotate(${rotateFilter.value}deg)`
-        const book = bookContainer.querySelector('foliate-view')
-        if (book && !fixedLayout) {
+        if (!fixedLayout) {
             const bg = bgFilter.disabled ? 'transparent' : bgFilter.value
-            book.style.setProperty('--book-bg-color', bg)
+            view.style.setProperty('--book-bg-color', bg)
         }
         bookContainer.style.setProperty('--book-colors-filter', val)
     }

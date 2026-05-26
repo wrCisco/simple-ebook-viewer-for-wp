@@ -403,7 +403,7 @@ export class Reader {
 
     _createFilterDialog(bookContainer, isFixedLayout) {
         if (!this._modalDialogs.colorsFilter) {
-            const dlg = colorFiltersDialog(bookContainer, this._appliedFilter, isFixedLayout)
+            const dlg = colorFiltersDialog(bookContainer, this.view, this._appliedFilter, isFixedLayout)
             dlg.element.id = 'simebv-colors-filter-dialog'
             this._rootDiv.append(dlg.element)
             dlg.element.addEventListener('close', () => {
