@@ -6,8 +6,9 @@ import { createTOCView } from '../../vendor/foliate-js/ui/tree.js'
 import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
 import { CFI } from './simebv-epubcfi.js'
 import {
-    isNumeric, getDefaultFontSize, pageListOutline, currentSearchOutline,
-    pluginBaseUrl, isElementWritable, scrollIntoView } from './simebv-utils.js'
+    isNumeric, getDefaultFontSize, pluginBaseUrl,
+    isElementWritable, scrollIntoView } from './simebv-utils.js'
+import { pageListOutline, currentSearchOutline } from './simebv-overlayer-shapes.js'
 import { transformDoc, convertFontSizePxToRem, defaultStyles, getCSS } from './simebv-transform-ebook.js'
 import { colorFiltersDialog } from './simebv-filters-dialog.js'
 import { metadataDialog, MetadataFormatter } from './simebv-metadata-dialog.js'

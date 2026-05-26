@@ -1,6 +1,7 @@
 import { CFI } from './simebv-epubcfi.js'
 import { searchDialog } from './simebv-search-dialog.js'
-import { getColorScheme, searchResultsHighlight } from './simebv-utils.js'
+import { getColorScheme } from './simebv-utils.js'
+import { searchResultsHighlight } from './simebv-overlayer-shapes.js'
 
 export class TextSearch {
     #currentSearch
