@@ -658,8 +658,9 @@ export class Reader {
             }
             this.menu.addMenuItems([
                 menuItems.get('maxPages'),
-                menuItems.get('colorFilter'),
                 menuItems.get('zoom'),
+                menuItems.get('colors'),
+                menuItems.get('colorFilter'),
                 menuItems.get('positionViewer')
             ])
         }
