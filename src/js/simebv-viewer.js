@@ -6,9 +6,8 @@ import { createTOCView } from '../../vendor/foliate-js/ui/tree.js'
 import { Overlayer } from '../../vendor/foliate-js/overlayer.js'
 import { CFI } from './simebv-epubcfi.js'
 import {
-    storageAvailable, isNumeric, getDefaultFontSize,
-    pageListOutline, currentSearchOutline, pluginBaseUrl,
-    isElementWritable, scrollIntoView } from './simebv-utils.js'
+    isNumeric, getDefaultFontSize, pageListOutline, currentSearchOutline,
+    pluginBaseUrl, isElementWritable, scrollIntoView } from './simebv-utils.js'
 import { transformDoc, convertFontSizePxToRem, defaultStyles, getCSS } from './simebv-transform-ebook.js'
 import { colorFiltersDialog } from './simebv-filters-dialog.js'
 import { metadataDialog, MetadataFormatter } from './simebv-metadata-dialog.js'
@@ -23,6 +22,7 @@ import { TextSearch } from './simebv-search.js'
 import { SpeechManager } from './simebv-speech.js'
 import { FootnoteManager } from './simebv-footnotes.js'
 import { setMousePanEvents } from './simebv-fxl-mousepan.js'
+import { PreferencesManager, PreferencesLoader } from './simebv-preferences.js'
 import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
 // Import css for the Viewer's container element, as static asset
@@ -67,8 +67,6 @@ export class Reader {
         fonts: undefined,
     }
     _textSearch
-    // don't save user preferences during page load, but only upon user interaction
-    _canSavePreferences = false
     _appliedFilter = {
         activateColorFilter: false,
         invertColorsFilter: 0,
@@ -89,6 +87,8 @@ export class Reader {
     _ebookTitle
     _defaultFontSize
     _speechManager
+    _prefsManager
+    _prefsLoader
 
     _closeMenus(focusTo) {
         if (this._sideBar.isVisible()) {
@@ -183,7 +183,7 @@ export class Reader {
         this._headerBar.addEventListener('menu-button', (e) => {
             const close = e.detail?.close
             if (!close && !this.menu.element.classList.contains('simebv-show')) {
-                this._canSavePreferences = true
+                this._prefsManager.userInteraction()
                 this.menu.show(this._headerBar.buttonMenu)
                 this._overlay.classList.add('simebv-show')
                 this._headerBar.target.dispatchEvent(new CustomEvent('open-menus'))
@@ -224,6 +224,9 @@ export class Reader {
 
         this.setLocalizedDefaultInterface(this._root)
         this._defaultFontSize = getDefaultFontSize(this._rootDiv)
+
+        this._prefsManager = new PreferencesManager()
+        this._prefsLoader = new PreferencesLoader(this.container, this._prefsManager)
 
         document.dispatchEvent(new CustomEvent('simebv-viewer-loaded'))
     }
@@ -507,7 +510,9 @@ export class Reader {
         }
 
         this.view.addEventListener('draw-annotation', this.drawAnnotationHandler.bind(this))
-        this._setInitialAnnotationOptions(showAnnotations, showPageDelimiters)
+        const annotationPrefs = this._prefsLoader.loadAnnotationPrefs(showAnnotations, showPageDelimiters)
+        this._showAnnotations = annotationPrefs.showAnnotations
+        this._showPageDelimiters = annotationPrefs.showPageDelimiters
 
         // load and show page delimiters if the ebook contains a page list
         const pageList = book.pageList
@@ -570,10 +575,13 @@ export class Reader {
         }
 
         this._setInitialMenuStatus(initialMenuStatus)
-        this._loadFilterPreferences()
+        this._prefsLoader.loadFilterPrefs(this._appliedFilter)
         this._createFilterDialog(this._rootDiv, this.view.isFixedLayout)
         this._createAnnotationsDialog()
-        this._setInitialFontFamily(fontFamily)
+        fontFamily = this._prefsLoader.loadFontFamilyPrefs(fontFamily)
+        if (fontFamily) {
+            this.style.fontFamily = fontFamily
+        }
 
         this.view.renderer.setStyles?.(getCSS(this.style))
 
@@ -615,16 +623,15 @@ export class Reader {
             await this.view.next()
         }
 
-        // The relocate event fires multiple times from foliate-js during the
-        // ebook opening. These initial relocate events should not trigger
-        // a change in _canSavePreferences.
-        // TODO: use a more robust approach.
+        // Register the user interaction after the first relocate event.
+        // The event fires multiple times from foliate-js during the ebook
+        // opening, so wait a little before setting the listener.
         setTimeout(
             () => {
                 this.view.addEventListener(
-                'relocate', () => this._canSavePreferences = true, { once: true }
+                'relocate', () => this._prefsManager.userInteraction(), { once: true }
             )},
-            1000,
+            2000,
         )
         document.dispatchEvent(new CustomEvent('simebv-ebook-loaded'))
 
@@ -690,7 +697,7 @@ export class Reader {
                 ? initialMenuStatus?.fixedLayout
                 : initialMenuStatus?.reflowable) || [])
             .concat(initialMenuStatus?.bothAfter || [])
-        this._loadMenuPreferences(prefs)
+        this._prefsLoader.loadMenuPrefs(prefs, this.menu)
     }
 
     _setMenuMaxSize() {
@@ -851,7 +858,7 @@ export class Reader {
                     }
                     this._closeMenus()
                     this._speechManager.open()
-                    this._canSavePreferences = true
+                    this._prefsManager.userInteraction()
                     e.preventDefault()
                 }
                 break
@@ -1030,162 +1037,25 @@ export class Reader {
     }
 
     _lastReadPagePrefName() {
-        return this.getBookIdentifier() ?? this.getCurrentTitle() + '_LastPage'
+        return (this.getBookIdentifier() ?? this.getCurrentTitle()) + '_LastPage'
     }
 
     _getLastReadPage() {
         return this._loadPreference(this._lastReadPagePrefName())
     }
 
-    _setInitialAnnotationOptions(showAnnotationsAttr, showPageDelimitAttr) {
-        const showAnnotations = this._loadPreference('show-annotations') ?? showAnnotationsAttr
-        const showPageDelimit = this._loadPreference('show-page-delimiters') ?? showPageDelimitAttr
-        this._showAnnotations = !!showAnnotations
-        this._showPageDelimiters = !!showPageDelimit
-    }
-
-    _setInitialFontFamily(fontFamilyAttr) {
-        let fontFamily = this._loadPreference('font-family')
-        if (!fontFamily && fontFamilyAttr) {
-            fontFamily = fontFamilyAttr
-            // this usually won't have an effect (this._canSavePreferences is initially set to false)
-            this._savePreference('font-family', fontFamily)
-        }
-        if (fontFamily) {
-            this.style.fontFamily = fontFamily
-        }
-    }
-
     _savePreferences(prefs) {
-        if (!storageAvailable('localStorage') || !this._canSavePreferences) {
-            return
-        }
-        for (const [name, value] of prefs) {
-            this._savePreference(name, value)
-        }
+        this._prefsManager.savePreferences(prefs)
     }
 
-    _loadFilterPreferences() {
-        if (!this._appliedFilter) {
-            return
-        }
-        for (const prop in this._appliedFilter) {
-            let value = this.container.getAttribute('data-simebv-' + prop.toLowerCase())
-            value = Reader._convertUserSettings(prop, value)
-            if (value != null) {
-                this._appliedFilter[prop] = value
-            }
-        }
-        if (storageAvailable('localStorage')) {
-            for (const prop in this._appliedFilter) {
-                let value = JSON.parse(localStorage.getItem('simebv-' + prop))
-                if (value != null) {
-                    this._appliedFilter[prop] = value
-                }
-            }
-        }
+    _savePreference(name, value, type) {
+        type ??= name.endsWith('_LastPage') ? 'functional' : 'preferences'
+        this._prefsManager.savePreference(name, value, type)
     }
 
-    _savePreference(name, value) {
-        if (!storageAvailable('localStorage') || !this._canSavePreferences) {
-            return
-        }
-        localStorage.setItem('simebv-' + name, JSON.stringify(value))
-    }
-
-    _loadPreference(name) {
-        if (!storageAvailable('localStorage')) {
-            return
-        }
-        return JSON.parse(localStorage.getItem('simebv-' + name))
-    }
-
-    static _convertUserSettings(name, value) {
-        const converter = {
-            colors: {
-                sepia: 'simebv-sepia',
-                light: 'simebv-light',
-                dark: 'simebv-dark',
-                'light-forced': 'simebv-light-forced',
-                'dark-forced': 'simebv-dark-forced',
-            },
-            margins: {
-                small: '4%',
-                medium: '8%',
-                large: '12%',
-            },
-            fontsize: {
-                small: 14,
-                medium: 18,
-                large: 22,
-                'x-large': 26,
-            },
-            linespacing: {
-                auto: 0,
-                small: 1,
-                medium: 1.4,
-                large: 2.3,
-            },
-            activatecolorfilter: {
-                'true': true,
-                'false': false,
-            },
-            bgfiltertransparent: {
-                'true': true,
-                'false': false,
-            },
-            hyphenation: {
-                'auto': 'auto',
-                'true': 'yes',
-                'false': 'no',
-            },
-        }
-        if (isNumeric(value)) {
-            value = Number(value)
-        }
-        return converter[name.toLowerCase()]?.[value] ?? value
-    }
-
-    _loadMenuPreferences(values) {
-        if (!this.menu) {
-            return
-        }
-        // Retrieve data set by the user server side, validate it and store it as default
-        const defValues = values.map((item) => {
-            const [name, _] = item
-            let attrVal = this.container.getAttribute('data-simebv-' + name.toLowerCase())
-            attrVal = Reader._convertUserSettings(name, attrVal)
-            if (attrVal && this.menu.groups[name]?.validate(attrVal)) {
-                return [name, attrVal]
-            }
-            return item
-        })
-        // if there is no localStorage available, select default values on the menu
-        if (!storageAvailable('localStorage')) {
-            for (const [name, defVal] of defValues) {
-                this.menu.groups[name]?.select(defVal)
-            }
-            return
-        }
-        // Retrieve data from localStorage, validate it and select it on the menu, otherwise use default
-        for (const [name, defVal] of defValues) {
-            if (name === 'zoom') {
-                const savedCustomZoom = this._loadPreference('custom-zoom')
-                if (this.menu.groups.zoom?.validate(savedCustomZoom)) {
-                    // this will not trigger the change event
-                    this.menu.element.querySelector('#simebv-zoom-numeric').value = savedCustomZoom
-                    const smItem = this.menu.element.querySelector('#simebv-zoom-numeric-sm')
-                    smItem.textContent = smItem.textContent.replace(/\d+/, savedCustomZoom)
-                }
-            }
-            let savedVal = JSON.parse(localStorage.getItem('simebv-' + name))
-            this.menu.groups[name]?.validate(savedVal)
-                ? this.menu.groups[name].select(savedVal)
-                : (
-                    this.menu.groups[name]?.select(defVal),
-                    console.warn(`Invalid value for menu ${name}: ${savedVal}, setting default: ${defVal}`)
-                )
-        }
+    _loadPreference(name, type) {
+        type ??= name.endsWith('_LastPage') ? 'functional' : 'preferences'
+        return this._prefsManager.loadPreference(name, type)
     }
 
     setLocalizedDefaultInterface(root) {
@@ -1338,5 +1208,7 @@ export * from './simebv-menu-items.js'
 export * from './simebv-ebook-format.js'
 export * from './simebv-search.js'
 export * from './simebv-epubcfi.js'
+export * from './simebv-fxl-mousepan.js'
+export * from './simebv-preferences.js'
 export * from '../../vendor/foliate-js/ui/tree.js'
 export * from '../../vendor/foliate-js/overlayer.js'

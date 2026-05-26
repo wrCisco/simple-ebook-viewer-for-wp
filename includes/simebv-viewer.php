@@ -82,6 +82,19 @@ class SIMEBV_Viewer extends SIMEBV_Base {
         do_action('simebv_enqueued_init_js');
     }
 
+    public static function add_consent_data() {
+        $has_api = function_exists('wp_has_consent');
+        wp_add_inline_script(
+            self::$js_core_script_handle,
+            'window.simebvConsent = ' . wp_json_encode([
+                'isApiActive' => $has_api,
+                'preferences' => $has_api ? wp_has_consent('preferences') : true,
+                'functional' => $has_api ? wp_has_consent('functional') : true,
+            ]) . ';',
+            'before',
+        );
+    }
+
     public static function conditionally_enqueue_assets() {
         if (!is_singular()) {
             return;
@@ -91,6 +104,7 @@ class SIMEBV_Viewer extends SIMEBV_Base {
         if (has_shortcode($post->post_content, 'simebv_viewer')) {
             self::enqueue_core_js();
             self::enqueue_init_js();
+            self::add_consent_data();
         }
 
     }
@@ -160,6 +174,7 @@ class SIMEBV_Viewer extends SIMEBV_Base {
             self::enqueue_core_js();
             self::enqueue_init_js();
             self::register_javascript_translations();
+            self::add_consent_data();
         }
 
         $styles = self::setup_styles($atts);

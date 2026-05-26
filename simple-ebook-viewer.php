@@ -32,3 +32,5 @@ add_action('plugins_loaded', ['SIMEBV_Viewer', 'init']);
 add_action('plugins_loaded', ['SIMEBV_Admin', 'init']);
 
 register_activation_hook(__FILE__, ['SIMEBV_Admin', 'add_ebook_slug_to_all_ebooks']);
+
+add_filter("wp_consent_api_registered_" . plugin_basename(__FILE__), '__return_true');
