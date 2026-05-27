@@ -309,20 +309,16 @@ export class HeaderBar extends HTMLElement {
             if (detail.data === 'enter') {
                 this.iconEnterFullscreen.classList.add('simebv-icon-hidden')
                 this.iconExitFullscreen.classList.remove('simebv-icon-hidden')
-                if (detail.fxl) {
-                    this.root.classList.add('fullscreen')
-                    this.#setFullscreenListeners()
-                    this.hideBar()
-                }
+                this.root.classList.add('fullscreen')
+                this.#setFullscreenListeners()
+                this.hideBar()
             }
             else {
                 this.iconEnterFullscreen.classList.remove('simebv-icon-hidden')
                 this.iconExitFullscreen.classList.add('simebv-icon-hidden')
-                if (detail.fxl) {
-                    this.root.classList.remove('fullscreen')
-                    this.#removeFullscreenListeners()
-                    this.showBar()
-                }
+                this.root.classList.remove('fullscreen')
+                this.#removeFullscreenListeners()
+                this.showBar()
             }
         })
         this.addEventListener('new-book', () => this.root.style.visibility = 'visible')
@@ -365,14 +361,14 @@ export class HeaderBar extends HTMLElement {
         this.#addStdEventListeners()
         this.addEventListener('open-menus', this.boundOpenMenus)
         this.addEventListener('close-menus', this.boundCloseMenus)
-        this.addEventListener('click-on-document', this.boundOnDocumentClick)
+        this.addEventListener('tap-on-document', this.boundOnDocumentClick)
     }
 
     #removeFullscreenListeners() {
         this.#removeStdEventListeners()
         this.removeEventListener('open-menus', this.boundOpenMenus)
         this.removeEventListener('close-menus', this.boundCloseMenus)
-        this.removeEventListener('click-on-document', this.boundOnDocumentClick)
+        this.removeEventListener('tap-on-document', this.boundOnDocumentClick)
     }
 
     openMenus() {
@@ -412,7 +408,7 @@ export class HeaderBar extends HTMLElement {
         }
         this.hideTimeout = setTimeout(() => {
             this.root.classList.add('hide')
-        }, 2000)
+        }, 1500)
     }
     boundHideBar = this.hideBar.bind(this)
 

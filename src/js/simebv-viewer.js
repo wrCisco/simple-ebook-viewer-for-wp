@@ -23,6 +23,7 @@ import { TextSearch } from './simebv-search.js'
 import { SpeechManager } from './simebv-speech.js'
 import { FootnoteManager } from './simebv-footnotes.js'
 import { setMousePanEvents } from './simebv-fxl-mousepan.js'
+import { setTouchEvents } from './simebv-doc-touchevents.js'
 import { PreferencesManager, PreferencesLoader } from './simebv-preferences.js'
 import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
@@ -213,6 +214,11 @@ export class Reader {
             const toggleFullscreen = new CustomEvent('toggle-fullscreen', { detail })
             this._headerBar.dispatchEvent(toggleFullscreen)
             this._navBar.dispatchEvent(toggleFullscreen)
+        })
+        this.container.addEventListener('tap-on-document', e => {
+            const ev = new CustomEvent('tap-on-document')
+            this._headerBar.dispatchEvent(ev)
+            this._navBar.dispatchEvent(ev)
         })
         const viewerResizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
@@ -871,94 +877,9 @@ export class Reader {
                 }
             })
         }
-        // Allow users to select text and to scroll horizontally
-        // overflowing elements on touch devices
-        let hScrolling = false
-        let selectionExistedAtStart = false
-        doc.addEventListener('touchstart', (e) => {
-            let elem
-            const touch = e.changedTouches[0]
-            for (const el of doc.elementsFromPoint(touch.clientX, touch.clientY)) {
-                if (el === doc.body) {
-                    break
-                }
-                if (el.scrollWidth && el.scrollWidth > el.clientWidth) {
-                    const before = el.scrollLeft
-                    el.scrollLeft += 1
-                    if (el.scrollLeft === before) {
-                        el.scrollLeft -= 1
-                    }
-                    if (el.scrollLeft !== before) {
-                        el.scrollLeft = before
-                        elem = el
-                        break
-                    }
-                }
-            }
-            if (elem) {
-                hScrolling = elem
-            }
-            const sel = doc.getSelection()
-            selectionExistedAtStart = sel && !sel.isCollapsed
-            if (hScrolling || selectionExistedAtStart) {
-                e.stopPropagation()
-            }
-        }, {capture: true})
-        doc.addEventListener('touchmove', (e) => {
-            if (hScrolling && e.touches.length === 1) {
-                e.stopPropagation()
-            }
-            const sel = doc.getSelection()
-            if (selectionExistedAtStart || (sel && !sel.isCollapsed)) {
-                e.stopPropagation()
-            }
-        }, {capture: true})
-        doc.addEventListener('touchend', (e) => {
-            const sel = doc.getSelection()
-            if (hScrolling || selectionExistedAtStart || (sel && !sel.isCollapsed)) {
-                e.stopPropagation()
-            }
-            hScrolling = false
-            selectionExistedAtStart = false
-        }, {capture: true})
-        if (this.view.isFixedLayout) {
-            // Turn pages by swiping left or right.
-            // In the paginator this is implemented directly in foliate-js.
-            const fxl = this.view.renderer
-            let startPos
-            let touchId
-            doc.addEventListener('touchstart', e => {
-                if (fxl.scrollWidth - fxl.clientWidth > 0) return
-                if (hScrolling || selectionExistedAtStart) return
-                const touch = e.changedTouches[0]
-                touchId = touch.identifier
-                startPos = { client: touch.clientX, screen: touch.screenX }
-            })
-            doc.addEventListener('touchend', e => {
-                if (startPos) {
-                    let touch
-                    for (const t of Array.from(e.changedTouches)) {
-                        if (t.identifier === touchId) {
-                            touch = t
-                            break
-                        }
-                    }
-                    if (touch && Math.abs(startPos.client - touch.clientX) > 10) {
-                        const delta = startPos.screen - touch.screenX
-                        if (delta > 100) this.view.goRight()
-                        else if (delta < -100) this.view.goLeft()
-                    }
-                }
-                touchId = undefined
-                startPos = undefined
-            })
-            doc.addEventListener('click', e => {
-                const ev = new CustomEvent('click-on-document')
-                this._headerBar.dispatchEvent(ev)
-                this._navBar.dispatchEvent(ev)
-            })
-        }
+        setTouchEvents(doc, this)
     }
+
 
     _onRelocate({ detail }) {
         const { fraction, section, location, tocItem, pageItem } = detail
