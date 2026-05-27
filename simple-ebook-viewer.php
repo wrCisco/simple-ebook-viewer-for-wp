@@ -27,10 +27,12 @@ require_once SIMEBV_PLUGIN_DIR . 'vendor/vite-for-wp/vite-for-wp.php';
 require_once SIMEBV_PLUGIN_DIR . 'includes/simebv-base.php';
 require_once SIMEBV_PLUGIN_DIR . 'includes/simebv-viewer.php';
 require_once SIMEBV_PLUGIN_DIR . 'includes/simebv-admin.php';
+require_once SIMEBV_PLUGIN_DIR . 'includes/simebv-init.php';
 
 add_action('plugins_loaded', ['SIMEBV_Viewer', 'init']);
 add_action('plugins_loaded', ['SIMEBV_Admin', 'init']);
+add_action('plugins_loaded', ['SIMEBV_Init', 'on_upgrade']);
 
-register_activation_hook(__FILE__, ['SIMEBV_Admin', 'add_ebook_slug_to_all_ebooks']);
+register_activation_hook(__FILE__, ['SIMEBV_Init', 'on_activation']);
 
 add_filter("wp_consent_api_registered_" . plugin_basename(__FILE__), '__return_true');

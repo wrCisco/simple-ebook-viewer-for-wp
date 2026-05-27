@@ -138,34 +138,36 @@ class SIMEBV_Admin extends SIMEBV_Base {
         return $post;
     }
 
-    public static function add_ebook_slug_to_all_ebooks() {
+    public static function add_ebook_slugs($types = []) {
+        $mimetypes = count($types) === 0
+            ? array_values(self::$ebook_mimetypes)
+            : array_values(array_intersect_key(self::$ebook_mimetypes, array_flip($types)));
+        if (count($mimetypes) === 0) return;
         $args = array(
             'post_type' => 'attachment',
             'post_status' => 'inherit',
-            'posts_per_page' => -1,
+            'post_mime_type' => $mimetypes,
+            'posts_per_page' => 200,
+            'paged' => 1,
+            'no_found_rows' => true,
         );
-        $query = new WP_Query($args);
-        while ($query->have_posts()) {
-            $query->the_post();
-            $attachment_ID = get_the_ID();
-            $type = get_post_mime_type($attachment_ID);
-            if (!in_array($type, array_values(self::$ebook_mimetypes))) {
-                continue;
-            }
-            $metadata = get_post_meta($attachment_ID);
-            if (!isset($metadata['simebv_ebook_slug'])) {
-                $post = get_post($attachment_ID);
-                $slug = sanitize_text_field($post->post_name);
-                if (!empty($slug)) {
-                    update_post_meta(
-                        $attachment_ID,
-                        'simebv_ebook_slug',
-                        $slug
-                    );
+        while (true) {
+            $query = new WP_Query($args);
+            foreach ($query->posts as $attachment) {
+                $attachment_ID = $attachment->ID;
+                $existing = get_post_meta($attachment_ID, 'simebv_ebook_slug', true);
+                if (empty($existing)) {
+                    $slug = sanitize_text_field($attachment->post_name);
+                    if (!empty($slug)) {
+                        update_post_meta($attachment_ID, 'simebv_ebook_slug', $slug);
+                    }
                 }
             }
+            if (count($query->posts) < $args['posts_per_page']) {
+                break;
+            }
+            $args['paged']++;
         }
-        wp_reset_postdata();
     }
 
 }
