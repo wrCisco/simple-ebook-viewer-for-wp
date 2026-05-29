@@ -265,13 +265,13 @@ export class Menu {
         const map = new Map()
         let currentValue
         const current = () => currentValue
-        const select = value => {
+        const select = (value, opts) => {
             if (container.getAttribute('aria-disabled') === 'true') return
             currentValue = value
             const item = map.get(value)
             for (const child of group.children)
                 child.setAttribute('aria-checked', child === item ? 'true' : 'false')
-            onclick(value)
+            onclick(value, opts)
         }
         const enable = (activate) => {
             activate === false

@@ -258,6 +258,7 @@ export class PreferencesLoader {
         if (!menu) {
             return
         }
+        const selectOpts = { initialSelect: true }
         // Retrieve data set by the user server side, validate it and store it as default
         const defValues = values.map((item) => {
             const [name, _] = item
@@ -271,7 +272,7 @@ export class PreferencesLoader {
         // if there is no storage available, select default values on the menu
         if (!this.manager.isStorageAvailable()) {
             for (const [name, defVal] of defValues) {
-                menu.groups[name]?.select(defVal)
+                menu.groups[name]?.select(defVal, selectOpts)
             }
             return
         }
@@ -289,9 +290,9 @@ export class PreferencesLoader {
             let savedVal = this.manager.loadPreference(name)
             // let savedVal = JSON.parse(localStorage.getItem('simebv-' + name))
             menu.groups[name]?.validate(savedVal)
-                ? menu.groups[name].select(savedVal)
+                ? menu.groups[name].select(savedVal, selectOpts)
                 : (
-                    menu.groups[name]?.select(defVal),
+                    menu.groups[name]?.select(defVal, selectOpts),
                     console.warn(`Invalid value for menu ${name}: ${savedVal}, setting default: ${defVal}`)
                 )
         }
