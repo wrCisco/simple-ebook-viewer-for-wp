@@ -450,6 +450,7 @@ export class Reader {
         this._bookContainer.append(this.view)
         const file = await fetchFile(fileUrl)
         await this.view.open(file, { CFI })
+        this.view.book._defaultDir = this.view.book.dir
         this._openEbookFormat = await ebookFormat(file)
         this._populateMenu(menuItems)
         if (this.view.isFixedLayout) {
@@ -668,6 +669,14 @@ export class Reader {
             this.menu.addMenuItems([
                 menuItems.get('maxPages'),
                 menuItems.get('zoom'),
+            ])
+            if (['pdf', 'cbz'].includes(this._openEbookFormat)) {
+                this.menu.addMenuItem(
+                    menuItems.get('oddPages'), true
+                )
+            }
+            this.menu.addMenuItems([
+                menuItems.get('pageProgression'),
                 menuItems.get('colors'),
                 menuItems.get('colorFilter'),
                 menuItems.get('positionViewer')

@@ -111,6 +111,12 @@ class SIMEBV_Base {
             'hyphenation' => [
                 'html_name' => 'data-simebv-hyphenation', 'default' => ''
             ],
+            'first-page' => [
+                'html_name' => 'data-simebv-oddpages', 'default' => ''
+            ],
+            'reading-order' => [
+                'html_name' => 'data-simebv-pageprogression', 'default' => ''
+            ],
         ],
     ];
 

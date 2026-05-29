@@ -61,6 +61,52 @@ export function createMenuItemsStd(reader, injectCSS) {
             horizontal: false,
         }],
 
+        ['oddPages', {
+            name: 'oddPages',
+            label: __('First page', 'simple-ebook-viewer'),
+            type: 'radio',
+            items: [
+                [__('Left', 'simple-ebook-viewer'), 'left'],
+                [__('Right', 'simple-ebook-viewer'), 'right'],
+            ],
+            onclick: value => {
+                // meant only for fixed layout ebooks
+                const { book, renderer } = reader.view
+                const assign = i => i % 2 === 0 ^ value === 'left' ? 'right' : 'left'
+                book.sections.forEach((section, i) => {
+                    section.pageSpread = assign(i)
+                })
+                renderer.respread().catch(e => console.error(e))
+                reader._savePreference('oddPages', value)
+            },
+            horizontal: false,
+        }],
+
+        ['pageProgression', {
+            name: 'pageProgression',
+            label: __('Page direction', 'simple-ebook-viewer'),
+            type: 'radio',
+            items: [
+                [__('Auto', 'simple-ebook-viewer'), 'auto'],
+                [__('Left To Right', 'simple-ebook-viewer'), 'ltr'],
+                [__('Right To Left', 'simple-ebook-viewer'), 'rtl'],
+            ],
+            onclick: value => {
+                const { book, renderer } = reader.view
+                const dir = value === 'auto' ? book._defaultDir : value
+                if (dir !== book.dir) {
+                    book.dir = dir
+                    renderer.respread?.().catch(e => console.error(e))
+                    reader._navBar.dispatchEvent(new CustomEvent('new-book', { detail: {
+                        fractions: reader.view.getSectionFractions(),
+                        dir: book.dir
+                    }}))
+                }
+                reader._savePreference('pageProgression', value)
+            },
+            horizontal: false,
+        }],
+
         ['maxPages', {
             name: 'maxPages',
             label: __('Max pages per view', 'simple-ebook-viewer'),
@@ -380,6 +426,8 @@ export function getInitialMenuStatusStd() {
         ],
         fixedLayout: [
             ['zoom', 'fit-page'],
+            ['oddPages', 'right'],  // this is meant only for pdf and comic-books, where book.dir is undefined
+            ['pageProgression', 'auto'],
         ],
         reflowable: [
             ['fontSize', 18],
