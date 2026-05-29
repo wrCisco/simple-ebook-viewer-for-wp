@@ -579,9 +579,40 @@ export class Reader {
 
         this.view.addEventListener('relocate', this._onRelocate.bind(this))
         if (this.view.isFixedLayout) {
-            this.view.renderer.addEventListener('relocate', this._onFxlRelocate.bind(this))
+            this.setFxlRendererEventListeners()
         }
 
+        await this.goToLastReadPage()
+
+        // Register the user interaction after the first relocate event.
+        // The event fires multiple times from foliate-js during the ebook
+        // opening, so wait a little before setting the listener.
+        setTimeout(
+            () => {
+                this.view.addEventListener(
+                'relocate', () => this._prefsManager.userInteraction(), { once: true }
+            )},
+            2000,
+        )
+        document.dispatchEvent(new CustomEvent('simebv-ebook-loaded'))
+
+    }
+
+    async reopen() {
+        const { book } = this.view
+        this.view.close()
+        await this.view.open(book, { CFI })
+        if (this.view.isFixedLayout) {
+            this.setFxlRendererEventListeners()
+        }
+        this.goToLastReadPage()
+    }
+
+    setFxlRendererEventListeners() {
+        this.view.renderer.addEventListener('relocate', this._boundOnFxlRelocate)
+    }
+
+    async goToLastReadPage() {
         // With certain formats (e.g. fb2), invalid values of lastLocation
         // can result in the ebook not opening but without raising errors,
         // so I try to make a bit of validation beforehand. Accepted values are
@@ -614,19 +645,6 @@ export class Reader {
         if (lastLocation === null) {
             await this.view.next()
         }
-
-        // Register the user interaction after the first relocate event.
-        // The event fires multiple times from foliate-js during the ebook
-        // opening, so wait a little before setting the listener.
-        setTimeout(
-            () => {
-                this.view.addEventListener(
-                'relocate', () => this._prefsManager.userInteraction(), { once: true }
-            )},
-            2000,
-        )
-        document.dispatchEvent(new CustomEvent('simebv-ebook-loaded'))
-
     }
 
     _populateMenu(customMenuItems) {
@@ -940,6 +958,7 @@ export class Reader {
         }
         setMousePanEvents(this.view.renderer)
     }
+    _boundOnFxlRelocate = this._onFxlRelocate.bind(this)
 
     getBookIdentifier() {
         return this.view?.book?.metadata?.identifier || null
