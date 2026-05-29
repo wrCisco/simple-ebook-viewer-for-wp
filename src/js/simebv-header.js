@@ -336,8 +336,8 @@ export class HeaderBar extends HTMLElement {
     }
 
     #addStdEventListeners() {
-        this.root.addEventListener('touchstart', this.boundShowBar)
-        this.root.addEventListener('touchend', this.boundHideBar)
+        this.root.addEventListener('touchstart', this.boundShowBar, { passive: true })
+        this.root.addEventListener('touchend', this.boundHideBar, { passive: true })
         this.root.addEventListener('mouseenter', this.boundShowBar)
         this.root.addEventListener('mouseleave', this.boundHideBar)
         this.buttons.forEach(button => {
@@ -347,8 +347,8 @@ export class HeaderBar extends HTMLElement {
     }
 
     #removeStdEventListeners() {
-        this.root.removeEventListener('touchstart', this.boundShowBar)
-        this.root.removeEventListener('touchend', this.boundHideBar)
+        this.root.removeEventListener('touchstart', this.boundShowBar, { passive: true })
+        this.root.removeEventListener('touchend', this.boundHideBar, { passive: true })
         this.root.removeEventListener('mouseenter', this.boundShowBar)
         this.root.removeEventListener('mouseleave', this.boundHideBar)
         this.buttons.forEach(button => {

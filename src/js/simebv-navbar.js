@@ -151,8 +151,8 @@ export class NavBar extends HTMLElement {
     }
 
     setFullscreenListeners() {
-        this.root.addEventListener('touchstart', this.boundShowBar)
-        this.root.addEventListener('touchend', this.boundHideBar)
+        this.root.addEventListener('touchstart', this.boundShowBar, { passive: true })
+        this.root.addEventListener('touchend', this.boundHideBar, { passive: true })
         this.root.addEventListener('mouseenter', this.boundShowBar)
         this.root.addEventListener('mouseleave', this.boundHideBar)
         this.controls.forEach(el => {
