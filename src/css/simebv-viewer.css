@@ -1,5 +1,5 @@
 :host {
-    font-family: ManropeVar, sans-serif;
+    font-family: var(--simebv-ui-font-family, ManropeVar, sans-serif);
     color-scheme: light dark;
     --sepia-color: #f9f1cc;
     --bg-light-color: #ffffff;
