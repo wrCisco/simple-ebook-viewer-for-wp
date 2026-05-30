@@ -45,11 +45,11 @@ export class Menu {
             this.#currentItem.tabIndex = -1
         }
         if (this.#returnFocusTo) {
-            this.#returnFocusTo.focus()
+            this.#returnFocusTo.focus({ preventScroll: !emit })
             this.#returnFocusTo = undefined
         }
         if (emit) {
-            const e = new CustomEvent('closeMenu', { bubbles: true })
+            const e = new CustomEvent('closeMenu')
             this.#element.dispatchEvent(e)
         }
     }

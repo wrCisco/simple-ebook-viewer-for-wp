@@ -103,7 +103,7 @@ export class Reader {
         this.menu.hide(false)
         this._headerBar.dispatchEvent(new CustomEvent('close-menus'))
         if (focusTo) {
-            focusTo.focus()
+            focusTo.focus({ preventScroll: true })
         }
     }
 
