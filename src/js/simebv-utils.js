@@ -103,7 +103,7 @@ export function safeCSSString(input, quotes=false) {
     return quotes ? `"${cleaned}"` : cleaned
 }
 
-export function scrollIntoView(element, renderer) {
+export function scrollIntoView(element, doc, renderer) {
     const containerBBox = renderer.getBoundingClientRect()
     const elBBox = element.getBoundingClientRect()
     if (elBBox.right > containerBBox.right

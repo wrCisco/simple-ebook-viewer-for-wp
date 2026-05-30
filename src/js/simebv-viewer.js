@@ -289,7 +289,7 @@ export class Reader {
                     color: '#FF0000', width: 2, opacity: .8, radius: 0
                 })
                 if (this.view.isFixedLayout) {
-                    scrollIntoView(el, this.view.renderer)
+                    scrollIntoView(el, doc, this.view.renderer)
                 }
                 break
             case 'calibre-bookmark':
