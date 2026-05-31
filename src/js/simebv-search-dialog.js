@@ -138,26 +138,30 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
             }, 0)
         })
     })
+    const opts = {
+        caseSensitive: false,
+        wholeWords: false
+    }
     caseSensitive.addEventListener('click', () => {
-        if (caseSensitive.simebvActive) {
-            caseSensitive.simebvActive = false
+        if (opts.caseSensitive) {
+            opts.caseSensitive = false
             caseSensitive.setAttribute('aria-checked', false)
             caseSensitive.classList.remove('simebv-active')
         }
         else {
-            caseSensitive.simebvActive = true
+            opts.caseSensitive = true
             caseSensitive.setAttribute('aria-checked', true)
             caseSensitive.classList.add('simebv-active')
         }
     })
     wholeWords.addEventListener('click', () => {
-        if (wholeWords.simebvActive) {
-            wholeWords.simebvActive = false
+        if (opts.wholeWords) {
+            opts.wholeWords = false
             wholeWords.setAttribute('aria-checked', false)
             wholeWords.classList.remove('simebv-active')
         }
         else {
-            wholeWords.simebvActive = true
+            opts.wholeWords = true
             wholeWords.setAttribute('aria-checked', true)
             wholeWords.classList.add('simebv-active')
         }
@@ -209,6 +213,38 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
         wholeWordsTimeout = undefined
     })
 
+    let searching = false
+    const execSearch = async (e, { prev, next, new_ }) => {
+        if (searching) return
+        let txt
+        if (new_) {
+            txt = input.value
+            if (!txt) return
+        }
+        searching = true
+        iconBusy.classList.add('simebv-show')
+        try {
+            if (prev) await prevMatch()
+            else if (next) await nextMatch()
+            else if (new_) await onSearch(txt, {
+                reverse: e.shiftKey,
+                matchCase: opts.caseSensitive,
+                matchWholeWords: opts.wholeWords,
+            })
+            if (dlg.open) {
+                prevButton.disabled = false
+                nextButton.disabled = false
+                prevButton.classList.remove('simebv-hidden')
+                nextButton.classList.remove('simebv-hidden')
+                hideOptions()
+            }
+        }
+        finally {
+            searching = false
+            iconBusy.classList.remove('simebv-show')
+        }
+    }
+
     const close = () => {
         cleanup()
         prevButton.disabled = true
@@ -221,32 +257,10 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
         }
     }
 
-    let searching = false
     input.addEventListener('keydown', async (e) => {
         switch (e.key) {
             case 'Enter':
-                if (searching) break
-                const txt = input.value
-                if (txt) {
-                    searching = true
-                    iconBusy.classList.add('simebv-show')
-                    try {
-                        await onSearch(txt, {
-                            reverse: e.shiftKey,
-                            matchCase: caseSensitive.simebvActive,
-                            matchWholeWords: wholeWords.simebvActive,
-                        })
-                        prevButton.disabled = false
-                        nextButton.disabled = false
-                        prevButton.classList.remove('simebv-hidden')
-                        nextButton.classList.remove('simebv-hidden')
-                        hideOptions()
-                    }
-                    finally {
-                        searching = false
-                        iconBusy.classList.remove('simebv-show')
-                    }
-                }
+                await execSearch(e, {new_: true})
                 break
             case 'ArrowLeft':
             case 'ArrowRight':
@@ -264,11 +278,11 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
     })
     prevButton.addEventListener('click', e => {
         e.preventDefault()  // prevent zoom on multiple taps
-        prevMatch()
+        execSearch(e, { prev: true })
     })
     nextButton.addEventListener('click', e => {
         e.preventDefault()  // prevent zoom on multiple taps
-        nextMatch()
+        execSearch(e, { next: true })
     })
     closeButton.addEventListener('click', close)
 

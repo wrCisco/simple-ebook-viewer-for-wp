@@ -5,14 +5,18 @@ import { searchResultsHighlight } from './simebv-overlayer-shapes.js'
 
 export class TextSearch {
     #currentSearch
-    #query
+    #query = ''
     #opts = {
         matchCase: false,
         matchWholeWords: false,
     }
+    #count = 0
     #results = []
-    #index = -1
-    #currentLocation
+    #sectionsIndex
+    #matchesIndex = -1
+    #totSections
+    #currentMatch
+    #runId = 0
     #view
     #container
     #dlg
@@ -50,14 +54,11 @@ export class TextSearch {
         this.#query = str
         this.#opts.matchCase = matchCase
         this.#opts.matchWholeWords = matchWholeWords
-        this.#currentSearch = this.#newSearch(str, { matchCase, matchWholeWords })
-        this.#currentLocation = this.#view.lastLocation
+        this.#sectionsIndex = this.#view.lastLocation.section.current
+        this.#totSections = this.#view.lastLocation.section.total
         await this.#matchUntilCurrentLocation()
-        if (this.#results.length > 0 && this.#index === this.#results.length - 2) {
-            await this.#goToNextMatch({ useOldCFI: false })
-        }
-        else {
-            await this.nextMatch()
+        if (this.#count > 0) {
+            await this.#goToMatch()
         }
     }
     boundDoSearch = this.doSearch.bind(this)
@@ -83,80 +84,144 @@ export class TextSearch {
         })
     }
 
-    async #matchUntilCurrentLocation() {
-        while (true) {
-            if (!this.#currentSearch) {
-                // this can happen if the user closes the search panel during the search
-                return
-            }
-            const result = await this.#currentSearch.next()
-            if (result.value === 'done' || result.done === true) {
-                break
-            }
-            if (result.value?.subitems) {
-                this.#results.push(...result.value.subitems)
-                let resultCfi = this.#results[this.#results.length - 1].cfi
-                if (CFI.compare(this.#currentLocation.cfi, resultCfi) > 0) {  // 1: resultCfi precedes this.viewer.view.lastLocation.cfi
-                    this.#index = this.#results.length - 1
-                    continue
-                }
-                while (this.#index < this.#results.length - 1) {
-                    this.#index++
-                    resultCfi = this.#results[this.#index].cfi
-                    if (CFI.compare(this.#currentLocation.cfi, resultCfi) <= 0) {
-                        this.#index--
-                        return
-                    }
-                }
-            }
+    async #searchInSection(runId) {
+        if (runId !== this.#runId) { return [] }
+        this.#results[this.#sectionsIndex] = []
+        const { matchCase, matchWholeWords } = this.#opts
+        const search = this.#newSearch(
+            this.#query, { matchCase, matchWholeWords, index: this.#sectionsIndex }
+        )
+        if (runId !== this.#runId) {
+            search.return?.()
+            return []
         }
-        this.#index = this.#results.length - 2
+        let result = await search.next()
+        while (result.value !== 'done' && result.done !== true) {
+            if (runId !== this.#runId) {
+                search.return?.()
+                return []
+            }
+            this.#results[this.#sectionsIndex].push(result.value)
+            result = await search.next()
+        }
+        this.#count += this.#results[this.#sectionsIndex].length
+        this.#currentSearch = search
+        return this.#results[this.#sectionsIndex]
     }
 
-    async #goToNextMatch({ previous = false, useOldCFI = true } = {}) {
-        const oldCFI = useOldCFI
-            ? this.#results[this.#index]?.cfi
-            : null
-        this.#index += previous ? -1 : 1
-        const newCFI = this.#results[this.#index].cfi
-        if (oldCFI && useOldCFI) {
-            this.#view.deleteAnnotation({ value: oldCFI })
+    async #matchUntilCurrentLocation() {
+        const currentLoc = this.#view.lastLocation
+        const currentSection = currentLoc.section.current
+        while (true) {
+            const results = await this.#searchInSection(this.#runId)
+            if (!this.#currentSearch) {
+                // if the user closes the search panel during the search
+                return
+            }
+            if (results.length > 0) {
+                if (this.#sectionsIndex > currentSection) {
+                    this.#matchesIndex = 0
+                    return
+                }
+                if (this.#sectionsIndex === currentSection) {
+                    for (const [i, result] of results.entries()) {
+                        if (CFI.compare(currentLoc.cfi, result.cfi) <= 0) {
+                            this.#matchesIndex = i
+                            return
+                        }
+                    }
+                }
+                else {
+                    this.#matchesIndex = results.length - 1
+                    return
+                }
+            }
+            if (this.#sectionsIndex < currentSection) {
+                this.#sectionsIndex--
+            }
+            else if (this.#sectionsIndex === this.#totSections - 1) {
+                this.#sectionsIndex = currentSection - 1
+            }
+            if (this.#sectionsIndex < 0) {
+                if (this.#results[currentSection].length > 0) {
+                    this.#sectionsIndex = currentSection
+                    this.#matchesIndex = this.#results[currentSection].length - 1
+                }
+                return
+            }
+            if (this.#sectionsIndex >= currentSection) {
+                this.#sectionsIndex++
+            }
+        }
+    }
+
+    async #goToMatch() {
+        const runId = this.#runId
+        const results = this.#results[this.#sectionsIndex]
+        const newCFI = results[this.#matchesIndex].cfi
+        if (this.#currentMatch?.cfi) {
+            this.#view.deleteAnnotation({ value: this.#currentMatch.cfi })
         }
         if (this.#view.isFixedLayout) {
-            const oldIndex = oldCFI
-                ? this.#view.resolveCFI(oldCFI).index
+            const oldIndex = this.#currentMatch?.cfi
+                ? this.#view.resolveCFI(this.#currentMatch?.cfi).index
                 : undefined
             const newIndex = this.#view.resolveCFI(newCFI).index
             if (oldIndex !== newIndex) {
                 await this.#view.goTo(newCFI)
+                if (runId !== this.#runId) { return }
             }
         }
         else {
             await this.#view.goTo(newCFI)
+            if (runId !== this.#runId) { return }
         }
+        this.#currentMatch = { cfi: newCFI, index: this.#sectionsIndex }
         await this.#view.addAnnotation({ value: newCFI, type: 'current-search' })
+    }
+
+    async #goToAdjacentSection({ previous = false } = {}) {
+        const runId = this.#runId
+        this.#sectionsIndex += previous ? -1 : 1
+        if (this.#results[this.#sectionsIndex]?.length > 0) {
+            this.#matchesIndex = previous ? this.#results[this.#sectionsIndex].length - 1 : 0
+            await this.#goToMatch()
+            return
+        }
+        while (true) {
+            if (!this.#results[this.#sectionsIndex]) {
+                await this.#searchInSection(runId)
+                if (runId !== this.#runId) { return }
+            }
+            if (this.#results[this.#sectionsIndex]?.length > 0) {
+                break
+            }
+            if ((!previous && this.#sectionsIndex >= this.#totSections - 1)
+                    || (previous && this.#sectionsIndex === 0)) {
+                return
+            }
+            this.#sectionsIndex += previous ? -1 : 1
+        }
+        this.#matchesIndex = previous ? this.#results[this.#sectionsIndex].length - 1 : 0
+        await this.#goToMatch()
     }
 
     async nextMatch() {
         if (!this.#currentSearch) {
             return
         }
-        if (this.#results.length > 0 && this.#index < this.#results.length - 1) {
-            await this.#goToNextMatch()
+        if (this.#results[this.#sectionsIndex]?.length > 0
+                && this.#matchesIndex < this.#results[this.#sectionsIndex].length - 1) {
+            if (!this.#currentMatch || this.#currentMatch.index === this.#sectionsIndex) {
+                this.#matchesIndex++
+            }
+            await this.#goToMatch()
             return
         }
-        let result = await this.#currentSearch.next()
-        if (result.value === 'done' || result.done === true) {
+        if (this.#sectionsIndex >= this.#totSections - 1) {
             return
         }
-        if (result.value?.subitems) {
-            this.#results.push(...result.value.subitems)
-            await this.#goToNextMatch()
-            return
-        }
-        else {
-            await this.nextMatch()
-        }
+        await this.#goToAdjacentSection()
     }
     boundNextMatch = this.nextMatch.bind(this)
 
@@ -164,21 +229,35 @@ export class TextSearch {
         if (!this.#currentSearch) {
             return
         }
-        if (this.#results.length > 0 && this.#index > 0) {
-            await this.#goToNextMatch({ previous: true })
+        if (this.#results[this.#sectionsIndex]?.length > 0 && this.#matchesIndex > 0) {
+            if (!this.#currentMatch || this.#currentMatch.index === this.#sectionsIndex) {
+                this.#matchesIndex--
+            }
+            await this.#goToMatch()
             return
         }
+        if (this.#sectionsIndex === 0) {
+            return
+        }
+        await this.#goToAdjacentSection({ previous: true })
+
     }
     boundPrevMatch = this.prevMatch.bind(this)
 
     async searchCleanUp() {
-        const lastCFI = this.#results[this.#index]?.cfi
-        if (lastCFI) {
-            this.#view.deleteAnnotation({ value: lastCFI })
+        if (this.#currentMatch?.cfi) {
+            this.#view.deleteAnnotation({ value: this.#currentMatch?.cfi })
         }
+        this.#currentSearch?.return?.()
         this.#currentSearch = undefined
+        this.#query = ''
         this.#results = []
-        this.#index = -1
+        this.#sectionsIndex = undefined
+        this.#matchesIndex = -1
+        this.#totSections = undefined
+        this.#currentMatch = undefined
+        this.#count = 0
+        this.#runId++
         this.#view.clearSearch()
         this.#view.deselect()
         this.target.dispatchEvent(new CustomEvent('simebv-search-cleanup'))
