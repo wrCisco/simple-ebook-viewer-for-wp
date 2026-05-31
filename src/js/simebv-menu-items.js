@@ -426,7 +426,7 @@ export function getInitialMenuStatusStd() {
         ],
         fixedLayout: [
             ['zoom', 'fit-page'],
-            ['oddPages', 'right'],  // this is meant only for pdf and comic-books, where book.dir is undefined
+            ['oddPages', 'right'],  // this is meant only for pdf and comic-books
             ['pageProgression', 'auto'],
         ],
         reflowable: [
