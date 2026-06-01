@@ -116,6 +116,8 @@ export function createMenuItemsStd(reader, injectCSS) {
             ],
             onclick: value => {
                 reader.view?.renderer.setAttribute('max-column-count', value)
+                if (value === 1) reader.menu.groups.oddPages?.enable(false)
+                else reader.menu.groups.oddPages?.enable(true)
                 reader._savePreference('maxPages', value)
             },
             horizontal: true,
