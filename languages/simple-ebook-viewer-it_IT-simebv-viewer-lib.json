@@ -1,7 +1,7 @@
 {
     "translation-revision-date": "2026-03-08",
-    "generator": "WP-CLI\/2.12.0",
-    "source": "src\/js\/simebv-viewer.js",
+    "generator": "WP-CLI/2.12.0",
+    "source": "src/js/simebv-viewer.js",
     "domain": "messages",
     "locale_data": {
         "messages": {
@@ -10,39 +10,6 @@
                 "lang": "it",
                 "plural-forms": "nplurals=2; plural=(n != 1);"
             },
-            "Page %1$s": [
-                "Pagina %1$s"
-            ],
-            "Loading...": [
-                "Caricamento..."
-            ],
-            "Error: I couldn't retrieve the book to display.": [
-                "Errore: non ho potuto recuperare il libro da mostrare."
-            ],
-            "Resource not found on the server": [
-                "Risorsa non trovata nel server"
-            ],
-            "Page list": [
-                "Indice delle pagine"
-            ],
-            "Start of page ": [
-                "Inizio della pagina "
-            ],
-            "Front matter": [
-                "Pagine preliminari"
-            ],
-            "Location %1$s\/%2$s": [
-                "Posizione %1$s\/%2$s"
-            ],
-            "Page %1$s \/ %2$s": [
-                "Pagina %1$s \/ %2$s"
-            ],
-            "Ebook contents": [
-                "Contenuti dell'ebook"
-            ],
-            "Error while opening the book:": [
-                "Errore durante l'apertura del libro:"
-            ],
             "Show sidebar": [
                 "Mostra barra laterale"
             ],
@@ -53,7 +20,7 @@
                 "Mostra impostazioni"
             ],
             "Toggle full screen": [
-                "Attiva\/disattiva schermo intero"
+                "Attiva/disattiva schermo intero"
             ],
             "Close Reader": [
                 "Chiudi il lettore"
@@ -65,7 +32,7 @@
                 "Inverti colori:"
             ],
             "Rotate hues:": [
-                "Ruota tonalit\u00e0:"
+                "Ruota tonalità:"
             ],
             "Transparent background:": [
                 "Sfondo trasparente:"
@@ -87,6 +54,15 @@
             ],
             "Close": [
                 "Chiudi"
+            ],
+            "Search Options": [
+                "Opzioni ricerca"
+            ],
+            "Case sensitive": [
+                "Maiuscole/minuscole"
+            ],
+            "Whole words": [
+                "Parole intere"
             ],
             "Auto": [
                 "Auto"
@@ -208,11 +184,77 @@
             "Font style...": [
                 "Stile font..."
             ],
-            "Show\/hide annotations...": [
-                "Mostra\/nascondi annotazioni"
+            "Show/hide annotations...": [
+                "Mostra/nascondi annotazioni"
             ],
             "Read aloud...": [
                 "Leggi ad alta voce..."
+            ],
+            "Ctrl+F": [
+                "Ctrl+F"
+            ],
+            "First page": [
+                "Prima pagina"
+            ],
+            "Left": [
+                "Sinistra"
+            ],
+            "Right": [
+                "Destra"
+            ],
+            "Page direction": [
+                "Direzione pagine"
+            ],
+            "Left To Right": [
+                "Da sinistra a destra"
+            ],
+            "Right To Left": [
+                "Da destra a sinistra"
+            ],
+            "Text Alignment": [
+                "Allineamento testo"
+            ],
+            "Text alignment\u0004Left": [
+                "Sinistra"
+            ],
+            "Text alignment\u0004Center": [
+                "Centrato"
+            ],
+            "Text alignment\u0004Right": [
+                "Destra"
+            ],
+            "Text alignment\u0004Justified": [
+                "Giustificato"
+            ],
+            "Line Spacing": [
+                "Interlinea"
+            ],
+            "Line spacing\u0004Tight": [
+                "Stretta"
+            ],
+            "Line spacing\u0004Normal": [
+                "Normale"
+            ],
+            "Line spacing\u0004Loose": [
+                "Ampia"
+            ],
+            "Hyphenation": [
+                "Sillabazione"
+            ],
+            "Yes": [
+                "Sì"
+            ],
+            "No": [
+                "No"
+            ],
+            "Shift+P": [
+                "Maiusc+P"
+            ],
+            "Zoom out": [
+                "Zoom out"
+            ],
+            "Zoom in": [
+                "Zoom in "
             ],
             "Annotation": [
                 "Annotazione"
@@ -281,13 +323,13 @@
                 "Formato dell'ebook"
             ],
             "I cannot access the audio output device because it's already in use, maybe by another application.": [
-                "Non posso accedere al dispotivo di uscita dell'audio perch\u00e9 gi\u00e0 in uso, forse da un'altra applicazione."
+                "Non posso accedere al dispotivo di uscita dell'audio perché già in uso, forse da un'altra applicazione."
             ],
             "I cannot identify an audio output channel on this device.": [
                 "Non posso identificare un canale di uscita audio in questo dispositivo."
             ],
             "A required network operation to start the speech synthesis failed.": [
-                "Un'operazione di rete necessaria per far partire la sintesi vocale non \u00e8 riuscita."
+                "Un'operazione di rete necessaria per far partire la sintesi vocale non è riuscita."
             ],
             "No speech synthesis engine available at this moment.": [
                 "Nessun motore di sintesi vocale disponibile al momento."
@@ -296,25 +338,22 @@
                 "Il motore di sintesi vocale ha riportato un errore."
             ],
             "No appropriate voice available": [
-                "Non \u00e8 disponibile alcuna voce adeguata."
+                "Non è disponibile alcuna voce adeguata."
             ],
             "The selected voice is not available.": [
-                "La voce selezionata non \u00e8 disponibile."
+                "La voce selezionata non è disponibile."
             ],
             "The text is too long to synthesize.": [
-                "Il testo \u00e8 troppo lungo per farne la sintesi vocale."
+                "Il testo è troppo lungo per farne la sintesi vocale."
             ],
             "The value of at least one amongst Speed, Pitch and Volume is not valid.": [
-                "Il valore di almeno uno fra Velocit\u00e0, Tonalit\u00e0 e Volume non \u00e8 valido."
+                "Il valore di almeno uno fra Velocità, Tonalità e Volume non è valido."
             ],
             "The operation's start was not allowed.": [
                 "Operazione non permessa."
             ],
             "No appropriate voice available for the language %1$s": [
                 "Nessuna voce appropriata per il linguaggio %1$s"
-            ],
-            "Read aloud...": [
-                "Leggi ad alta voce..."
             ],
             "Bibliography": [
                 "Bibliografia"
@@ -325,6 +364,39 @@
             "Note": [
                 "Nota"
             ],
+            "Page %1$s": [
+                "Pagina %1$s"
+            ],
+            "Loading...": [
+                "Caricamento..."
+            ],
+            "Error: I couldn't retrieve the book to display.": [
+                "Errore: non ho potuto recuperare il libro da mostrare."
+            ],
+            "Resource not found on the server": [
+                "Risorsa non trovata nel server"
+            ],
+            "Page list": [
+                "Indice delle pagine"
+            ],
+            "Start of page ": [
+                "Inizio della pagina "
+            ],
+            "Front matter": [
+                "Pagine preliminari"
+            ],
+            "Location %1$s/%2$s": [
+                "Posizione %1$s/%2$s"
+            ],
+            "Page %1$s / %2$s": [
+                "Pagina %1$s / %2$s"
+            ],
+            "Ebook contents": [
+                "Contenuti dell'ebook"
+            ],
+            "Error while opening the book:": [
+                "Errore durante l'apertura del libro:"
+            ],
             "Details": [
                 "Dettagli"
             ],
@@ -333,9 +405,6 @@
             ],
             "Table of contents": [
                 "Indice generale"
-            ],
-            "Page list": [
-                "Indice delle pagine"
             ],
             "Turn left page": [
                 "Gira pagina a sinistra"
@@ -346,8 +415,8 @@
             "Location in ebook": [
                 "Posizione nell'ebook"
             ],
-            "Show\/hide annotations": [
-                "Mostra\/nascondi annotazioni"
+            "Show/hide annotations": [
+                "Mostra/nascondi annotazioni"
             ],
             "Show Calibre Bookmarks": [
                 "Mostra note di Calibre"
@@ -370,12 +439,6 @@
             "Speech Options": [
                 "Opzioni"
             ],
-            "Go to previous section": [
-                "Vai alla sezione precedente"
-            ],
-            "Go to next section": [
-                "Vai alla sezione successiva"
-            ],
             "Text To Speech Options": [
                 "Opzioni sintesi vocale"
             ],
@@ -383,22 +446,31 @@
                 "Volume: "
             ],
             "Pitch: ": [
-                "Tonalit\u00e0: "
+                "Tonalità: "
             ],
             "Speed: ": [
-                "Velocit\u00e0: "
+                "Velocità: "
             ],
             "Voice: ": [
                 "Voce: "
             ],
             "The voice is automatically selected based on the ebook and the system language. If you have more than one voice for the language, you can select your preferred one in the system settings.": [
-                "La voce \u00e8 selezionata automaticamente a seconda dell'ebook e della lingua di sistema. Se hai installato pi\u00f9 di una voce per lingua, puoi selezionare quella che preferisci fra le impostazioni di sistema del tuo dispositivo."
+                "La voce è selezionata automaticamente a seconda dell'ebook e della lingua di sistema. Se hai installato più di una voce per lingua, puoi selezionare quella che preferisci fra le impostazioni di sistema del tuo dispositivo."
             ],
             "If you select a word in the text, the speech will begin from that word.": [
-                "Se selezioni una parola nel testo, la lettura comincer\u00e0 da quella parola."
+                "Se selezioni una parola nel testo, la lettura comincerà da quella parola."
             ],
             "Warning: remote voices may restart from the beginning of the paragraph when they are changed. On Android, all voices may do the same when paused also.": [
                 "Attenzione: le voci remote possono ripartire dall'inizio del paragrafo quando vengono cambiate. Su Android, tutte le voci possono fare lo stesso anche quando messe in pausa."
+            ],
+            "Go to previous paragraph": [
+                "Paragrafo precedente"
+            ],
+            "Go to next paragraph": [
+                "Paragrafo successivo"
+            ],
+            "Highlight: ": [
+                "Evidenziatura: "
             ]
         }
     }
