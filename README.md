@@ -16,6 +16,7 @@ At the moment, the plugin will let you upload and display the following file typ
 * fb2
 * fbz
 * cbz
+* pdf
 
 ### Installation
 
@@ -46,48 +47,78 @@ Height, width, max-height, max-width and border accept any valid CSS value for t
 Style and class accept any valid value for the respective HTML attributes.
 
 Some examples:
+```
+[simebv_viewer book="MY_EBOOK_SLUG_HERE" style="height:30em;border:2px inset black"]
 
-`[simebv_viewer book="MY_EBOOK_SLUG_HERE" style="height:30em;border:2px inset black"]`
+[simebv_viewer book="MY_EBOOK_SLUG_HERE" max-height="100vh" height="40em"]
 
-`[simebv_viewer book="MY_EBOOK_SLUG_HERE" max-height="100vh" height="40em"]`
+[simebv_viewer book="MY_EBOOK_SLUG_HERE" class="my-container-class my-container-second-class"]
+```
 
-`[simebv_viewer book="MY_EBOOK_SLUG_HERE" class="my-container-class my-container-second-class"]`
+You can overwrite the default font family of the Viewer's UI with the CSS variable `--simebv-ui-font-family`:
+```
+[simebv_viewer book="MY EBOOK_SLUG_HERE" style="--simebv-ui-font-family:monospace;"]
+```
 
 #### Settings
 
 The users of your site will be able to set their preferences about the appearance of the ebook in the Viewer by opening the Viewer menu (the cog icon on the top right) and by selecting the appropriate entries.
 
-The plugin sets some reasonable defaults for these preferences, but if you're not happy with those defaults, you can change them by adding one or more of the following attributes to the shortcode, with the appropriate values:
+The plugin sets some reasonable defaults for these preferences, but if you're not happy with those defaults, you can change them by adding one or more of the following attributes to the shortcode, with the appropriate values.
+
+##### Reflowable ebooks
+
 * **`layout`**
   - accepted values: "**paginated**" or "**scrolled**" (default: **paginated**)
-* **`max-pages`**
-  - accepted values: **1**, **2**, **3** or **4** (default: **2**)
 * **`default-font-size`**
   - accepted values: "**small**", "**medium**", "**large**", "**x-large**" (default: **medium**)
 * **`font-family`**
   - accepted_values: "**auto**", "**serif**", "**sans-serif**", "**monospace**", "**opendyslexic**" (default: **auto**)
 * **`page-margins`**
   - accepted values: "**small**", "**medium**", "**large**" (default: **medium**)
-* **`show-annotations`**
-  - accepted values: "**true**", "**false**" (default: **false**)
+* **`text-align`**
+  - accepted values: "**auto**", "**left**", "**center**", "**right**", "**justify**" (default: **auto**)
+* **`line-height`**
+  - accepted values: "**auto**", "**tight**", "**medium**", "**ample**" (default: "**auto**")
+* **`hyphenation`**
+  - accepted values: "**auto**", "**yes**", "**no**" (default: "**auto**")
 * **`show-page-delimiters`**
   - accepted values: "**true**", "**false**" (default: **false**)
+
+##### Fixed Layout
+
 * **`zoom`**
   - accepted values: "**fit-page**", "**fit-width**" or a number in the range **10 - 400** (default: **fit-page**)
+* **`reading-order`**
+  - accepted values: "**auto**", "**ltr**", "**rtl**" (default: **auto**)
+
+##### PDFs and Comic books only
+
+* **`first-page`**
+  - accepted values: "**left**", "**right**" (default: **right**)
+
+##### All ebooks
+
+* **`show-annotations`**
+  - accepted values: "**true**", "**false**" (default: **false**)
 * **`color-scheme`**
   - accepted values: "**auto**", "**sepia**", "**light**", "**dark**", "**light-forced**", "**dark-forced**" (default: **auto**)
 * **`pagination-style`**
   - accepted values: "**slider**", "**pages**", "**percent**" (default: **slider**)
+* **`max-pages`**
+  - accepted values: **1**, **2**, **3** or **4** (default: **2**)
+  (**3** and **4** are valid only for reflowable ebooks)
 
-`Layout`, `max-pages`, `default-font-size` and `page-margins` are only available for reflowable ebooks, while `zoom` is only available for fixed layout ones.
 
 `Max-pages` is the maximum number of pages (in the "paginated" layout) that the user will be able to see in a single view (if there is enough screen space).
 
 `Show-annotations` and `show-page-delimiters` let the user see on the pages the Calibre annotations (as highlighted text, if there are Calibre annotations in the ebook) and the page delimiters (as short vertical bars, if the ebook contains a page list).
 
+The `reading-order` sets the page progression of the ebook (ltr -> left-to-right, rtl -> right-to-left), and not the text direction inside the pages.
+
 `Color-scheme`: "auto" means that the Viewer will adapt to the preferred color-scheme set by the user on their device or browser (light or dark).
 
-For most ebooks these preferences should be enough, but sometimes there are ebooks with style rules that don't play well with the styles set by the Viewer, so the users also have also the option to apply some filters to the Viewer's colors (with the menu entry "Color filter...").
+For most ebooks these preferences should be enough, but sometimes there are ebooks with style rules that don't play well with the styles set by the Viewer, so the users have also the option to apply some filters to the Viewer's colors (with the menu entry "Color filter...").
 
 You can set the default values for these filters with the following shortcode's attributes:
 * **`activate-color-filter`**
@@ -166,9 +197,13 @@ After the build, the files and folders required for the plugin to work will be:
 
 ### Privacy
 
-This plugin does not track in any way its users. It uses the WordPress REST API to retrieve the url of the ebooks to display, so it uses the technical cookies setup by WordPress to assure the correctness and the security of the communication.
-It also stores in the local storage of the user's browser the last viewed page of the displayed ebook and the preferences about the appearance of the ebooks in the Viewer, as detailed in the previous section, with the only purpose to provide the best experience to the user.
-If the user activates the Text-To-Speech functionality and the chosen voice is a remote voice, the browser will send to the remote service the text to be synthesized, the voice and language parameters and, as with any network request, the IP address and the browser identifiers.
+This plugin does not track its users. It uses the WordPress REST API to retrieve the url of the ebooks to display, so it uses the technical cookies set by WordPress to assure the correctness and the security of the communication.
+
+It can also store in the local storage of the user's browser the ebooks's last viewed page and the preferences about the appearance of the ebooks in the Viewer, as detailed in the previous sections, with the only purpose to provide the best experience to the user.
+
+If the user activates the Text-To-Speech functionality and the chosen voice is remote, the browser will send to the remote service the text to be synthesized, the language and the voice parameters and, as with any network request, the IP address and the browser identifiers.
+
+Since version 2.0.0, the plugin integrates with the [WP Consent API](https://wordpress.org/plugins/wp-consent-api/): if the website implements it, usually through another plugin, the user preferences will be saved only if the user has given consent. The "last viewed page" information is treated as part of the "functional" category, while all the other preferences are in the "preferences" category.
 
 ### Warning
 
@@ -176,7 +211,7 @@ Ebooks can contain scripted content that might be executed on your webpage. The 
 
 ### Credits
 
-This plugin embeds a slightly modified version of the foliate-js library
+This plugin embeds a modified version of the foliate-js library
 by John Factotum (https://github.com/johnfactotum/foliate-js),
 which is distributed under the MIT license.
 
@@ -184,8 +219,6 @@ As secondary dependencies of the foliate-js library, the plugin embeds three oth
 * zip.js (https://github.com/gildas-lormeau/zip.js), licensed under the BSD-3-Clause;
 * fflate (https://github.com/101arrowz/fflate), MIT licensed.
 * PDF.js (https://github.com/mozilla/pdf.js), licensed under the Apache v2.0 license.
-
-PDF.js is present in the repository's source code, but is not included in the distribution of the current version of the plugin.
 
 Other libraries embedded by the plugin are:
 * vite-for-wp by Dzikri Aziz (https://github.com/kucrut/vite-for-wp),
