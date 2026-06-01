@@ -99,7 +99,7 @@ const onSwipe = (doc, reader) => {
         if (renderer.scrollWidth - renderer.clientWidth > 0) return
         const touch = e.changedTouches[0]
         swipe.id = touch.identifier
-        swipe.pos = { client: touch.clientX, screen: touch.screenX }
+        swipe.pos = { client: touch.clientX, screen: { x: touch.screenX, y: touch.screenY } }
     })
     doc.addEventListener('touchend', e => {
         if (swipe.pos) {
@@ -111,9 +111,12 @@ const onSwipe = (doc, reader) => {
                 }
             }
             if (touch && Math.abs(swipe.pos.client - touch.clientX) > 10) {
-                const delta = swipe.pos.screen - touch.screenX
-                if (delta > 100) reader.view.goRight()
-                else if (delta < -100) reader.view.goLeft()
+                const deltaX = swipe.pos.screen.x - touch.screenX
+                const deltaY = swipe.pos.screen.y - touch.screenY
+                if (Math.abs(deltaY) < Math.abs(deltaX)) {
+                    if (deltaX > 80) reader.view.goRight()
+                    else if (deltaX < -80) reader.view.goLeft()
+                }
             }
         }
         swipe.id = undefined
