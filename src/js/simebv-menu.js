@@ -449,18 +449,18 @@ function numericInputWithButtons(
     minus.setAttribute('aria-label', labels[0])
     minus.classList.add('simebv-numeric-btn-sm')
     minus.innerHTML = `
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-            <path d="M7 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-            <circle cx="12" cy="12" r="12" stroke-width="0" fill="currentColor" fill-opacity="0.2" />
+        <svg viewBox="0 0 24 24" class="simebv-icon" width="20" height="20" aria-hidden="true">
+            <path d="M7 12h10" stroke="CanvasText" stroke-width="2" stroke-linecap="round" />
+            <circle cx="12" cy="12" r="12" stroke-width="0" fill="CanvasText" fill-opacity="0.2" />
         </svg>
     `
     const plus = document.createElement('button')
     plus.classList.add('simebv-numeric-btn-sm')
     plus.setAttribute('aria-label', labels[1])
     plus.innerHTML = `
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-            <path d="M12 6v12M6 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-            <circle cx="12" cy="12" r="12" stroke-width="0" fill="currentColor" fill-opacity="0.2" />
+        <svg viewBox="0 0 24 24" class="simebv-icon" width="20" height="20" aria-hidden="true">
+            <path d="M12 6v12M6 12h12" stroke="CanvasText" stroke-width="2" stroke-linecap="round" />
+            <circle cx="12" cy="12" r="12" stroke-width="0" fill="CanvasText" fill-opacity="0.2" />
         </svg>
     `
     const displayValue = document.createElement('span')
