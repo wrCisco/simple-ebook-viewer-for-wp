@@ -249,7 +249,6 @@ export class SideBar extends HTMLElement {
                 e.stopPropagation()
             }
         })
-        this.root.addEventListener('click', () => this.dispatchEvent(new CustomEvent('side-bar-clicked')))
         this.details.addEventListener('click', (e) => {
             this.dispatchEvent(new CustomEvent('show-details'))
             e.preventDefault()

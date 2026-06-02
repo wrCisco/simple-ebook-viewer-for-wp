@@ -179,9 +179,6 @@ export class Reader {
         this._overlay.addEventListener('click', () => {
             this._closeMenus(this.container)
         })
-        this._sideBar.addEventListener('side-bar-clicked', () => {
-            this._tocView.getCurrentItem()?.focus()
-        })
         this._sideBar.addEventListener('side-bar-close', () => this._closeMenus())
         this.menu.element.addEventListener('closeMenu', () => {
             this._closeMenus()
