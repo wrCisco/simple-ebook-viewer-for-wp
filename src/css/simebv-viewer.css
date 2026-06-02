@@ -1,5 +1,11 @@
 :host {
+    cursor: initial;
+    line-height: initial;
+    text-align: initial;
+    text-indent: initial;
     font-family: var(--simebv-ui-font-family, ManropeVar, sans-serif);
+    letter-spacing: var(--simebv-ui-letter-spacing, 0);
+    word-spacing: var(--simebv-ui-word-spacing, 0);
     color-scheme: light dark;
     --sepia-color: #f9f1cc;
     --bg-light-color: #ffffff;
