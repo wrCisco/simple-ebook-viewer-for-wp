@@ -139,13 +139,17 @@ export class NavBar extends HTMLElement {
         this.addEventListener('toggle-fullscreen', ({ detail }) => {
             if (detail.data === 'enter') {
                 this.root.classList.add('fullscreen')
-                this.setFullscreenListeners()
-                this.hideBar()
+                if (detail.fxl) {
+                    this.setFullscreenListeners()
+                    this.hideBar()
+                }
             }
             else {
                 this.root.classList.remove('hide', 'fullscreen')
-                this.removeFullscreenListeners()
-                this.showBar()
+                if (detail.fxl) {
+                    this.removeFullscreenListeners()
+                    this.showBar()
+                }
             }
         })
     }
