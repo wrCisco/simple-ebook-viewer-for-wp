@@ -865,13 +865,13 @@ export class Reader {
                 break
             case 'Tab':
                 if (this.menu.element.classList.contains('simebv-show')
-                        || this._root.querySelector('#simebv-side-bar')?.classList.contains('simebv-show')) {
+                        || this._sideBar.isVisible()) {
                     this._closeMenus()
                 }
                 break
             case 'Escape':
                 if (this.menu.element.classList.contains('simebv-show')
-                        || this._root.querySelector('#simebv-side-bar')?.classList.contains('simebv-show')) {
+                        || this._sideBar.isVisible()) {
                     this._closeMenus()
                 }
                 else if (this._realFullscreen && document.fullscreenElement) {

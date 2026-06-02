@@ -127,7 +127,7 @@ template.innerHTML = `
             </p>
         </div>
     </div>
-    <div id="navigation-view" tabindex="-1">
+    <div id="navigation-view">
         <nav id="toc-view" class="toc-view"></nav>
         <nav id="page-list-view" class="toc-view"></nav>
     </div>
@@ -182,12 +182,16 @@ export class SideBar extends HTMLElement {
         this.root.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.dispatchEvent(new CustomEvent('side-bar-close'))
+                e.preventDefault()
+                e.stopPropagation()
             }
             if (e.key === 'Tab') {
                 if (this.tocView.contains(this.shadowRoot.activeElement)) {
-                    if (!e.shiftKey) {
+                    if (e.shiftKey) {
+                        this.details.focus()
+                    }
+                    else {
                         if (this.hasPageList()) {
-                            e.preventDefault()
                             const activeElement = this.toc.getCurrentItem()
                             let node = this.pageList?.getCurrentItem()
                             if (node) {
@@ -197,8 +201,6 @@ export class SideBar extends HTMLElement {
                                 node = this.pageListView.querySelector('a')
                                 node.focus()
                             }
-                            // node.tabIndex = 0
-                            // if (activeElement) activeElement.tabIndex = -1
                         }
                         else {
                             this.dispatchEvent(new CustomEvent('side-bar-close'))
@@ -206,28 +208,45 @@ export class SideBar extends HTMLElement {
                     }
                 }
                 else if (this.pageListView.contains(this.shadowRoot.activeElement)) {
-                    if (e.shiftKey && this.hasToc()) {
-                        e.preventDefault()
-                        const activeElement = this.pageList.getCurrentItem()
-                        let node = this.toc?.getCurrentItem()
-                        if (node) {
-                            node.focus()
+                    if (e.shiftKey) {
+                        if (this.hasToc()) {
+                            const activeElement = this.pageList.getCurrentItem()
+                            let node = this.toc?.getCurrentItem()
+                            if (node) {
+                                node.focus()
+                            }
+                            else {
+                                node = this.tocView.querySelector('a')
+                                node.focus()
+                            }
                         }
                         else {
-                            node = this.tocView.querySelector('a')
-                            node.focus()
+                            this.details.focus()
                         }
-                        // node.tabIndex = 0
-                        // if (activeElement) activeElement.tabIndex = -1
                     }
                     else if (!e.shiftKey) {
                         this.dispatchEvent(new CustomEvent('side-bar-close'))
                     }
                 }
-                else if (this.shadowRoot.activeElement === this.details
-                        && (e.shiftKey || (!this.hasToc() && !this.hasPageList()))) {
-                    this.dispatchEvent(new CustomEvent('side-bar-close'))
+                else if (this.shadowRoot.activeElement === this.details) {
+                    if (e.shiftKey || (!this.hasToc() && !this.hasPageList())) {
+                        this.dispatchEvent(new CustomEvent('side-bar-close'))
+                    }
+                    else {
+                        if (this.hasToc()) {
+                            const node = this.toc.getCurrentItem()
+                            if (node) node.focus()
+                            else this.tocView.querySelector('a').focus()
+                        }
+                        else if (this.hasPageList()) {
+                            const node = this.pageList.getCurrentItem()
+                            if (node) node.focus()
+                            else this.pageListView.querySelector('a').focus()
+                        }
+                    }
                 }
+                e.preventDefault()
+                e.stopPropagation()
             }
         })
         this.root.addEventListener('click', () => this.dispatchEvent(new CustomEvent('side-bar-clicked')))
