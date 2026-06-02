@@ -150,13 +150,19 @@ export class Reader {
         this.menu = menu
         this.menu.element.classList.add('simebv-menu')
 
-        if (!this._realFullscreen && typeof closeViewerCallback === 'function') {
-            this._headerBar.setAttribute('show-close-button', 'true')
-            this._headerBar.addEventListener('close-button', closeViewerCallback)
-            if (this._alwaysFullViewport) {
-                this._toggleFullViewport()
+        if (!this._realFullscreen) {
+            if (typeof closeViewerCallback === 'function') {
+                this._headerBar.setAttribute('show-close-button', 'true')
+                this._headerBar.addEventListener('close-button', closeViewerCallback)
+                if (this._alwaysFullViewport) {
+                    this._toggleFullViewport()
+                }
+            }
+            else {
+                this.container.setAttribute('popover', 'manual')
             }
         }
+        this._headerBar.buttonFullscreen.setAttribute('aria-controls', this.container.id)
         this._headerBar.addEventListener('side-bar-button', () => {
             setTimeout(() => {
                 if (this._sideBar.isVisible()) {
@@ -774,13 +780,32 @@ export class Reader {
         }
     }
 
+    #inerted = []
+    _inertEverythingExcept(target) {
+        const path = new Set()
+        for (let el = target; el !== document.body; el = el.parentElement) {
+            path.add(el)
+        }
+        for (const el of path) {
+            for (const sibling of el.parentElement.children) {
+                if (path.has(sibling) || sibling === target) continue
+                if (sibling.hasAttribute('inert')) continue
+                sibling.setAttribute('inert', '')
+                this.#inerted.push(sibling)
+            }
+        }
+    }
+
     _toggleFullViewport() {
-        const detail = { fxl: this.view.isFixedLayout }
+        const detail = { fxl: this.view.isFixedLayout, mode: 'viewport' }
         if (this.container.classList.contains('simebv-view-fullscreen')) {
             this.container.classList.remove('simebv-view-fullscreen')
             this._bookContainer.classList.remove('simebv-fullscreen')
             this.view?.removeAttribute('autohide-cursor')
             document.body?.classList.remove('simebv-overflow-hidden')
+            this.container.hidePopover?.()
+            this.#inerted.forEach(el => el.removeAttribute('inert'))
+            this.#inerted = []
             detail.data = 'exit'
         }
         else {
@@ -788,6 +813,8 @@ export class Reader {
             this._bookContainer.classList.add('simebv-fullscreen')
             this.view?.setAttribute('autohide-cursor', '')
             document.body?.classList.add('simebv-overflow-hidden')
+            this.container.showPopover?.()
+            this._inertEverythingExcept(this.container)
             detail.data = 'enter'
         }
         const toggleFullscreen = new CustomEvent('toggle-fullscreen', { detail })

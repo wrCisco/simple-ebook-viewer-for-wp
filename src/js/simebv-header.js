@@ -312,6 +312,9 @@ export class HeaderBar extends HTMLElement {
                 this.root.classList.add('fullscreen')
                 this.#setFullscreenListeners()
                 this.hideBar()
+                this.buttonFullscreen.setAttribute(
+                    detail.mode === 'viewport' ? 'aria-expanded' : 'aria-pressed', true
+                )
             }
             else {
                 this.iconEnterFullscreen.classList.remove('simebv-icon-hidden')
@@ -319,6 +322,9 @@ export class HeaderBar extends HTMLElement {
                 this.root.classList.remove('fullscreen')
                 this.#removeFullscreenListeners()
                 this.showBar()
+                this.buttonFullscreen.setAttribute(
+                    detail.mode === 'viewport' ? 'aria-expanded' : 'aria-pressed', false
+                )
             }
         })
         this.addEventListener('new-book', () => this.root.style.visibility = 'visible')
