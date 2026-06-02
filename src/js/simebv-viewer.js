@@ -117,10 +117,10 @@ export class Reader {
         this._rootDiv = this._root.querySelector('#simebv-reader-root')
         this._bookContainer = this._root.querySelector('#simebv-book-container')
         this._overlay = this._root.querySelector('#simebv-dimming-overlay')
-        this._realFullscreen = !!realFullscreen
+        this._realFullscreen = !!realFullscreen && this.container.requestFullscreen
         // Always full viewport needs a callback function for the close button
         // and can't be real full screen (it needs user activation)
-        this._alwaysFullViewport = !!alwaysFullViewport && !!closeViewerCallback && !realFullscreen
+        this._alwaysFullViewport = !!alwaysFullViewport && !!closeViewerCallback && !this._realFullscreen
 
         const sideBarContainer = this._root.querySelector('#simebv-side-bar')
         if (!sideBar) {
@@ -199,7 +199,7 @@ export class Reader {
         })
         this._headerBar.addEventListener(
             'fullscreen-button',
-            realFullscreen ? this._toggleFullScreen.bind(this) : this._toggleFullViewport.bind(this)
+            this._realFullscreen ? this._toggleFullScreen.bind(this) : this._toggleFullViewport.bind(this)
         )
         this.container.addEventListener('fullscreenchange', (e) => {
             const detail = { fxl: this.view.isFixedLayout }
