@@ -60,6 +60,7 @@ class SIMEBV_Viewer extends SIMEBV_Base {
                 'handle' => $handle,
                 'dependencies' => $dependencies,
                 'in-footer' => $in_footer,
+                'version' => SIMEBV_VERSION,
             ]
         );
     }
