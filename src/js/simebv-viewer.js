@@ -150,7 +150,9 @@ export class Reader {
         this.menu = menu
         this.menu.element.classList.add('simebv-menu')
 
+        this._headerBar.buttonFullscreen.setAttribute('aria-controls', this.container.id)
         if (!this._realFullscreen) {
+            this.container.setAttribute('popover', 'manual')
             if (typeof closeViewerCallback === 'function') {
                 this._headerBar.setAttribute('show-close-button', 'true')
                 this._headerBar.addEventListener('close-button', closeViewerCallback)
@@ -158,11 +160,7 @@ export class Reader {
                     this._toggleFullViewport()
                 }
             }
-            else {
-                this.container.setAttribute('popover', 'manual')
-            }
         }
-        this._headerBar.buttonFullscreen.setAttribute('aria-controls', this.container.id)
         this._headerBar.addEventListener('side-bar-button', () => {
             setTimeout(() => {
                 if (this._sideBar.isVisible()) {
@@ -458,6 +456,11 @@ export class Reader {
         this._populateMenu(menuItems)
         if (this.view.isFixedLayout) {
             this._bookContainer.classList.add('simebv-fxd-layout')
+            if (this._alwaysFullViewport) {
+                const ev = new CustomEvent('always-fullscreen')
+                this._headerBar.dispatchEvent(ev)
+                this._navBar.dispatchEvent(ev)
+            }
         }
         else {
             this._bookContainer.classList.remove('simebv-fxd-layout')
@@ -794,7 +797,7 @@ export class Reader {
     }
 
     _toggleFullViewport() {
-        const detail = { fxl: this.view.isFixedLayout, mode: 'viewport' }
+        const detail = { fxl: this.view?.isFixedLayout, mode: 'viewport' }
         if (this.container.classList.contains('simebv-view-fullscreen')) {
             this.container.classList.remove('simebv-view-fullscreen')
             this._bookContainer.classList.remove('simebv-fullscreen')
