@@ -152,6 +152,10 @@ export class NavBar extends HTMLElement {
                 }
             }
         })
+        this.addEventListener('always-fullscreen', () => {
+            this.setFullscreenListeners()
+            this.hideBar()
+        })
     }
 
     setFullscreenListeners() {

@@ -310,22 +310,30 @@ export class HeaderBar extends HTMLElement {
                 this.iconEnterFullscreen.classList.add('simebv-icon-hidden')
                 this.iconExitFullscreen.classList.remove('simebv-icon-hidden')
                 this.root.classList.add('fullscreen')
-                this.#setFullscreenListeners()
-                this.hideBar()
                 this.buttonFullscreen.setAttribute(
                     detail.mode === 'viewport' ? 'aria-expanded' : 'aria-pressed', true
                 )
+                if (detail.fxl) {
+                    this.#setFullscreenListeners()
+                    this.hideBar()
+                }
             }
             else {
                 this.iconEnterFullscreen.classList.remove('simebv-icon-hidden')
                 this.iconExitFullscreen.classList.add('simebv-icon-hidden')
                 this.root.classList.remove('fullscreen')
-                this.#removeFullscreenListeners()
-                this.showBar()
                 this.buttonFullscreen.setAttribute(
                     detail.mode === 'viewport' ? 'aria-expanded' : 'aria-pressed', false
                 )
+                if (detail.fxl) {
+                    this.#removeFullscreenListeners()
+                    this.showBar()
+                }
             }
+        })
+        this.addEventListener('always-fullscreen', () => {
+            this.#setFullscreenListeners()
+            this.hideBar()
         })
         this.addEventListener('new-book', () => this.root.style.visibility = 'visible')
     }
