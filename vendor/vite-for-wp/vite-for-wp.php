@@ -288,7 +288,7 @@ function load_production_asset( object $manifest, string $entry, array $options 
 
 		// Don't worry about browser caching as the version is embedded in the file name.
 		// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
-		if ( wp_register_script( $options['handle'], $src, $options['dependencies'], null, $options['in-footer'] ) ) {
+		if ( wp_register_script( $options['handle'], $src, $options['dependencies'], $options['version'], $options['in-footer'] ) ) {
 			$assets['scripts'][] = $options['handle'];
 		}
 	}
@@ -345,7 +345,7 @@ function register_stylesheets( array &$assets, array $stylesheets, string $url, 
 
 		// Don't worry about browser caching as the version is embedded in the file name.
 		// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
-		if ( wp_register_style( $style_handle, "{$url}/{$css_file_path}", $options['css-dependencies'], null, $options['css-media'] ) ) {
+		if ( wp_register_style( $style_handle, "{$url}/{$css_file_path}", $options['css-dependencies'], $options['version'], $options['css-media'] ) ) {
 			$assets['styles'][] = $style_handle;
 		}
 	}
@@ -368,6 +368,7 @@ function parse_options( array $options ): array {
 		'dependencies' => [],
 		'handle' => '',
 		'in-footer' => false,
+		'version' => null,
 	];
 
 	return wp_parse_args( $options, $defaults );
