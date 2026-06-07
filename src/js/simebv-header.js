@@ -230,8 +230,8 @@ template.innerHTML = `
                 </svg>
             </button>
             <button id="close-button" aria-label="Close Ebook Viewer">
-                <svg class="simebv-icon" id="icon-close-viewer" width="32" height="32" viewBox="-1.5 -1.5 19 19" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" stroke-width=".1" fill="currentColor" />
+                <svg class="simebv-icon simebv-icon-fill" id="icon-close-viewer" width="32" height="32" viewBox="-1.5 -1.5 19 19" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" stroke-width=".1" />
                 </svg>
             </button>
         </div>

@@ -35,6 +35,9 @@ input, button {
     stroke: CanvasText;
     stroke-width: 1.5px;
 }
+.simebv-icon-fill {
+    fill: CanvasText;
+}
 .simebv-icon:active {
     stroke: CanvasText;
     transform: scale(0.95);
