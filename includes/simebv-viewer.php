@@ -14,7 +14,7 @@ class SIMEBV_Viewer extends SIMEBV_Base {
         add_action('wp_enqueue_scripts', [self::class, 'conditionally_enqueue_assets']);
         add_action('wp_enqueue_scripts', [self::class, 'register_javascript_translations'], 100);
         add_filter('load_script_textdomain_relative_path', [self::class, 'fix_textdomain_path'], 10, 2);
-        // add_action('enqueue_block_editor_assets', [self::class, 'enqueue_block_editor_assets']);
+        add_action('rest_api_init', [self::class, 'register_rest_routes']);
 
         do_action('simebv_viewer_after_init');
     }
@@ -40,6 +40,22 @@ class SIMEBV_Viewer extends SIMEBV_Base {
     //     }
     //     return true;
     // }
+
+    public static function register_rest_routes() {
+        register_rest_route('simebv/v1', '/nonce', [
+            'methods' => 'GET',
+            'callback' => [self::class, 'rest_get_nonce'],
+            'permission_callback' => '__return_true',
+        ]);
+    }
+
+    public static function rest_get_nonce(WP_REST_Request $request) {
+        nocache_headers();
+        $response = new WP_REST_Response([
+            'nonce' => wp_create_nonce('wp_rest'),
+        ]);
+        return $response;
+    }
 
     public static function fix_textdomain_path($relative, $src) {
         $relative = 'dist/assets/simebv-viewer.js';
@@ -133,11 +149,12 @@ class SIMEBV_Viewer extends SIMEBV_Base {
         return $ebook_id;
     }
 
-    public static function create_viewer_markup($ebook_id, $atts, $styles) {
+    public static function create_viewer_markup($ebook_id, $ebook_url, $atts, $styles) {
         ob_start(); ?>
 <section
     id="simebv-reader-container"
     data-ebook-id="<?php echo esc_attr($ebook_id); ?>"
+    data-ebook-url="<?php echo esc_url($ebook_url); ?>"
     <?php
         echo strlen($styles['container']) !== 0 ? 'style="' . esc_attr($styles['container']) . '" ' : '';
         foreach(self::$shortcode_viewer_atts['html_attributes'] as $name => $vals) {
@@ -170,6 +187,9 @@ class SIMEBV_Viewer extends SIMEBV_Base {
         if (empty($ebook_id)) {
             return '<p style="color: red;">' . esc_html__("No Web Publication file provided.", 'simple-ebook-viewer') . '</p>';
         }
+        $ebook_url = is_post_publicly_viewable($ebook_id)
+            ? wp_get_attachment_url($ebook_id)
+            : '';
 
         if (!wp_script_is(self::$js_core_script_handle, 'enqueued')) {
             self::enqueue_core_js();
@@ -180,7 +200,7 @@ class SIMEBV_Viewer extends SIMEBV_Base {
 
         $styles = self::setup_styles($atts);
 
-        $viewer_html_code = self::create_viewer_markup($ebook_id, $atts, $styles);
+        $viewer_html_code = self::create_viewer_markup($ebook_id, $ebook_url, $atts, $styles);
         return apply_filters('simebv_viewer_html_code', $viewer_html_code);
     }
 
@@ -209,8 +229,7 @@ class SIMEBV_Viewer extends SIMEBV_Base {
     }
 
     /**
-     * Old method used to inject the ebook url in the HTML, superseded
-     * by the use of the wp-api: now I inject in the HTML only the ebook's id.
+     * Old method used to accept the ebook's url directly from the shortcode
      */
     private static function retrieve_book_url($atts) {
         // if the 'book' attribute of the shortcode is a valid url that points

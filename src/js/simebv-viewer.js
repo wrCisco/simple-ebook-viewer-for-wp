@@ -1045,11 +1045,36 @@ const fetchFile = async url => {
 }
 
 
+const refreshRestNonce = async () => {
+    const res = await fetch(`${wpApiSettings.root}simebv/v1/nonce`, {
+        credentials: 'same-origin',
+        cache: 'no-store',
+    })
+    if (!res.ok) {
+        throw new Error(`Nonce refresh failed: ${res.status}`)
+    }
+    const { nonce } = await res.json()
+    wpApiSettings.nonce = nonce
+    if (wp.api?.settings) wp.api.settings.nonce = nonce
+    return nonce
+}
+
+
 export const get_ebook_url = async id => {
     await wp.api.loadPromise
-    let media = new wp.api.models.Media({ id: id })
-    let res = await media.fetch()
-    return new URL(res.source_url).href
+    const fetchMedia = async () => {
+        const media = new wp.api.models.Media({ id })
+        const res = await media.fetch()
+        return new URL(res.source_url).href
+    }
+    try {
+        return await fetchMedia()
+    } catch (e) {
+        const status = e?.status ?? e?.statusCode
+        if (status !== 401 && status !== 403) throw e
+        await refreshRestNonce()
+        return fetchMedia()
+    }
 }
 
 
@@ -1107,21 +1132,30 @@ export const initializeViewer = async containerID => {
     const ebook_path_el = document.getElementById(containerID);
     if (ebook_path_el) {
         let url
-        try {
-            url = await get_ebook_url(ebook_path_el.getAttribute('data-ebook-id'))
-        } catch (e) {
-            if (url) url = undefined
-            const msg = __('Error: I couldn\'t retrieve the book to display.', 'simple-ebook-viewer')
-            show_error_msg(ebook_path_el, msg)
-            console.error(e)
-            if (e.status === 404) {
-                ebook_path_el.append(
-                    document.createElement('br'),
-                    __('Resource not found on the server', 'simple-ebook-viewer')
-                )
+        const dataUrl = ebook_path_el.getAttribute('data-ebook-url')
+        if (dataUrl) {
+            try {
+                url = new URL(dataUrl, window.location.href).href
+            } catch (e) {
+                console.warn(e)
             }
-            else if (e.responseJSON?.message) {
-                ebook_path_el.append(document.createElement('br'), e.responseJSON.message)
+        }
+        if (!url) {
+            try {
+                url = await get_ebook_url(ebook_path_el.getAttribute('data-ebook-id'))
+            } catch (e) {
+                const msg = __('Error: I couldn\'t retrieve the book to display.', 'simple-ebook-viewer')
+                show_error_msg(ebook_path_el, msg)
+                console.error(e)
+                if (e.status === 404) {
+                    ebook_path_el.append(
+                        document.createElement('br'),
+                        __('Resource not found on the server', 'simple-ebook-viewer')
+                    )
+                }
+                else if (e.responseJSON?.message) {
+                    ebook_path_el.append(document.createElement('br'), e.responseJSON.message)
+                }
             }
         }
         if (url) {
