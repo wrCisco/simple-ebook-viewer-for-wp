@@ -712,9 +712,6 @@ export class Reader {
     _setInitialMenuStatus(initialMenuStatus) {
         this.menu.groups.history?.items.previous.enable(false)
         this.menu.groups.history?.items.next.enable(false)
-        if (!speechSynthesis) {
-            this.menu.groups.speechSynthesis?.enable(false)
-        }
         if (!initialMenuStatus) {
             initialMenuStatus = getInitialMenuStatusStd()
         }

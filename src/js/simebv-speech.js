@@ -79,9 +79,9 @@ export class SpeechManager {
         if (!this.#view?.book) {
             return
         }
-        const synthesis = speechSynthesis
+        const synthesis = globalThis.speechSynthesis
         if (!synthesis) {
-            console.warn('Warning: no web speech API')
+            alert(this.#speechErrors['synthesis-unavailable'])
             return
         }
         this.speechSynthesis.synthesis = synthesis
@@ -152,7 +152,7 @@ export class SpeechManager {
     }
 
     static getDefaultVoice() {
-        const s = speechSynthesis
+        const s = globalThis.speechSynthesis
         for (const voice of s.getVoices()) {
             if (voice.default) {
                 return voice
@@ -163,7 +163,7 @@ export class SpeechManager {
     static getSameLanguageVoice(lang) {
         const completeMatch = []
         const langMatch = []
-        const s = speechSynthesis
+        const s = globalThis.speechSynthesis
         for (const voice of s.getVoices()) {
             if (lang === voice.lang) {
                 completeMatch.push(voice)
@@ -243,7 +243,7 @@ export class SpeechManager {
         if (!v) {
             v = SpeechManager.getDefaultVoice() ?? this.speechSynthesis.synthesis.getVoices()[0]
         }
-        if (this.#isAndroid && v.lang.slice(0, 2) !== u.lang?.slice(0, 2)) {
+        if (this.#isAndroid && v?.lang.slice(0, 2) !== u.lang?.slice(0, 2)) {
             v = null
         }
         u.voice = v
