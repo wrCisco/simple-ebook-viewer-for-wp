@@ -47,5 +47,8 @@ export default defineConfig({
             },
             preserveEntrySignatures: "strict",
         },
+        commonjsOptions: {
+            ignoreDynamicRequires: true,  // required by sre v5.0.0-rc4
+        },
     },
 });
