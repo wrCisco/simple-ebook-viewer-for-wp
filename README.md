@@ -60,6 +60,11 @@ You can overwrite the default font family of the Viewer's UI with the CSS variab
 [simebv_viewer book="MY EBOOK_SLUG_HERE" style="--simebv-ui-font-family:monospace;"]
 ```
 
+You can also overwrite font family, size and weight of the Ebook's title in the Viewer's header with the CSS variables `--simebv-header-font-family`, `--simebv-header-font-size`, `--simebv-header-font-weight`:
+```
+[simebv_viewer book="MY_EBOOK_SLUG_HERE" style="--simebv-header-font-family:serif;--simebv-header-font-size:1rem;"]
+```
+
 #### Settings
 
 The users of your site will be able to set their preferences about the appearance of the ebook in the Viewer by opening the Viewer menu (the cog icon on the top right) and by selecting the appropriate entries.
@@ -108,6 +113,8 @@ The plugin sets some reasonable defaults for these preferences, but if you're no
 * **`max-pages`**
   - accepted values: **1**, **2**, **3** or **4** (default: **2**)
   (**3** and **4** are valid only for reflowable ebooks)
+* **`hide-title`**
+  - accepted values: **never**, **always**, **first-page** (default: **first-page**)
 
 
 `Max-pages` is the maximum number of pages (in the "paginated" layout) that the user will be able to see in a single view (if there is enough screen space).
