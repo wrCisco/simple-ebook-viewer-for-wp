@@ -117,6 +117,9 @@ class SIMEBV_Base {
             'reading-order' => [
                 'html_name' => 'data-simebv-pageprogression', 'default' => ''
             ],
+            'hide-title' => [
+                'html_name' => 'data-simebv-hide-title', 'default' => ''
+            ],
         ],
     ];
 

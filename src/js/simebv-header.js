@@ -30,6 +30,10 @@ template.innerHTML = `
     text-overflow: ellipsis;
     text-align: center;
 }
+.reader-headline h1.hide {
+    opacity: 0;
+    overflow: clip;
+}
 .hide button {
     height: 0px;
     overflow: hidden;
@@ -427,6 +431,14 @@ export class HeaderBar extends HTMLElement {
         }, 1500)
     }
     boundHideBar = this.hideBar.bind(this)
+
+    showHeader() {
+        this.header.classList.remove('hide')
+    }
+
+    hideHeader() {
+        this.header.classList.add('hide')
+    }
 
     setLocalizedLabels() {
         this.setHeader(__('No title', 'simple-ebook-viewer'))

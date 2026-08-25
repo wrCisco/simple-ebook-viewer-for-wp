@@ -109,7 +109,7 @@ export class Reader {
 
     constructor(container, options) {
         let { menu, navBar, headerBar, sideBar, realFullscreen,
-            alwaysFullViewport, closeViewerCallback
+            alwaysFullViewport, closeViewerCallback, hideTitle
         } = options
         this.container = container ?? document.body
         this._root = this.container.attachShadow({ mode: 'open' })
@@ -121,6 +121,7 @@ export class Reader {
         // Always full viewport needs a callback function for the close button
         // and can't be real full screen (it needs user activation)
         this._alwaysFullViewport = !!alwaysFullViewport && !!closeViewerCallback && !this._realFullscreen
+        this._hideTitle = hideTitle
 
         const sideBarContainer = this._root.querySelector('#simebv-side-bar')
         if (!sideBar) {
@@ -136,6 +137,9 @@ export class Reader {
         }
         headerBarContainer.append(headerBar)
         this._headerBar = headerBar
+        if (['always', 'first-page'].includes(this._hideTitle)) {
+            this._headerBar.hideHeader()
+        }
 
         const navBarContainer = this._root.querySelector('#simebv-nav-bar')
         if (!navBar) {
@@ -979,6 +983,14 @@ export class Reader {
         }}))
         if (tocItem?.href) this._tocView?.setCurrentHref?.(tocItem.href)
         if (pageItem?.href) this._pageListView?.setCurrentHref?.(pageItem.href)
+        if (this._hideTitle === 'first-page') {
+            const r = this.view.renderer
+            const atStart = this.view.isFixedLayout
+                ? detail.section.current === 0
+                : r.scrolled ? r.start <= 0 && r.atStart : r.atStart
+            if (atStart) this._headerBar.hideHeader()
+            else this._headerBar.showHeader()
+        }
     }
 
     _onFxlRelocate({ detail }) {
@@ -1100,6 +1112,9 @@ export const gatherOptionsFromContainer = container => {
     }
     if (container.getAttribute('data-simebv-real-fullscreen') === 'true') {
         options.reader.realFullscreen = true
+    }
+    if (['always', 'first-page'].includes(container.getAttribute('data-simebv-hide-title'))) {
+        options.reader.hideTitle = container.getAttribute('data-simebv-hide-title')
     }
     if (container.getAttribute('data-simebv-allow-js') === 'true') {
         options.ebook.allowJS = true
