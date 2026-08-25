@@ -23,7 +23,9 @@ template.innerHTML = `
 }
 .reader-headline h1 {
     margin-block: 0;
-    font-size: 1.3rem;
+    font-family: var(--simebv-header-font-family);
+    font-size: var(--simebv-header-font-size, 1.3rem);
+    font-weight: var(--simebv-header-font-weight, bold);
     white-space: pre;
     text-overflow: ellipsis;
     text-align: center;
