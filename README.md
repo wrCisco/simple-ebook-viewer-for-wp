@@ -114,7 +114,7 @@ The plugin sets some reasonable defaults for these preferences, but if you're no
   - accepted values: **1**, **2**, **3** or **4** (default: **2**)
   (**3** and **4** are valid only for reflowable ebooks)
 * **`hide-title`**
-  - accepted values: **never**, **always**, **first-page** (default: **first-page**)
+  - accepted values: **never**, **always**, **first-page** (default: **never**)
 
 
 `Max-pages` is the maximum number of pages (in the "paginated" layout) that the user will be able to see in a single view (if there is enough screen space).
