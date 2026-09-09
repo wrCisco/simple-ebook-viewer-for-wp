@@ -202,7 +202,7 @@ input, button, select {
 }
 #simebv-colors-filter-dialog button,
 #simebv-metadata-dialog button,
-#simebv-notes-dialog-buttons, {
+#simebv-notes-dialog-buttons {
     padding-inline: 12px;
     padding-block: 3px;
 }
