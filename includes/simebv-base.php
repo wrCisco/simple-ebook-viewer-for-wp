@@ -120,6 +120,9 @@ class SIMEBV_Base {
             'hide-title' => [
                 'html_name' => 'data-simebv-hide-title', 'default' => ''
             ],
+            'open-at' => [
+                'html_name' => 'data-simebv-open-at', 'default' => ''
+            ],
         ],
     ];
 

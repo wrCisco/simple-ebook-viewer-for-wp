@@ -449,7 +449,7 @@ export class Reader {
         let {
             menuItems, initialMenuStatus, ebookTitle, ebookAuthor,
             fontFamily, allowJS, useMathStyles, filterEbookContent,
-            showAnnotations, showPageDelimiters, popupNotes
+            showAnnotations, showPageDelimiters, popupNotes, openAt
         } = options
         this.view = document.createElement('simebv-foliate-view')
         this._bookContainer.append(this.view)
@@ -593,7 +593,7 @@ export class Reader {
             this.setFxlRendererEventListeners()
         }
 
-        await this.goToLastReadPage()
+        await this.goToLastReadPage(openAt)
 
         // Register the user interaction after the first relocate event.
         // The event fires multiple times from foliate-js during the ebook
@@ -623,12 +623,22 @@ export class Reader {
         this.view.renderer.addEventListener('relocate', this._boundOnFxlRelocate)
     }
 
-    async goToLastReadPage() {
+    async goToLastReadPage(fallback) {
         // With certain formats (e.g. fb2), invalid values of lastLocation
         // can result in the ebook not opening but without raising errors,
         // so I try to make a bit of validation beforehand. Accepted values are
         // a non negative number, or a string that is a valid epubcfi.
-        let lastLocation = this._getLastReadPage() ?? 0
+        let lastLocation = this._getLastReadPage()  // should always be a string
+        if (!isNumeric(lastLocation) && !CFI.isCFI.test(lastLocation)) {
+            lastLocation = null
+        }
+        // pages and section numbers for the user start at 1, for the viewer start at 0
+        if (parseInt(fallback) === Number(fallback)) {
+            fallback = parseInt(fallback) - 1
+        }
+        if (lastLocation === null && isNumeric(fallback)) {
+            lastLocation = fallback
+        }
         if (isNumeric(lastLocation)) {
             if (lastLocation < 0) { lastLocation = 0 }
             if (lastLocation < 1) {
@@ -638,22 +648,22 @@ export class Reader {
             }
             else {
                 lastLocation = parseInt(lastLocation)
+                if (lastLocation >= this.view.book.sections.length) {
+                    lastLocation = this.view.book.sections.length - 1
+                }
             }
         }
-        else if (typeof lastLocation !== 'string' || !CFI.isCFI.test(lastLocation)) {
-            lastLocation = null
+        try {
+            await this.view.init({lastLocation, landmark: fallback})
         }
-        if (lastLocation) {
-            try {
-                await this.view.init({lastLocation})
+        catch(e) {
+            console.error(e)
+            if (lastLocation) {
+                console.error(
+                    'Cannot load the last read page:', lastLocation,
+                    'nor the optional fallback:', fallback)
             }
-            catch(e) {
-                console.error(e)
-                console.error('Cannot load last read page:', lastLocation)
-                lastLocation = null
-            }
-        }
-        if (lastLocation === null) {
+            this.view.history.pushState(0)
             await this.view.next()
         }
     }
@@ -1133,6 +1143,9 @@ export const gatherOptionsFromContainer = container => {
     }
     if (container.getAttribute('data-simebv-popup-notes') === 'true') {
         options.ebook.popupNotes = true
+    }
+    if (container.hasAttribute('data-simebv-open-at')) {
+        options.ebook.openAt = container.getAttribute('data-simebv-open-at')
     }
     options.ebook.ebookTitle = container.getAttribute('data-simebv-ebook-title') || ''
     options.ebook.ebookAuthor = container.getAttribute('data-simebv-ebook-author') || ''
