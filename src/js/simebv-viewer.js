@@ -14,6 +14,7 @@ import { colorFiltersDialog } from './simebv-filters-dialog.js'
 import { metadataDialog, MetadataFormatter } from './simebv-metadata-dialog.js'
 import { fontsDialog } from './simebv-fonts-dialog.js'
 import { annotationsDialog } from './simebv-annotations-dialog.js'
+import { corruptedDataDialog } from './simebv-corrupted-data-dialog.js'
 import { createShowAnnotationDialog } from './simebv-show-annotation-dialog.js'
 import { createPageListForAnnotations } from './simebv-page-list.js'
 import { Menu } from './simebv-menu.js'
@@ -24,7 +25,7 @@ import { SpeechManager } from './simebv-speech.js'
 import { FootnoteManager } from './simebv-footnotes.js'
 import { setMousePanEvents } from './simebv-fxl-mousepan.js'
 import { setTouchEvents } from './simebv-doc-touchevents.js'
-import { PreferencesManager, PreferencesLoader } from './simebv-preferences.js'
+import { getPreferencesManager, PreferencesLoader } from './simebv-preferences.js'
 import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
 // Import css for the Viewer's container element, as static asset
@@ -67,6 +68,7 @@ export class Reader {
         metadata: undefined,
         colorsFilter: undefined,
         fonts: undefined,
+        corruptedData: undefined,
     }
     _textSearch
     _appliedFilter = {
@@ -237,7 +239,10 @@ export class Reader {
         this.setLocalizedDefaultInterface(this._root)
         this._defaultFontSize = getDefaultFontSize(this._rootDiv)
 
-        this._prefsManager = new PreferencesManager()
+        this._prefsManager = getPreferencesManager()
+        this._prefsManager.registerClient(this._rootDiv, ['functional', 'preferences'])
+        this._rootDiv.addEventListener('corrupted-storage', this._boundCorruptedDataHandler)
+        this._prefsManager.init()
         this._prefsLoader = new PreferencesLoader(this.container, this._prefsManager)
 
         document.dispatchEvent(new CustomEvent('simebv-viewer-loaded'))
@@ -444,6 +449,48 @@ export class Reader {
         }
         this._modalDialogs.fonts.element.showModal()
     }
+
+    openCorruptedDataDialog(type) {
+        let dlg = this._modalDialogs.corruptedData
+        if (!dlg) {
+            dlg = corruptedDataDialog()
+            dlg.element.id = 'simebv-corrupted-data-dialog'
+            this._rootDiv.append(dlg.element)
+            this._modalDialogs.corruptedData = dlg
+        }
+        dlg.element.onclose = e => {
+            if (dlg.element.returnValue === 'clear') {
+                this._prefsManager.discardCorrupted(type)
+            }
+        }
+        dlg.setData(type, this._prefsManager.getCorruptedData(type))
+        dlg.element.style.maxInlineSize = 'min(30rem, ' + (this._getContainerUnscaledWidth() - 20) + 'px)'
+        if (!dlg.element.open) {
+            dlg.element.returnValue = ''
+            dlg.element.showModal()
+        }
+    }
+
+    _corruptedDataHandler(e) {
+        const { type, raw } = e.detail
+        if (type === 'preferences') {
+            if (raw !== undefined) {
+                this._prefsManager.discardCorrupted(type)
+            }
+        }
+        else {
+            if (raw !== undefined) {
+                this.openCorruptedDataDialog(type)
+            }
+            else {
+                const dlg = this._modalDialogs.corruptedData
+                if (dlg?.element.open && type === dlg.getData().type) {
+                    dlg.element.close()
+                }
+            }
+        }
+    }
+    _boundCorruptedDataHandler = this._corruptedDataHandler.bind(this)
 
     async open(fileUrl, options) {
         let {
@@ -950,7 +997,8 @@ export class Reader {
         const { fraction, section, location, tocItem, pageItem } = detail
         this._savePreference(
             this._lastReadPagePrefName(),
-            this.view.isFixedLayout ? section.current : (detail.cfi ?? fraction)
+            this.view.isFixedLayout ? section.current : (detail.cfi ?? fraction),
+            'functional',
         )
         const percent = percentFormat.format(fraction)
         let currentPage = location.current + 1
@@ -1028,20 +1076,22 @@ export class Reader {
     }
 
     _getLastReadPage() {
-        return this._loadPreference(this._lastReadPagePrefName())
+        return this._loadPreference(this._lastReadPagePrefName(), 'functional')
     }
 
     _savePreferences(prefs) {
         this._prefsManager.savePreferences(prefs)
     }
 
-    _savePreference(name, value, type) {
-        type ??= name.endsWith('_LastPage') ? 'functional' : 'preferences'
+    _savePreference(name, value, type = 'preferences') {
         this._prefsManager.savePreference(name, value, type)
     }
 
-    _loadPreference(name, type) {
-        type ??= name.endsWith('_LastPage') ? 'functional' : 'preferences'
+    _updatePreference(name, value, type = 'preferences') {
+        return this._prefsManager.updatePreference(name, value, type)
+    }
+
+    _loadPreference(name, type = 'preferences') {
         return this._prefsManager.loadPreference(name, type)
     }
 
@@ -1224,6 +1274,7 @@ export * from './simebv-metadata-dialog.js'
 export * from './simebv-fonts-dialog.js'
 export * from './simebv-annotations-dialog.js'
 export * from './simebv-show-annotation-dialog.js'
+export * from './simebv-corrupted-data-dialog.js'
 export * from './simebv-speech-dialog.js'
 export * from './simebv-speech.js'
 export * from './simebv-sre.js'

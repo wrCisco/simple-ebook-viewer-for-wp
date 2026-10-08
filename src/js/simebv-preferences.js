@@ -1,11 +1,12 @@
 import { isNumeric } from './simebv-utils.js'
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API#testing_for_availability
+const STORAGE_TEST_KEY = "__storage_test__"
 const storageAvailable = (type) => {
     let storage
     try {
         storage = window[type]
-        const x = "__storage_test__"
+        const x = STORAGE_TEST_KEY
         storage.setItem(x, x)
         storage.removeItem(x)
         return true
@@ -22,8 +23,25 @@ const storageAvailable = (type) => {
 
 
 class WPConsentManager {
+    /**
+     * Returns true if the WP Consent API is not active on the page
+     * or if the consent has been explicitly given or if the consent
+     * has not been explicitly denied (the last one only in case of
+     * an optout type of consent, which is set at website level).
+     */
     granted(type) {
-        return !window.simebvConsent?.isApiActive || window.simebvConsent[type]
+        if (!window.simebvConsent?.isApiActive) return true
+        return typeof window.wp_has_consent === 'function'
+            ? window.wp_has_consent(type)
+            : window.simebvConsent[type]
+    }
+    /**
+     * Returns true only in case of an explicit denial.
+     */
+    denied(type) {
+        if (!window.simebvConsent?.isApiActive) return false
+        if (typeof window.consent_api_get_cookie !== 'function' || !window.consent_api) return false
+        return window.consent_api_get_cookie(window.consent_api.cookie_prefix + '_' + type) === 'deny'
     }
     onChange(cb, types) {
         document.addEventListener('wp_listen_for_consent_change', e => {
@@ -42,7 +60,7 @@ class WPConsentManager {
 }
 
 
-export class PreferencesManager {
+class PreferencesManager {
     #hasUserInteracted = false
     #consent
     #flushTimeout
@@ -52,34 +70,87 @@ export class PreferencesManager {
         'preferences',
         'functional',
     ]
+    #dirty = {}
+    #clients = []
+    #prefix = 'simebv-'
+    #corrupted = {}
     storage
-    data
+    data = {}
+    target = new EventTarget()
 
-    constructor(consentManager, storageName = 'localStorage') {
-        this.data = Object.fromEntries(this.#categories.map(type => [type, {}]))
+    constructor() {
+        for (const type of this.#categories) {
+            this.data[type] = {}
+            this.#dirty[type] = new Set()
+        }
+    }
+
+    init(consentManager, storageName = 'localStorage', force = false) {
+        if (!force && this.#consent) return
         this.#consent = consentManager ?? new WPConsentManager()
         this.#storageName = storageName
         if (this.isStorageAvailable()) {
             this.storage = window[storageName]
             for (const type of this.#categories) {
-                this.data[type] = this.loadStorage(type)
-            }
-            if (this.#categories.every(type => Object.keys(this.data[type]).length === 0)) {
-                this.convertFromOldStyle()
-            }
-            for (const type of this.#categories) {
-                if (!this.#consent.granted(type)) {
+                if (this.#consent.denied(type)) {
                     this.clearStorage(type)
                 }
+            }
+            for (const type of this.#categories) {
+                this.data[type] = this.loadStorage(type).data
+            }
+            if (this.#categories.every(type => Object.keys(this.data[type]).length === 0)
+                    && Object.keys(this.#corrupted).length === 0) {
+                this.convertFromOldStyle()
             }
         }
         this.#consent.onChange(
             (type, allowed) => {
-                if (allowed) this.flushPreferences(type)
+                if (allowed) {
+                    for (const name of Object.keys(this.data[type])) {
+                        this.#dirty[type].add(name)
+                    }
+                    this.flushPreferences(type)
+                }
                 else this.clearStorage(type)
             },
             this.#categories,
         )
+        globalThis.addEventListener('storage', e => {
+            if (this.#clients.length === 0) return
+            const type = this.#categories.find(t => e.key === this.#prefix + t)
+            if (!type) return
+            const { data: newData, unreadable, corrupted } = this.loadStorage(type)
+            if (!newData || unreadable || corrupted !== undefined) return
+            const updated = []
+            for (const name in newData) {
+                const value = newData[name]
+                if (this.#dirty[type].has(name) ||
+                        JSON.stringify(value) === JSON.stringify(this.data[type][name])) {
+                    continue
+                }
+                this.data[type][name] = value
+                updated.push(name)
+            }
+            for (const { target, types, names } of this.#clients) {
+                if (!types.includes(type)) continue
+                for (const name of updated) {
+                    if (names.includes(name)) {
+                        target.dispatchEvent(new CustomEvent('storage-changed', {
+                            detail: { type, name }
+                        }))
+                    }
+                }
+            }
+        })
+    }
+
+    hasConsent(type) {
+        return this.#consent.granted(type)
+    }
+
+    registerClient(eventTarget, types = [], names = []) {
+        this.#clients.push({target: eventTarget, types, names})
     }
 
     isStorageAvailable() {
@@ -100,7 +171,10 @@ export class PreferencesManager {
         if (this.storage) {
             for (const type of this.#categories) {
                 const newPrefs = this.loadStorage(type)
-                this.data[type] = resetData ? newPrefs : { ...newPrefs, ...this.data[type] }
+                if (newPrefs.unreadable || newPrefs.corrupted !== undefined) {
+                    continue
+                }
+                this.data[type] = resetData ? newPrefs.data : { ...newPrefs.data, ...this.data[type] }
             }
         }
     }
@@ -115,6 +189,7 @@ export class PreferencesManager {
 
     savePreference(name, value, type = 'preferences', flush = true) {
         this.data[type][name] = value
+        this.#dirty[type].add(name)
         if (flush) {
             this.flushPreferences(type)
         }
@@ -124,11 +199,21 @@ export class PreferencesManager {
         let updatedTypes = new Set()
         for (const [name, value, type = 'preferences'] of prefs) {
             this.data[type][name] = value
+            this.#dirty[type].add(name)
             updatedTypes.add(type)
         }
         if (flush && updatedTypes.size > 0) {
             this.flushPreferences(...updatedTypes)
         }
+    }
+
+    updatePreference(name, updater, type = 'preferences', flush = true) {
+        const current = this.#dirty[type].has(name)
+            ? this.data[type][name]
+            : (this.loadStorage(type).data[name] ?? this.data[type][name])
+        const value = updater(current)
+        this.savePreference(name, value, type, flush)
+        return value
     }
 
     loadPreference(name, type = 'preferences') {
@@ -149,9 +234,28 @@ export class PreferencesManager {
             }
             for (const type of this.#pendingFlush) {
                 if (!this.#consent.granted(type)) {
+                    this.#emitErrors(type, 'no-consent-storage')
                     continue
                 }
-                this.storage.setItem('simebv-' + type, JSON.stringify(this.data[type]))
+                const { data: merged, unreadable, corrupted } = this.loadStorage(type)
+                if (unreadable || corrupted !== undefined) {
+                    this.#emitErrors(type, 'error-storage')
+                    continue
+                }
+                for (const name of this.#dirty[type]) {
+                    if (Object.hasOwn(this.data[type], name)) {
+                        merged[name] = this.data[type][name]
+                    }
+                    else { delete merged[name] }
+                }
+                try {
+                    this.storage.setItem(this.#prefix + type, JSON.stringify(merged))
+                }
+                catch (e) {
+                    this.#emitErrors(type, 'error-storage', e, merged)
+                    continue
+                }
+                this.#dirty[type].clear()
                 this.#pendingFlush.delete(type)
             }
         }, 200)
@@ -165,23 +269,78 @@ export class PreferencesManager {
         if (!this.storage) {
             this.useStorage(this.#storageName)
         }
-        this.storage.removeItem('simebv-' + type)
+        this.storage.removeItem(this.#prefix + type)
+        this.#setCorrupted(type, undefined)
     }
 
     loadStorage(type) {
         if (!this.isStorageAvailable()) {
-            return
+            return { data: {}, unreadable: true }
         }
         if (!this.storage) {
             this.useStorage(this.#storageName)
         }
-        let parsed
+        let raw
         try {
-            parsed = JSON.parse(this.storage.getItem('simebv-' + type))
-        } catch {
-            parsed = {}
+            raw = this.storage.getItem(this.#prefix + type)
         }
-        return (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {}
+        catch (e) {
+            return { data: {}, unreadable: true, error: e }
+        }
+        if (raw === null) {
+            this.#setCorrupted(type, undefined)
+            return { data: {} }
+        }
+        try {
+            const parsed = JSON.parse(raw)
+            if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                this.#setCorrupted(type, undefined)
+                return { data: parsed }
+            }
+        } catch {}
+        this.#setCorrupted(type, raw)
+        return { data: {}, corrupted: raw }
+    }
+
+    getCorruptedData(type) {
+        if (!type) return { ...this.#corrupted }
+        return this.#corrupted[type]
+    }
+
+    discardCorrupted(type) {
+        if (this.#corrupted[type] === undefined) return
+        delete this.#corrupted[type]
+        try {
+            this.storage.removeItem(this.#prefix + type)
+        }
+        catch {}
+        this.flushPreferences(type)
+    }
+
+    #setCorrupted(type, raw) {
+        if (this.#corrupted[type] === raw) return
+        if (raw === undefined) delete this.#corrupted[type]
+        else this.#corrupted[type] = raw
+        // detail.raw undefined means repaired
+        for (const { target, types } of this.#clients) {
+            if (types.includes(type)) {
+                target.dispatchEvent(new CustomEvent('corrupted-storage', { detail: { type, raw }}))
+            }
+        }
+    }
+
+    #emitErrors(type, eventName, error, load) {
+        for (const { target, types, names } of this.#clients) {
+            if (!types.includes(type)) continue
+            const errorNames = Array.from(this.#dirty[type]).filter(n => names.includes(n))
+            if (errorNames.length > 0) {
+                target.dispatchEvent(new CustomEvent(eventName, {
+                    detail: {
+                        error, type, load, names: errorNames, storageName: this.#storageName
+                    }
+                }))
+            }
+        }
     }
 
     convertFromOldStyle() {
@@ -203,11 +362,20 @@ export class PreferencesManager {
         }
         for (const type of this.#categories) {
             if (Object.keys(this.data[type]).length > 0 && this.#consent.granted(type)) {
-                this.storage.setItem('simebv-' + type, JSON.stringify(this.data[type]))
+                this.storage.setItem(this.#prefix + type, JSON.stringify(this.data[type]))
             }
         }
     }
 
+}
+
+
+let preferencesManager
+export function getPreferencesManager() {
+    if (!preferencesManager) {
+        preferencesManager = new PreferencesManager()
+    }
+    return preferencesManager
 }
 
 
