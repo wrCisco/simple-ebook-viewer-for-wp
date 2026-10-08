@@ -211,12 +211,17 @@ export class Reader {
                 detail.data = 'enter'
                 this.container.classList.add('simebv-view-real-fullscreen')
                 this._bookContainer.classList.add('simebv-fullscreen')
+                // To prevent Chromium based browsers from scrolling down the page upon leaving fullscreen
+                document.documentElement.classList.add('simebv-overflow-anchor-none')
+                document.body.classList.add('simebv-overflow-anchor-none')
             }
             else {
                 detail.data = 'exit'
                 this.container.classList.remove('simebv-view-real-fullscreen')
                 this._bookContainer.classList.remove('simebv-fullscreen')
                 this.view.removeAttribute('autohide-cursor')
+                document.documentElement.classList.remove('simebv-overflow-anchor-none')
+                document.body.classList.remove('simebv-overflow-anchor-none')
             }
             const toggleFullscreen = new CustomEvent('toggle-fullscreen', { detail })
             this._headerBar.dispatchEvent(toggleFullscreen)

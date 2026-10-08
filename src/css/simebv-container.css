@@ -88,6 +88,10 @@
     overflow: hidden !important;
 }
 
+.simebv-overflow-anchor-none {
+    overflow-anchor: none;
+}
+
 .hiddenCanvasElement {
     word-spacing: normal;
     letter-spacing: normal;
