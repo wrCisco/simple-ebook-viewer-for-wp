@@ -550,7 +550,7 @@ export class Reader {
 
         this._metadataFormatter = new MetadataFormatter(this._getEbookLocales())
         if (!ebookTitle) {
-            ebookTitle = this._metadataFormatter.formatLanguageMap(book.metadata?.title) || 'Untitled Book'
+            ebookTitle = this._metadataFormatter.formatLanguageMap(book.metadata?.title) || file.name || 'Untitled Book'
         }
         ebookTitle = ebookTitle.slice(0, 260)
         this._ebookTitle = ebookTitle
