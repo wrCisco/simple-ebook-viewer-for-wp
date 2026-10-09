@@ -1,4 +1,5 @@
 import { CFI } from './simebv-epubcfi.js'
+import { getNonEmptyRange } from './simebv-utils.js'
 
 function getLastNode(cfi) {
     for (let i = cfi.length - 1; i > 0; i--) {
@@ -15,20 +16,6 @@ function getLastNode(cfi) {
         }
     }
 }
-
-function nodeFilter(node) {
-    if (node.nodeType !== Node.ELEMENT_NODE) {
-        return NodeFilter.FILTER_ACCEPT
-    }
-    if (['SCRIPT', 'NOSCRIPT', 'STYLE'].includes(node.tagName)) {
-        return NodeFilter.FILTER_REJECT
-    }
-    if (globalThis.getComputedStyle(node).display === 'none') {
-        return NodeFilter.FILTER_REJECT
-    }
-    return NodeFilter.FILTER_ACCEPT
-}
-
 
 /**
  * Create the cfi ranges and other properties for the page list annotations.
@@ -55,60 +42,8 @@ export function createPageListForAnnotations(reader, bookPageList, index, doc) {
             continue
         }
         const node = anchor(doc)
-        let startContainer = node
-        const display = globalThis.getComputedStyle(node).display
-        if (node.textContent?.trim() && display !== 'none') {
-            const walker = document.createTreeWalker(
-                node, NodeFilter.SHOW_ELEMENT|NodeFilter.SHOW_TEXT, nodeFilter
-            )
-            while (walker.nextNode()) {
-                const child = walker.currentNode
-                if (child.nodeType === Node.TEXT_NODE && child.textContent.trim()) {
-                    startContainer = child
-                    break
-                }
-            }
-        }
-        let endContainer
-        let range = new Range()
-        range.setStart(startContainer, 0)
-        if (startContainer.nodeType === Node.TEXT_NODE) {
-            range.setEnd(startContainer, startContainer.length - 1)
-        }
-        else {
-            let root = node.getRootNode()
-            const walker = document.createTreeWalker(
-                root, NodeFilter.SHOW_ELEMENT|NodeFilter.SHOW_TEXT, nodeFilter
-            )
-            walker.currentNode = node
-            walker.lastChild()
-            extLoop: while (walker.nextNode()) {
-                const current = walker.currentNode
-                if (node.contains(current)) {
-                    continue
-                }
-                if (current.nodeType === Node.TEXT_NODE && current.textContent.trim()) {
-                    endContainer = current
-                    break extLoop
-                }
-            }
-            if (!endContainer) {
-                walker.currentNode = node
-                walker.lastChild()
-                while (walker.nextNode()) {
-                    const current = walker.currentNode
-                    if (node.contains(current)) continue
-                    if (current.nodeType === Node.ELEMENT_NODE) {
-                        endContainer = current
-                        break
-                    }
-                }
-                if (!endContainer) {
-                    continue
-                }
-            }
-            range.setEnd(endContainer, endContainer.nodeType === Node.TEXT_NODE ? 1 : 0)
-        }
+        const range = getNonEmptyRange(node)
+        if (range.collapsed) continue
         const sectionCFI = reader.view.getCFI(index)
         const cfiRange = sectionCFI.replace(/\)$/, '!') + CFI.fromRange(range).replace(/^epubcfi\(/, '')
         const annotation = { value: cfiRange, type: 'page-list', label: p.label, href: p.href }
