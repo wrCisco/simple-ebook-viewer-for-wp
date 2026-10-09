@@ -21,8 +21,65 @@ export function pageListOutline(rects, options = {}) {
         const pathHeight = Math.min(height, fontSize * 1.7)
         const el = document.createElementNS(NS.SVG, 'path')
         el.setAttribute('d', `M ${Math.max(0, left - 1)},${top + pathHeight} v ${-pathHeight}`)// l 6 -3`)
-        el.style.opacity = 'var(--overlayer-highlight-opacity, .8)'
-        el.style.mixBlendMode = 'var(--overlayer-highlight-blend-mode, normal)'
+        el.style.opacity = 'var(--overlayer-outline-opacity, .8)'
+        el.style.mixBlendMode = 'var(--overlayer-outline-blend-mode, normal)'
+        g.append(el)
+        g.onclick = () => {}  // for single tap opening on iOS
+    }
+    return g
+}
+
+export function pageBookmarkHighlight(rects, options = {}) {
+    const { color = 'red', fontSize = 16 } = options
+    const g = document.createElementNS(NS.SVG, 'g')
+    g.setAttribute('fill', color)
+    g.style.opacity = 'var(--overlayer-highlight-opacity, .4)'
+    g.style.mixBlendMode = 'var(--overlayer-highlight-blend-mode, normal)'
+    let rect
+    for (let i = 0; i < rects.length; i++) {
+        if (rects[i].height) {
+            rect = rects[i]
+            break
+        }
+    }
+    if (rect) {
+        const { left, right, top, bottom, height, width } = rect
+        const pathLength = Math.min(height, fontSize * 1.7)
+        const el = document.createElementNS(NS.SVG, 'rect')
+        el.setAttribute('x', left)
+        el.setAttribute('y', top)
+        el.setAttribute('height', pathLength)
+        el.setAttribute('width', pathLength * 0.8)
+        g.append(el)
+        g.onclick = () => {}  // for single tap opening on iOS
+    }
+    return g
+}
+
+export function pageBookmarkOutline(rects, options = {}) {
+    const { color = 'red', width: strokeWidth = 2, fontSize = 16 } = options
+    const g = document.createElementNS(NS.SVG, 'g')
+    g.setAttribute('fill', 'none')
+    g.setAttribute('stroke', color)
+    g.setAttribute('stroke-width', strokeWidth)
+    g.style.opacity = 'var(--overlayer-outline-opacity, .6)'
+    const block = strokeWidth * 1.5
+    let rect
+    for (let i = 0; i < rects.length; i++) {
+        if (rects[i].height) {
+            rect = rects[i]
+            break
+        }
+    }
+    if (rect) {
+        const { left, right, top, bottom, height, width } = rect
+        const pathLength = Math.min(height, fontSize * 1.7)
+        const el = document.createElementNS(NS.SVG, 'path')
+        const n = Math.round(pathLength / block / 1.5)
+        const inline = pathLength / n
+        const ls = Array.from({ length: n },
+            (_, i) => `l${i % 2 ? -block : block} ${inline}`).join('')
+        el.setAttribute('d', `M${left} ${top}${ls}`)
         g.append(el)
         g.onclick = () => {}  // for single tap opening on iOS
     }
@@ -76,4 +133,22 @@ export function currentSearchOutline(rects, options = {}) {
         g.append(el)
     }
     return g
+}
+
+export function thinRectHitTester(obj, {x, y}) {
+    if (!obj.rects?.length) return
+    let rect
+    for (let j = 0; j < obj.rects.length; j++) {
+        if (obj.rects[j].height) {
+            rect = obj.rects[j]
+            break
+        }
+    }
+    if (!rect) rect = obj.rects[0]
+    let { left, top, right, bottom, width, height } = rect
+    const offsetH = 10
+    const offsetV = 10
+    if (top - offsetV <= y && left - offsetH <= x && top + offsetV * 3 > y && left + offsetH * 3 > x) {
+        return obj.range
+    }
 }

@@ -29,6 +29,7 @@
     --font-size-input: max(var(--font-size-base), 16px);
     --font-size-dlg-headings: 1.3rem;
     --link-text: LinkText;
+    --alert-text: darkred;
 }
 @supports (color-scheme: light dark) {
     @media all and (prefers-color-scheme: dark) {
@@ -43,6 +44,7 @@
             --enabled-dot: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23FFFFFF%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22%2F%3E%3C%2Fsvg%3E');
             --gray-text: rgb(132, 132, 132);
             --link-text: lightblue;
+            --alert-text: #ff6b6b;
         }
         #simebv-reader-root.simebv-supports-dark a:link {
             color: var(--link-text);
@@ -69,6 +71,7 @@ foliate-fxl::part(filter) {
     --reader-bg: var(--sepia-color);
     --menu-bg: var(--reader-bg);
     --sidebar-bg: var(--reader-bg);
+    --alert-text: darkred;
 }
 #simebv-reader-root.simebv-light {
     color-scheme: only light;
@@ -98,6 +101,7 @@ foliate-fxl::part(filter) {
     --enabled-dot: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23FFFFFF%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22%2F%3E%3C%2Fsvg%3E');
     --gray-text: rgb(132, 132, 132);
     --link-text: lightblue;
+    --alert-text: #ff6b6b;
 }
 #simebv-reader-root.simebv-dark a:link {
     color: var(--link-text);
@@ -179,7 +183,9 @@ input, button, select {
 #simebv-annotations-dialog,
 #simebv-show-annotation-dialog,
 #simebv-speech-dialog-options,
-#simebv-notes-dialog {
+#simebv-notes-dialog,
+#simebv-add-bookmarks-dialog,
+#simebv-corrupted-data-dialog {
     background-color: var(--menu-bg);
     border: none;
     box-shadow: var(--menu-box-shadow);
@@ -509,4 +515,30 @@ input, button, select {
     display: flex;
     justify-content: flex-end;
     gap: .3rem;
+}
+#simebv-add-bookmarks-dialog {
+    inset-block-end: auto;
+    margin-block-start: max(1rem, 10dvh);
+}
+#simebv-add-bookmarks-dialog .simebv-bookmark-loc {
+    margin-block-start: 0;
+    margin-block-end: .5rem;
+    margin-inline: .2rem;
+    font-weight: bold;
+}
+.simebv-label-block,
+.simebv-textarea-block {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+.simebv-label-block {
+    font-size: .9rem;
+}
+.simebv-textarea-block {
+    height: 6rem;
+}
+.simebv-add-bookmarks-storage-legend {
+    font-size: .8rem;
+    padding-inline-start: .4rem;
 }

@@ -20,7 +20,7 @@
     background: none;
     border: 0;
 }
-.simebv-toolbar button:hover {
+.simebv-toolbar button:hover:not(:disabled) {
     background: var(--active-bg);
     color: currentcolor;
     cursor: pointer;
@@ -37,6 +37,9 @@ input, button {
 }
 .simebv-icon-fill {
     fill: CanvasText;
+}
+.simebv-icon-thin {
+    stroke-width: 1px;
 }
 .simebv-icon:active {
     stroke: CanvasText;

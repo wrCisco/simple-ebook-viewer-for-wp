@@ -44,7 +44,7 @@ template.innerHTML = `
     flex-direction: row;
     vertical-align: middle;
     position: relative;
-    flex: 0 0 3em;
+    flex: 0 0 auto;
 }
 .left-side-buttons {
     justify-content: start;
@@ -67,7 +67,8 @@ template.innerHTML = `
     padding: 0;
     margin: 0;
 }
-.simebv-menu {
+.simebv-menu,
+.simebv-bookmarks-dlg {
     visibility: hidden;
     position: absolute;
     right: 0;
@@ -84,6 +85,107 @@ template.innerHTML = `
     scrollbar-width: thin;
     user-select: none;
     box-sizing: border-box;
+}
+.simebv-bookmarks-dlg {
+    visibility: initial;
+    border: initial;
+}
+.simebv-bookmarks-add-textual,
+.simebv-bookmarks-show-container {
+    padding-inline: 3px;
+    margin-block-start: .3rem;
+    margin-block-end: .1rem;
+}
+.simebv-bookmarks-hint {
+    font-size: .8rem;
+    padding-inline: 9px 6px;
+    margin-block-start: .2rem;
+    visibility: hidden;
+}
+.simebv-bookmarks-hint.show {
+    visibility: visible;
+}
+.simebv-no-bookmarks {
+    padding: 18px 6px 0 6px;
+}
+.simebv-no-bookmarks.hide {
+    display: none;
+}
+.simebv-bookmarks-add-textual button {
+    text-align: start;
+    width: 100%;
+    padding: 6px;
+}
+.simebv-bookmarks-show-container label {
+    padding-inline-start: 3px;
+}
+.simebv-bookmarks-alert {
+    padding-inline: 9px 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--alert-text);
+}
+.simebv-bookmarks-alert.hide {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+.simebv-bookmarks-list {
+    list-style: none;
+    padding-inline: 3px;
+}
+.simebv-bookmarks-list li:not(:last-child) {
+    padding-bottom: .3rem;
+}
+.simebv-bookmarks-list li,
+.simebv-no-bookmarks {
+    border-block-start: 1px solid var(--menu-group-separator-color);
+}
+.simebv-bookmarks-location {
+    display: flex;
+    justify-content: space-between;
+    column-gap: 6px;
+    align-items: flex-start;
+    margin-block-start: .6rem;
+    margin-block-end: 0;
+}
+.simebv-bookmarks-location .simebv-bookmarks-label {
+    font-weight: 500;
+    padding: 3px 6px;
+}
+.simebv-bookmarks-location a {
+    border-radius: 6px;
+    color: CanvasText;
+    text-decoration: none;
+    user-select: text;
+}
+.simebv-bookmarks-location a:focus {
+    outline: 2px solid;
+}
+.simebv-bookmarks-location a:hover {
+    cursor: pointer;
+    background: var(--active-bg);
+}
+.simebv-bookmark-edit-buttons {
+    flex: 0 0 auto;
+    margin-block-start: 3px;
+}
+.simebv-bookmarks-textinbook,
+.simebv-bookmarks-content {
+    padding: 3px;
+    padding-inline-start: 6px;
+    margin-block-start: 0;
+    margin-block-end: .5rem;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    user-select: text;
+}
+.simebv-bookmarks-textinbook {
+    font-size: .8rem;
+    white-space: initial;
+}
+.simebv-bookmarks-content {
+    font-size: 1rem;
 }
 .simebv-menu.simebv-show {
     visibility: visible;
@@ -147,10 +249,16 @@ template.innerHTML = `
     padding-block-end: .4em;
     font-weight: 500;
 }
+.simebv-bookmarks-shortcut,
 .simebv-menu-shortcut {
     float: right;
     float: inline-end;
     color: var(--gray-text);
+}
+.simebv-bookmarks-shortcut {
+    padding-inline-start: .2em;
+}
+.simebv-menu-shortcut {
     padding-inline-start: .1em;
 }
 #simebv-zoom-numeric {
@@ -202,12 +310,51 @@ template.innerHTML = `
 .simebv-numeric-btn-sm:active {
     transform: scale(0.95);
 }
+#add-bookmark-button {
+    position: absolute;
+    inset-inline-start: 100%;
+    inset-block-start: 2px;
+    padding: 0;
+    background-color: var(--menu-bg);  /* fallback */
+    background-color: rgb(from var(--menu-bg) r g b / 70%);
+    backdrop-filter: blur(2px);
+    display: inline-block;
+    visibility: hidden;
+    opacity: 0;
+    transform: scale(.5);
+    transition: opacity .3s ease-in-out, transform .3s ease-in-out, visibility .3s;
+}
+#add-bookmark-button:hover {
+    background-image: linear-gradient(var(--active-bg), var(--active-bg));
+}
+#add-bookmark-button.show {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    #add-bookmark-button {
+        transition: none;
+    }
+}
 </style>
 <div id="header-bar" class="simebv-toolbar">
     <div class="left-side-buttons">
         <button id="side-bar-button" aria-label="Show sidebar" aria-expanded="false" aria-controls="simebv-reader-sidebar">
             <svg class="simebv-icon" width="32" height="32" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M 4 6 h 16 M 4 12 h 16 M 4 18 h 16"/>
+            </svg>
+        </button>
+        <div id="bookmarks-button-container">
+            <button id="bookmarks-button" aria-label="Show bookmarks and notes" aria-expanded="false" aria-controls="simebv-bookmarks-dialog">
+                <svg id="icon-bookmarks" class="simebv-icon" width="32" height="32" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 4.5 v14 l4 -3l4 3v-14" />
+                </svg>
+            </button>
+        </div>
+        <button id="add-bookmark-button" aria-label="Add a bookmark" aria-haspopup="dialog" aria-keyshortcuts="Control+B">
+            <svg class="simebv-icon simebv-icon-thin" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 11.5 v1h5.5v5.5h1v-5.5h5.5v-1h-5.5v-5.5h-1v5.5z"/>
             </svg>
         </button>
     </div>
@@ -269,13 +416,20 @@ export class HeaderBar extends HTMLElement {
         this.root = this.shadowRoot.getElementById('header-bar')
         this.header = this.shadowRoot.getElementById('book-header')
         this.buttonSideBar = this.shadowRoot.getElementById('side-bar-button')
+        this.buttonBookmarksContainer = this.shadowRoot.getElementById('bookmarks-button-container')
+        this.buttonBookmarks = this.shadowRoot.getElementById('bookmarks-button')
+        this.iconBookmarks = this.shadowRoot.getElementById('icon-bookmarks')
+        this.buttonAddBookmark = this.shadowRoot.getElementById('add-bookmark-button')
         this.buttonMenuContainer = this.shadowRoot.getElementById('menu-button-container')
         this.buttonMenu = this.shadowRoot.getElementById('menu-button')
         this.buttonClose = this.shadowRoot.getElementById('close-button')
         this.buttonFullscreen = this.shadowRoot.getElementById('full-screen-button')
         this.iconEnterFullscreen = this.shadowRoot.getElementById('icon-enter-fullscreen')
         this.iconExitFullscreen = this.shadowRoot.getElementById('icon-exit-fullscreen')
-        this.buttons = [this.buttonSideBar, this.buttonMenu, this.buttonClose, this.buttonFullscreen]
+        this.buttons = [
+            this.buttonSideBar, this.buttonBookmarks, this.buttonAddBookmark,
+            this.buttonMenu, this.buttonClose, this.buttonFullscreen]
+        this.attachedMenus = []
         this.setLocalizedLabels()
     }
 
@@ -293,6 +447,25 @@ export class HeaderBar extends HTMLElement {
                 this.dispatchEvent(new CustomEvent('side-bar-button'))
             }
         )
+        this.buttonBookmarks.addEventListener(
+            'click', () => {
+                if (wasJustRestored(this.buttonBookmarks)) return
+                this.dispatchEvent(new CustomEvent('bookmarks-button'))
+            }
+        )
+        this.addEventListener('open-bookmarks-dlg', () => {
+            this.buttonBookmarks.setAttribute('aria-expanded', 'true')
+            this.dispatchEvent(new CustomEvent('open-menus'))
+        })
+        this.addEventListener('close-bookmarks-dlg', () => {
+            this.buttonBookmarks.setAttribute('aria-expanded', 'false')
+            this.dispatchEvent(new CustomEvent('close-menus'))
+        })
+        this.buttonAddBookmark.addEventListener(
+            'click', () => {
+                if (wasJustRestored(this.buttonAddBookmark)) return
+                this.dispatchEvent(new CustomEvent('add-bookmark-button'))
+            })
         this.buttonMenu.addEventListener(
             'click', () => {
                 if (wasJustRestored(this.buttonMenu)) return
@@ -342,6 +515,41 @@ export class HeaderBar extends HTMLElement {
             this.hideBar()
         })
         this.addEventListener('new-book', () => this.root.style.visibility = 'visible')
+        this.addEventListener('selection', e => {
+            const { docs } = e.detail
+            let hasSelection
+            for (const doc of docs) {
+                const sel = doc.getSelection()
+                hasSelection = sel && !sel.isCollapsed
+                if (hasSelection) break
+            }
+            if (hasSelection) {
+                this.buttonAddBookmark.classList.add('show')
+            }
+            else {
+                if (this.shadowRoot.activeElement === this.buttonAddBookmark) {
+                    this.buttonBookmarks.focus()
+                }
+                this.buttonAddBookmark.classList.remove('show')
+            }
+        })
+        this.addEventListener('bookmarks-in-sight', e => {
+            const { inSight } = e.detail
+            if (inSight) {
+                this.iconBookmarks.classList.add('simebv-icon-fill')
+                this.buttonBookmarks.setAttribute(
+                    'aria-label',
+                    __("Show bookmarks and notes (there are bookmarks on this page)", 'simple-ebook-viewer')
+                )
+            }
+            else {
+                this.iconBookmarks.classList.remove('simebv-icon-fill')
+                this.buttonBookmarks.setAttribute(
+                    'aria-label',
+                    __("Show bookmarks and notes", 'simple-ebook-viewer')
+                )
+            }
+        })
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -399,6 +607,8 @@ export class HeaderBar extends HTMLElement {
 
     closeMenus() {
         this.#addStdEventListeners()
+        const active = this.shadowRoot.activeElement
+        if (this.buttons.includes(active) && active.matches(':focus-visible')) return
         this.hideBar()
     }
     boundCloseMenus = this.closeMenus.bind(this)
@@ -422,6 +632,7 @@ export class HeaderBar extends HTMLElement {
     boundShowBar = this.showBar.bind(this)
 
     hideBar() {
+        if (this.areMenusVisible()) return
         if (this.hideTimeout) {
             clearTimeout(this.hideTimeout)
             this.hideTimeout = undefined
@@ -445,6 +656,12 @@ export class HeaderBar extends HTMLElement {
         const sideBarButtonLabel = __('Show sidebar', 'simple-ebook-viewer')
         this.buttonSideBar.setAttribute('aria-label', sideBarButtonLabel)
         this.buttonSideBar.title = sideBarButtonLabel
+        const bookmarksLabel = __('Show bookmarks and notes', 'simple-ebook-viewer')
+        this.buttonBookmarks.setAttribute('aria-label', bookmarksLabel)
+        this.buttonBookmarks.title = bookmarksLabel
+        const addBookmarkLabel = __('Bookmark selected text', 'simple-ebook-viewer')
+        this.buttonAddBookmark.setAttribute('aria-label', addBookmarkLabel)
+        this.buttonAddBookmark.title = addBookmarkLabel
         const settingsButtonLabel = __('Show settings', 'simple-ebook-viewer')
         this.buttonMenu.setAttribute('aria-label', settingsButtonLabel)
         this.buttonMenu.title = settingsButtonLabel
@@ -460,8 +677,28 @@ export class HeaderBar extends HTMLElement {
         this.header.textContent = text
     }
 
-    attachMenu(menu) {
+    attachMenu(menu, isVisibleFunc) {
         this.buttonMenuContainer.append(menu)
+        this.registerAttachment({ menu, isVisible: isVisibleFunc })
+    }
+
+    attachBookmarksDlg(dlg, isVisibleFunc) {
+        this.buttonBookmarksContainer.append(dlg)
+        this.registerAttachment({ menu: dlg, isVisible: isVisibleFunc })
+    }
+
+    registerAttachment(menu) {
+        this.attachedMenus.push(menu)
+    }
+
+    areMenusVisible() {
+        return this.attachedMenus.some(({ isVisible }) => isVisible())
+    }
+
+    getVisibleMenus() {
+        return this.attachedMenus
+            .filter(({ menu, isVisible }) => isVisible() ? menu : false)
+            .map(({ menu }) => menu)
     }
 
 }

@@ -23,9 +23,22 @@ export function createShowAnnotationDialog() {
         dlg.showModal()
     }
 
+    const setFocus = () => close.focus()
+
     dlg.addEventListener('close', () => {
-        if (returnFocusTo) returnFocusTo.focus()
+        const el = returnFocusTo?.()
+        if (!el) return
+        el.focus()
+        el.dispatchEvent(new CustomEvent('focus-from-show-annotation-dlg'))
     })
 
-    return { element: dlg, showAnnotation }
+    dlg.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            e.preventDefault()
+            e.stopPropagation()
+            dlg.close()
+        }
+    })
+
+    return { element: dlg, showAnnotation, setFocus }
 }

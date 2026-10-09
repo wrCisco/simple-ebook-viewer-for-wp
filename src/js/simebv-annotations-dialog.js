@@ -1,7 +1,7 @@
 import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
 
-export function annotationsDialog(reader) {
+export function annotationsDialog(reader, target) {
     const dlg = document.createElement('dialog')
     dlg.setAttribute('aria-labelledby', 'simebv-annotations-dialog-header')
 
@@ -92,6 +92,11 @@ export function annotationsDialog(reader) {
                 if (index !== undefined) {
                     reader.boundPageListCreateOverlay({ detail: { index }})
                 }
+                target.dispatchEvent(
+                    new CustomEvent('show-page-delimiters', {
+                        detail: { show: reader._showPageDelimiters }
+                    })
+                )
             }
             reader._savePreference('show-page-delimiters', reader._showPageDelimiters)
         }
@@ -103,6 +108,11 @@ export function annotationsDialog(reader) {
                 for (const page of reader.pageList.get(index)) {
                     reader.view.deleteAnnotation(page)
                 }
+                target.dispatchEvent(
+                    new CustomEvent('show-page-delimiters', {
+                        detail: { show: reader._showPageDelimiters }
+                    })
+                )
             }
             reader._savePreference('show-page-delimiters', reader._showPageDelimiters)
         }

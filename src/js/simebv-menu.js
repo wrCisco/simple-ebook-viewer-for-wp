@@ -21,6 +21,10 @@ export class Menu {
         return this.#groups
     }
 
+    isVisible() {
+        return this.#element.classList.contains('simebv-show')
+    }
+
     getMenuItems(root) {
         if (!root) {
             root = this.#element

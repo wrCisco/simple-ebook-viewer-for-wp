@@ -142,6 +142,19 @@ export function scrollIntoView(element, doc, renderer) {
     }
 }
 
+export function scrollMenuEntryIntoView(element, container) {
+    const containerBBox = container.getBoundingClientRect()
+    const elBBox = element.getBoundingClientRect()
+    if (elBBox.bottom > containerBBox.bottom || elBBox.top < containerBBox.top) {
+        const relativeTop = container.scrollTop + elBBox.top - containerBBox.top
+        const moveBlock = Math.min(
+            relativeTop + Math.min(elBBox.height / 2 - containerBBox.height / 2, -10),
+            container.scrollHeight - containerBBox.height
+        )
+        container.scroll(0, moveBlock)
+    }
+}
+
 // from foliate-js/paginator.js
 export function getDirection(doc) {
     const { defaultView } = doc
@@ -152,6 +165,17 @@ export function getDirection(doc) {
         || direction === 'rtl'
         || doc.documentElement.dir === 'rtl'
     return { vertical, rtl }
+}
+
+let requestedPersistentStorage = false
+export async function requestPersistentStorage() {
+    try {
+        if (requestedPersistentStorage || !navigator.storage?.persist) return
+        requestedPersistentStorage = true
+        if (await navigator.storage.persisted()) return
+        await navigator.storage.persist()
+    }
+    catch {}
 }
 
 

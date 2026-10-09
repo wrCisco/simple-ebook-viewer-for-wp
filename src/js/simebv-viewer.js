@@ -8,7 +8,9 @@ import { CFI } from './simebv-epubcfi.js'
 import {
     isNumeric, getDefaultFontSize, pluginBaseUrl,
     isElementWritable, scrollIntoView } from './simebv-utils.js'
-import { pageListOutline, currentSearchOutline } from './simebv-overlayer-shapes.js'
+import {
+    pageListOutline, pageBookmarkHighlight,
+    currentSearchOutline, thinRectHitTester } from './simebv-overlayer-shapes.js'
 import { transformDoc, convertFontSizePxToRem, defaultStyles, getCSS } from './simebv-transform-ebook.js'
 import { colorFiltersDialog } from './simebv-filters-dialog.js'
 import { metadataDialog, MetadataFormatter } from './simebv-metadata-dialog.js'
@@ -23,6 +25,7 @@ import { ebookFormat } from './simebv-ebook-format.js'
 import { TextSearch } from './simebv-search.js'
 import { SpeechManager } from './simebv-speech.js'
 import { FootnoteManager } from './simebv-footnotes.js'
+import { BookmarksManager } from './simebv-bookmarks.js'
 import { setMousePanEvents } from './simebv-fxl-mousepan.js'
 import { setTouchEvents } from './simebv-doc-touchevents.js'
 import { getPreferencesManager, PreferencesLoader } from './simebv-preferences.js'
@@ -93,6 +96,7 @@ export class Reader {
     _speechManager
     _prefsManager
     _prefsLoader
+    _bookmarksManager
 
     _closeMenus(focusTo) {
         if (this._sideBar.isVisible()) {
@@ -188,7 +192,11 @@ export class Reader {
             this._closeMenus()
         })
 
-        this._headerBar.attachMenu(this.menu.element)
+        this._headerBar.registerAttachment({
+            menu: this._sideBar,
+            isVisible: this._sideBar.isVisible.bind(this._sideBar)
+        })
+        this._headerBar.attachMenu(this.menu.element, this.menu.isVisible.bind(this.menu))
         this._headerBar.addEventListener('menu-button', (e) => {
             const close = e.detail?.close
             if (!close && !this.menu.element.classList.contains('simebv-show')) {
@@ -235,7 +243,7 @@ export class Reader {
         const viewerResizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
                 if (entry.target === this.container) {
-                    this._setMenuMaxSize()
+                    this._setMenusMaxSize()
                 }
             }
         })
@@ -308,12 +316,24 @@ export class Reader {
                 }
                 break
             case 'calibre-bookmark':
+            case 'user-bookmark-selection':
                 draw(Overlayer.highlight, { color: annotation.color })
                 break
-            case 'page-list':
-                const fontSize = doc?.body ? getDefaultFontSize(doc.body) : this._defaultFontSize
-                draw(pageListOutline, { color: '#E55330', label: annotation.label, type: annotation.type, fontSize })
-                break
+            case 'user-bookmark-page': {
+                    const fontSize = doc?.body ? getDefaultFontSize(doc.body) : this._defaultFontSize
+                    draw(pageBookmarkHighlight, {
+                        color: annotation.color, fontSize, hitTester: thinRectHitTester
+                    })
+                    break
+                }
+            case 'page-list': {
+                    const fontSize = doc?.body ? getDefaultFontSize(doc.body) : this._defaultFontSize
+                    draw(pageListOutline, {
+                        color: '#E55330', label: annotation.label, type: annotation.type, fontSize,
+                        hitTester: thinRectHitTester
+                    })
+                    break
+                }
             default: {
                 const drawingFunc = annotation.shape ?? Overlayer.highlight
                 draw(drawingFunc, annotation)
@@ -354,13 +374,18 @@ export class Reader {
     boundPageListCreateOverlay = this.pageListCreateOverlay.bind(this)
 
     pageListShowAnnotation(e) {
-        const annotation = this.pageListByValue.get(e.detail.value)
-        if (annotation?.label) {
-            this.openShowAnnotationDialog(
-                __('Start of page ', 'simple-ebook-viewer') + annotation.label,
-                __('Page list', 'simple-ebook-viewer'),
-            )
-        }
+        const { value, index } = e.detail
+        const annotation = this.pageListByValue.get(value)
+        if (!annotation?.label) return
+        // a visible page bookmark on the same spot opens also the bookmarks panel
+        const bm = this._bookmarksManager
+        const sharedWithBookmark = bm?.showBookmarksInPage
+            && bm.getBookmarks(index).some(b => b.loc.cfi === value)
+        this.openShowAnnotationDialog(
+            __('Start of page ', 'simple-ebook-viewer') + annotation.label,
+            __('Page list', 'simple-ebook-viewer'),
+            sharedWithBookmark ? () => bm.getDialog() : undefined,
+        )
     }
     boundPageListShowAnnotation = this.pageListShowAnnotation.bind(this)
 
@@ -383,7 +408,7 @@ export class Reader {
     }
     boundBookmarksShowAnnotation = this.bookmarksShowAnnotation.bind(this)
 
-    openShowAnnotationDialog(note, header) {
+    openShowAnnotationDialog(note, header, bookmarksDlg) {
         if (!this._modalDialogs.showAnnotation) {
             const dlg = createShowAnnotationDialog()
             dlg.element.id = 'simebv-show-annotation-dialog'
@@ -391,12 +416,15 @@ export class Reader {
             this._rootDiv.append(dlg.element)
             this._modalDialogs.showAnnotation = dlg
         }
-        this._modalDialogs.showAnnotation.showAnnotation(note, header, this.container)
+        const returnFocus = bookmarksDlg ?? (() => this.container)
+        this._modalDialogs.showAnnotation.showAnnotation(note, header, returnFocus)
+        // The opening of the bookmarks dialog can take the focus away
+        setTimeout(() => { this._modalDialogs.showAnnotation.setFocus() }, 0)
     }
 
     _createAnnotationsDialog() {
         if (!this._modalDialogs.annotations) {
-            const dlg = annotationsDialog(this)
+            const dlg = annotationsDialog(this, this._rootDiv)
             dlg.element.id = 'simebv-annotations-dialog'
             dlg.element.classList.add('simebv-form-dialog')
             this._rootDiv.append(dlg.element)
@@ -596,12 +624,15 @@ export class Reader {
                 this._closeMenus()
             })
             this._sideBar.attachPageList(this._pageListView)
+            this._rootDiv.addEventListener('show-page-delimiters', e => {
+                this._redrawOverlappingPageAnnotations('pages')
+            })
         }
 
         // load and show highlights embedded in the file by Calibre
-        const bookmarks = await book.getCalibreBookmarks?.()
-        if (bookmarks) {
-            for (const obj of bookmarks) {
+        const calibreBookmarks = await book.getCalibreBookmarks?.()
+        if (calibreBookmarks) {
+            for (const obj of calibreBookmarks) {
                 if (obj.type === 'highlight') {
                     const value = CFI.fromCalibreHighlight(obj)
                     const color = obj.style.which
@@ -619,6 +650,10 @@ export class Reader {
                 this.view.addEventListener('show-annotation', this.boundBookmarksShowAnnotation)
             }
         }
+
+        this._bookmarksManager = this._setBookmarksManager()
+        this._setBookmarksManagerHandlers()
+        this._initBookmarks()
 
         if (popupNotes) {
             this._footnoteManager = new FootnoteManager(this, options, this._defaultFontSize)
@@ -662,6 +697,7 @@ export class Reader {
     }
 
     async reopen() {
+        // work in progress
         const { book } = this.view
         this.view.close()
         await this.view.open(book, { CFI })
@@ -789,20 +825,33 @@ export class Reader {
         this._prefsLoader.loadMenuPrefs(prefs, this.menu)
     }
 
-    _setMenuMaxSize() {
-        if (this.menu) {
-            const headerHeight = this._headerBar
-                ? this._headerBar.root.getBoundingClientRect().bottom - this.container.getBoundingClientRect().top
-                : 62
-            const scaleY = this.containerHeight / this.container.offsetHeight
-            this.menu.element.style.maxBlockSize = 'min(85vh, ' + Math.round((this.containerHeight - headerHeight) / scaleY) + 'px)'
+    _setMenusMaxSize() {
+        const headerHeight = this._headerBar
+            ? this._headerBar.root.getBoundingClientRect().bottom - this.container.getBoundingClientRect().top
+            : 62
+        const scaleY = this.containerHeight / this.container.offsetHeight
+        const maxBlockSize = 'min(85vh, ' + Math.round((this.containerHeight - headerHeight) / scaleY) + 'px)'
 
-            const rightGap = this._headerBar
-                ? this.container.getBoundingClientRect().right - this._headerBar.root.querySelector('#menu-button').getBoundingClientRect().right + 5
-                : 48
-            const scaleX = this.containerWidth / this.container.offsetWidth
-            this.menu.element.style.maxInlineSize = 'min(85vw, ' + Math.round((this.containerWidth - rightGap) / scaleX) + 'px)'
+        const rightGap = this._headerBar
+            ? this.container.getBoundingClientRect().right - this._headerBar.root.querySelector('#menu-button').getBoundingClientRect().right + 5
+            : 48
+        const scaleX = this.containerWidth / this.container.offsetWidth
+        const maxInlineSize = 'min(85vw, ' + Math.round((this.containerWidth - rightGap) / scaleX) + 'px)'
+
+        if (this.menu) {
+            this.menu.element.style.maxBlockSize = maxBlockSize
+            this.menu.element.style.maxInlineSize = maxInlineSize
         }
+        const dlg = this._bookmarksManager?.getDialog()
+        if (dlg) {
+            dlg.style.maxBlockSize = maxBlockSize
+            dlg.style.maxInlineSize = maxInlineSize
+        }
+    }
+
+    _getContainerUnscaledWidth() {
+        const scale = this.containerWidth / this.container.offsetWidth
+        return Math.round(this.containerWidth / scale)
     }
 
     _updateHistoryMenuItems() {
@@ -883,6 +932,141 @@ export class Reader {
         const toggleFullscreen = new CustomEvent('toggle-fullscreen', { detail })
         this._headerBar.dispatchEvent(toggleFullscreen)
         this._navBar.dispatchEvent(toggleFullscreen)
+    }
+
+    _setBookmarksManager() {
+        const bookmarksPrefsName = (this.getBookIdentifier() ?? this.getCurrentTitle()) + '_bookmarks'
+        const allowedBookmarksType = this.view.isFixedLayout && this._openEbookFormat !== 'epub'
+            ? ['page'] : ['page', 'selection']
+        const modalDlgContainer = this._rootDiv
+        const containerWidth = this._getContainerUnscaledWidth.bind(this)
+        const bm = new BookmarksManager(
+            this.view, bookmarksPrefsName, this._getEbookLocales(),
+            allowedBookmarksType, modalDlgContainer, containerWidth, {
+            savePreference: this._savePreference.bind(this),
+            loadPreference: this._loadPreference.bind(this),
+            updatePreference: this._updatePreference.bind(this),
+            hasConsent: () => this._prefsManager.hasConsent('functional'),
+        })
+        this._prefsManager.registerClient(bm.eventTarget, ['functional'], [bookmarksPrefsName])
+        return bm
+    }
+
+    _setBookmarksManagerHandlers() {
+        this._bookmarksManager.setupEventHandlers()
+        const createBookmarksDlg = () => {
+            if (this._bookmarksManager.getDialog()) return
+            this._bookmarksManager.createDialog()
+            this._headerBar.attachBookmarksDlg(
+                this._bookmarksManager.getDialog(),
+                this._bookmarksManager.isDialogOpen.bind(this._bookmarksManager)
+            )
+            this._setMenusMaxSize()
+        }
+        this._bookmarksManager.eventTarget.addEventListener('create-bookmarks-dlg', createBookmarksDlg)
+        this._headerBar.addEventListener('bookmarks-button', e => {
+            this._prefsManager.userInteraction()
+            if (!this._bookmarksManager.getDialog()) {
+                createBookmarksDlg()
+            }
+            if (!this._bookmarksManager.isDialogOpen()) {
+                this._bookmarksManager.updateBookmarks()
+            }
+            // is the user clicks on a bookmark in page when the dialog is already open,
+            // use showDialog to scroll to the clicked bookmark.
+            const bookmark = e.detail?.bookmark
+            const returnFocus = e.detail?.returnFocus
+            if (bookmark) {
+                this._bookmarksManager.showDialog(bookmark, returnFocus)
+            }
+            else {
+                this._bookmarksManager.toggleDialog(returnFocus)
+            }
+        })
+        this._bookmarksManager.eventTarget.addEventListener('close-bookmarks-dlg', () => {
+            this._headerBar.dispatchEvent(new CustomEvent('close-bookmarks-dlg'))
+        })
+        this._bookmarksManager.eventTarget.addEventListener('open-bookmarks-dlg', () => {
+            this._headerBar.dispatchEvent(new CustomEvent('open-bookmarks-dlg'))
+        })
+
+        const addBookmark = () => {
+            this._prefsManager.userInteraction()
+            const [location, text] = this._bookmarksManager.getLocationData()
+            if (!location) return
+            this._bookmarksManager.addBookmark(location, text)
+        }
+        this._headerBar.addEventListener('add-bookmark-button', addBookmark)
+        this._bookmarksManager.eventTarget.addEventListener('add-bookmark-action', addBookmark)
+        this._bookmarksManager.eventTarget.addEventListener('bookmarks-in-sight', e => {
+            const { inSight } = e.detail
+            this._headerBar.dispatchEvent(new CustomEvent('bookmarks-in-sight', { detail: { inSight } }))
+        })
+        this._bookmarksManager.eventTarget.addEventListener('show-user-bookmarks', e => {
+            this._prefsManager.userInteraction()
+            const { show } = e.detail
+            this._bookmarksManager.showBookmarks(show)
+            if (!show) this._redrawOverlappingPageAnnotations('bookmarks')
+        })
+        this._bookmarksManager.eventTarget.addEventListener('removed-bookmarks', e => {
+            this._redrawOverlappingPageAnnotations('bookmarks', e.detail?.locations)
+        })
+        this.view.addEventListener('show-annotation', e => {
+            if (!this._bookmarksManager.showBookmarksInPage) return
+            const { value, index } = e.detail
+            const bookmarks = this._bookmarksManager.getBookmarks(index)
+            for (const b of bookmarks) {
+                if (value === b.loc.cfi) {
+                    this._headerBar.dispatchEvent(new CustomEvent('bookmarks-button', {
+                        detail: { bookmark: b, returnFocus: this.container }
+                    }))
+                    break
+                }
+            }
+        })
+    }
+
+    /**
+     * Page bookmarks and page list delimiters for the same page
+     * share the same cfi range, and the overlayer draws only
+     * one annotation for cfi range. When the user chooses to hide
+     * one of the two categories, the overlapping annotations of the
+     * other category may need to be redrawn. Another possibility
+     * is that the user deletes a page bookmark, in that case we have
+     * a precise location and a single page delimiter to look for.
+     */
+    _redrawOverlappingPageAnnotations(hiddenType, locations) {
+        if (!['bookmarks', 'pages'].includes(hiddenType)) return
+        const guard = hiddenType === 'bookmarks'
+            ? this._showPageDelimiters
+            : this._bookmarksManager.showBookmarksInPage
+        if (!guard || this.view.isFixedLayout) return
+        if (hiddenType === 'bookmarks' && Array.isArray(locations)) {
+            for (const cfi of locations) {
+                const p = this.pageListByValue.get(cfi)
+                if (p) this.view.addAnnotation(p)
+            }
+            return
+        }
+        for (const { index } of this.view.renderer.getContents()) {
+            if (!this.pageList.get(index)?.length) continue
+            const bookmarks = this._bookmarksManager.getBookmarks(index)
+            for (const b of bookmarks) {
+                const p = this.pageListByValue.get(b.loc.cfi)
+                if (p) {
+                    this.view.addAnnotation(
+                        hiddenType === 'bookmarks' ? p : this._bookmarksManager.getAnnotation(b)
+                    )
+                }
+            }
+        }
+    }
+
+    _initBookmarks() {
+        this._bookmarksManager.loadBookmarks()
+        if (this._bookmarksManager.showBookmarksInPage) {
+            this._bookmarksManager.showBookmarks(true)
+        }
     }
 
     _handleKeydown(e) {
@@ -972,6 +1156,20 @@ export class Reader {
                     e.preventDefault()
                 }
                 break
+            case 'B':
+            case 'b':
+                if (k === 'B' ^ e.getModifierState('CapsLock'))  {
+                    break
+                }
+                if (e.ctrlKey && !e.shiftKey && !e.altKey) {
+                    const activeElement = this.getActiveElement()
+                    if (isElementWritable(activeElement)) {
+                        break
+                    }
+                    this._bookmarksManager?.eventTarget.dispatchEvent(new CustomEvent('add-bookmark-action'))
+                    e.preventDefault()
+                }
+                break
         }
     }
 
@@ -994,15 +1192,23 @@ export class Reader {
                 }
             })
         }
+        if (this._bookmarksManager.canBookmarkSelection()) {
+            doc.addEventListener('selectionchange', e => {
+                let docs = this.view.renderer.getContents().map(c => c.doc)
+                const s = new CustomEvent('selection', { detail: { docs }})
+                this._headerBar.dispatchEvent(s)
+                this._bookmarksManager.eventTarget.dispatchEvent(s)
+            })
+        }
         setTouchEvents(doc, this)
     }
 
 
     _onRelocate({ detail }) {
-        const { fraction, section, location, tocItem, pageItem } = detail
+        const { fraction, section, location, tocItem, pageItem, cfi } = detail
         this._savePreference(
             this._lastReadPagePrefName(),
-            this.view.isFixedLayout ? section.current : (detail.cfi ?? fraction),
+            this.view.isFixedLayout ? section.current : (cfi ?? fraction),
             'functional',
         )
         const percent = percentFormat.format(fraction)
@@ -1054,6 +1260,9 @@ export class Reader {
             if (atStart) this._headerBar.hideHeader()
             else this._headerBar.showHeader()
         }
+        this._bookmarksManager.checkBookmarksInSight(this.view.isFixedLayout
+            ? this.view.renderer.getContents().map(obj => obj.index) : cfi
+        )
     }
 
     _onFxlRelocate({ detail }) {
@@ -1065,6 +1274,12 @@ export class Reader {
             this._speechManager._lastSection = current
         }
         setMousePanEvents(this.view.renderer)
+        if (this._bookmarksManager.canBookmarkSelection()) {
+            const docs = this.view.renderer.getContents().map(c => c.doc)
+            const s = new CustomEvent('selection', { detail: { docs }})
+            this._headerBar.dispatchEvent(s)
+            this._bookmarksManager.eventTarget.dispatchEvent(s)
+        }
     }
     _boundOnFxlRelocate = this._onFxlRelocate.bind(this)
 
@@ -1278,6 +1493,8 @@ export * from './simebv-search-dialog.js'
 export * from './simebv-filters-dialog.js'
 export * from './simebv-metadata-dialog.js'
 export * from './simebv-fonts-dialog.js'
+export * from './simebv-bookmarks-dialog.js'
+export * from './simebv-bookmarks-add-dialog.js'
 export * from './simebv-annotations-dialog.js'
 export * from './simebv-show-annotation-dialog.js'
 export * from './simebv-corrupted-data-dialog.js'
@@ -1286,6 +1503,7 @@ export * from './simebv-speech.js'
 export * from './simebv-sre.js'
 export * from './simebv-tts.js'
 export * from './simebv-i18n.js'
+export * from './simebv-bookmarks.js'
 export * from './simebv-footnotes.js'
 export * from './simebv-page-list.js'
 export * from './simebv-menu.js'
