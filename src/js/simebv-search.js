@@ -9,6 +9,7 @@ export class TextSearch {
     #opts = {
         matchCase: false,
         matchWholeWords: false,
+        ignorePunctuation: false,
     }
     #count = 0
     #results = []
@@ -45,8 +46,8 @@ export class TextSearch {
     }
 
     async doSearch(str, opts) {
-        const { reverse, matchCase, matchWholeWords } = opts
-        if (this.#currentSearch && this.#isSameSearch(str, {matchCase, matchWholeWords})) {
+        const { reverse, matchCase, matchWholeWords, ignorePunctuation } = opts
+        if (this.#currentSearch && this.#isSameSearch(str, {matchCase, matchWholeWords, ignorePunctuation})) {
             reverse ? await this.prevMatch() : await this.nextMatch()
             return
         }
@@ -54,6 +55,7 @@ export class TextSearch {
         this.#query = str
         this.#opts.matchCase = matchCase
         this.#opts.matchWholeWords = matchWholeWords
+        this.#opts.ignorePunctuation = ignorePunctuation
         this.#sectionsIndex = this.#view.lastLocation.section.current
         this.#totSections = this.#view.lastLocation.section.total
         await this.#matchUntilCurrentLocation()
@@ -87,9 +89,9 @@ export class TextSearch {
     async #searchInSection(runId) {
         if (runId !== this.#runId) { return [] }
         this.#results[this.#sectionsIndex] = []
-        const { matchCase, matchWholeWords } = this.#opts
+        const { matchCase, matchWholeWords, ignorePunctuation } = this.#opts
         const search = this.#newSearch(
-            this.#query, { matchCase, matchWholeWords, index: this.#sectionsIndex }
+            this.#query, { matchCase, matchWholeWords, ignorePunctuation, index: this.#sectionsIndex }
         )
         if (runId !== this.#runId) {
             search.return?.()

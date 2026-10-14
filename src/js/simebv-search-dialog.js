@@ -21,7 +21,7 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
     prevButton.classList.add('simebv-button-icon', 'simebv-hidden')
     prevButton.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"
-    fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    class="simebv-search-icon">
       <path fill-rule="evenodd" d="M6 15l6 -6l6 6" />
     </svg>
     `
@@ -34,7 +34,7 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
     nextButton.classList.add('simebv-button-icon', 'simebv-hidden')
     nextButton.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"
-        fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        class="simebv-search-icon">
       <path fill-rule="evenodd" d="M6 10l6 6l6 -6" />
     </svg>
     `
@@ -50,7 +50,7 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
     menuButton.classList.add('simebv-button-icon')
     menuButton.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"
-        fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        class="simebv-search-icon">
       <path fill-rule="evenodd" d="M5 7h14M5 13h14M5 19h14" />
     </svg>
     `
@@ -65,7 +65,7 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
     closeButton.classList.add('simebv-button-icon')
     closeButton.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"
-        fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        class="simebv-search-icon">
       <path fill-rule="evenodd" d="M6 6l12 12M6 18l12 -12" />
     </svg>
     `
@@ -83,7 +83,7 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
     caseSensitive.classList.add('simebv-button-icon')
     caseSensitive.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"
-        fill="CanvasText" stroke-width="0">
+        class="simebv-search-icon-text">
       <text textLength="90%" x="5%" y="80%">aA</text>
     </svg>
     `
@@ -96,7 +96,7 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
     wholeWords.classList.add('simebv-button-icon')
     wholeWords.innerHTML = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"
-        fill="CanvasText" stroke-width="0" style="border-bottom:dashed 2.5px;border-radius:25%;box-sizing:border-box;">
+        class="simebv-search-icon-text" style="border-bottom:dashed 2.5px;border-radius:25%;box-sizing:border-box;">
       <text textLength="90%" x="5%" y="80%" lengthAdjust="spacingAndGlyphs">ab</text>
     </svg>
     `
@@ -106,7 +106,21 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
     wholeWords.title = wholeWordsLabel
     wholeWords.role = 'switch'
 
-    popup.append(caseSensitive, wholeWords)
+    const ignorePunctuation = document.createElement('button')
+    ignorePunctuation.classList.add('simebv-button-icon')
+    ignorePunctuation.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+        <text textLength="80%" x="10%" y="80%" class="simebv-search-icon-text">?!;</text>
+        <path d="M1 6l22 12" stroke-width="1.25" stroke="CanvasText" stroke-linecap="round" />
+    </svg>
+    `
+    const ignorePunctuationLabel = __('Ignore spaces and punctuation', 'simple-ebook-viewer')
+    ignorePunctuation.setAttribute('aria-label', ignorePunctuationLabel)
+    ignorePunctuation.setAttribute('aria-checked', false)
+    ignorePunctuation.title = ignorePunctuationLabel
+    ignorePunctuation.role = 'switch'
+
+    popup.append(caseSensitive, wholeWords, ignorePunctuation)
     menuContainer.append(popup)
 
     dlg.append(inputContainer, buttons)
@@ -139,33 +153,30 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
         })
     })
     const opts = {
-        caseSensitive: false,
-        wholeWords: false
+        caseSensitive: {
+            element: caseSensitive, value: false, label: caseSensitiveLabel, timeout: undefined
+        },
+        wholeWords: {
+            element: wholeWords, value: false, label: wholeWordsLabel, timeout: undefined
+        },
+        ignorePunctuation: {
+            element: ignorePunctuation, value: false, label: ignorePunctuationLabel, timeout: undefined
+        },
     }
-    caseSensitive.addEventListener('click', () => {
-        if (opts.caseSensitive) {
-            opts.caseSensitive = false
-            caseSensitive.setAttribute('aria-checked', false)
-            caseSensitive.classList.remove('simebv-active')
-        }
-        else {
-            opts.caseSensitive = true
-            caseSensitive.setAttribute('aria-checked', true)
-            caseSensitive.classList.add('simebv-active')
-        }
-    })
-    wholeWords.addEventListener('click', () => {
-        if (opts.wholeWords) {
-            opts.wholeWords = false
-            wholeWords.setAttribute('aria-checked', false)
-            wholeWords.classList.remove('simebv-active')
-        }
-        else {
-            opts.wholeWords = true
-            wholeWords.setAttribute('aria-checked', true)
-            wholeWords.classList.add('simebv-active')
-        }
-    })
+    for (const key in opts) {
+        const opt = opts[key]
+        opt.element.addEventListener('click', () => {
+            if (opt.value) {
+                opt.element.setAttribute('aria-checked', false)
+                opt.element.classList.remove('simebv-active')
+            }
+            else {
+                opt.element.setAttribute('aria-checked', true)
+                opt.element.classList.add('simebv-active')
+            }
+            opt.value = !opt.value
+        })
+    }
 
     // Show temporary floating labels after prolonged touch
     const showOptionLabel = label => {
@@ -181,37 +192,24 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
         }, 2000)
         return container
     }
-    let sensitiveTimeout
-    let wholeWordsTimeout
     let tempLabel
-    caseSensitive.addEventListener('touchstart', () => {
-        sensitiveTimeout = setTimeout(() => {
-            tempLabel?.remove()
-            tempLabel = showOptionLabel(caseSensitiveLabel)
-        }, 500)
-    })
-    caseSensitive.addEventListener('touchend', () => {
-        clearTimeout(sensitiveTimeout)
-        sensitiveTimeout = undefined
-    })
-    caseSensitive.addEventListener('touchmove', () => {
-        clearTimeout(sensitiveTimeout)
-        sensitiveTimeout = undefined
-    })
-    wholeWords.addEventListener('touchstart', () => {
-        wholeWordsTimeout = setTimeout(() => {
-            tempLabel?.remove()
-            tempLabel = showOptionLabel(wholeWordsLabel)
-        }, 500)
-    })
-    wholeWords.addEventListener('touchend', () => {
-        clearTimeout(wholeWordsTimeout)
-        wholeWordsTimeout = undefined
-    })
-    wholeWords.addEventListener('touchmove', () => {
-        clearTimeout(wholeWordsTimeout)
-        wholeWordsTimeout = undefined
-    })
+    for (const key in opts) {
+        const opt = opts[key]
+        opt.element.addEventListener('touchstart', () => {
+            opt.timeout = setTimeout(() => {
+                tempLabel?.remove()
+                tempLabel = showOptionLabel(opt.label)
+            }, 500)
+        })
+        opt.element.addEventListener('touchend', () => {
+            clearTimeout(opt.timeout)
+            opt.timeout = undefined
+        })
+        opt.element.addEventListener('touchmove', () => {
+            clearTimeout(opt.timeout)
+            opt.timeout = undefined
+        })
+    }
 
     let searching = false
     const execSearch = async (e, { prev, next, new_ }) => {
@@ -228,8 +226,9 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
             else if (next) await nextMatch()
             else if (new_) await onSearch(txt, {
                 reverse: e.shiftKey,
-                matchCase: opts.caseSensitive,
-                matchWholeWords: opts.wholeWords,
+                matchCase: opts.caseSensitive.value,
+                matchWholeWords: opts.wholeWords.value,
+                ignorePunctuation: opts.ignorePunctuation.value,
             })
             if (dlg.open) {
                 prevButton.disabled = false

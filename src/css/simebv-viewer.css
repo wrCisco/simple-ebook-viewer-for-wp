@@ -442,6 +442,16 @@ input, button, select {
     box-shadow: var(--border-box-shadow);
     transform: scale(0.9);
 }
+.simebv-search-icon {
+    fill: none;
+    stroke-width: 1.8px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.simebv-search-icon-text {
+    fill: CanvasText;
+    stroke-width: 0;
+}
 #simebv-search-input {
     box-shadow: var(--border-box-shadow);
     border-radius: 2px;
