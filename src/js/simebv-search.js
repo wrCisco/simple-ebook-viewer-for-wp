@@ -33,8 +33,6 @@ export class TextSearch {
         if (!this.#dlg) {
             this.#dlg = searchDialog(
                 this.boundDoSearch,
-                this.boundPrevMatch,
-                this.boundNextMatch,
                 this.boundSearchCleanUp,
                 returnFocusTo,
             )
@@ -145,8 +143,8 @@ export class TextSearch {
                 this.#sectionsIndex = currentSection - 1
             }
             if (this.#sectionsIndex < 0) {
+                this.#sectionsIndex = currentSection
                 if (this.#results[currentSection].length > 0) {
-                    this.#sectionsIndex = currentSection
                     this.#matchesIndex = this.#results[currentSection].length - 1
                 }
                 return
@@ -184,6 +182,7 @@ export class TextSearch {
 
     async #goToAdjacentSection({ previous = false } = {}) {
         const runId = this.#runId
+        const startSection = this.#sectionsIndex
         this.#sectionsIndex += previous ? -1 : 1
         if (this.#results[this.#sectionsIndex]?.length > 0) {
             this.#matchesIndex = previous ? this.#results[this.#sectionsIndex].length - 1 : 0
@@ -200,6 +199,7 @@ export class TextSearch {
             }
             if ((!previous && this.#sectionsIndex >= this.#totSections - 1)
                     || (previous && this.#sectionsIndex === 0)) {
+                this.#sectionsIndex = startSection
                 return
             }
             this.#sectionsIndex += previous ? -1 : 1
@@ -225,7 +225,6 @@ export class TextSearch {
         }
         await this.#goToAdjacentSection()
     }
-    boundNextMatch = this.nextMatch.bind(this)
 
     async prevMatch() {
         if (!this.#currentSearch) {
@@ -244,7 +243,6 @@ export class TextSearch {
         await this.#goToAdjacentSection({ previous: true })
 
     }
-    boundPrevMatch = this.prevMatch.bind(this)
 
     async searchCleanUp() {
         if (this.#currentMatch?.cfi) {

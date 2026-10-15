@@ -1,6 +1,6 @@
 import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
-export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocus) {
+export function searchDialog(onSearch, cleanup, returnFocus) {
     const dlg = document.createElement('dialog')
     const inputContainer = document.createElement('div')
     inputContainer.id = 'simebv-search-input'
@@ -114,7 +114,7 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
         <path d="M1 6l22 12" stroke-width="1.25" stroke="CanvasText" stroke-linecap="round" />
     </svg>
     `
-    const ignorePunctuationLabel = __('Ignore spaces and punctuation', 'simple-ebook-viewer')
+    const ignorePunctuationLabel = __('Ignore punctuation (and spaces, unless whole words)', 'simple-ebook-viewer')
     ignorePunctuation.setAttribute('aria-label', ignorePunctuationLabel)
     ignorePunctuation.setAttribute('aria-checked', false)
     ignorePunctuation.title = ignorePunctuationLabel
@@ -189,7 +189,7 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
         popup.append(container)
         setTimeout(() => {
             container.remove()
-        }, 2000)
+        }, 2500)
         return container
     }
     let tempLabel
@@ -212,20 +212,13 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
     }
 
     let searching = false
-    const execSearch = async (e, { prev, next, new_ }) => {
-        if (searching) return
-        let txt
-        if (new_) {
-            txt = input.value
-            if (!txt) return
-        }
+    const execSearch = async ({ reverse }) => {
+        if (searching || !input.value) return
         searching = true
         iconBusy.classList.add('simebv-show')
         try {
-            if (prev) await prevMatch()
-            else if (next) await nextMatch()
-            else if (new_) await onSearch(txt, {
-                reverse: e.shiftKey,
+            await onSearch(input.value, {
+                reverse,
                 matchCase: opts.caseSensitive.value,
                 matchWholeWords: opts.wholeWords.value,
                 ignorePunctuation: opts.ignorePunctuation.value,
@@ -259,7 +252,7 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
     input.addEventListener('keydown', async (e) => {
         switch (e.key) {
             case 'Enter':
-                await execSearch(e, {new_: true})
+                await execSearch({ reverse: e.shiftKey })
                 break
             case 'ArrowLeft':
             case 'ArrowRight':
@@ -277,11 +270,11 @@ export function searchDialog(onSearch, prevMatch, nextMatch, cleanup, returnFocu
     })
     prevButton.addEventListener('click', e => {
         e.preventDefault()  // prevent zoom on multiple taps
-        execSearch(e, { prev: true })
+        execSearch({ reverse: true })
     })
     nextButton.addEventListener('click', e => {
         e.preventDefault()  // prevent zoom on multiple taps
-        execSearch(e, { next: true })
+        execSearch({ reverse: false })
     })
     closeButton.addEventListener('click', close)
 

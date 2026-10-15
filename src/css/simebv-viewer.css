@@ -381,8 +381,10 @@ input, button, select {
     border: none;
     box-shadow: var(--menu-box-shadow);
     background-color: var(--menu-bg);
-    white-space: nowrap;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
     font-weight: bold;
+    max-width: min(80vw, 200px);
 }
 #simebv-search-dialog .simebv-search-option-label p {
     margin: 0;
