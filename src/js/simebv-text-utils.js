@@ -1,5 +1,5 @@
 /**
- * Same default filter and acceptNode used by foliate-js's textWalker 
+ * Same default filter and acceptNode used by foliate-js's textWalker
  */
 export function textWalkerFilters() {
     return {
@@ -65,7 +65,7 @@ export function getPositionAtTextFraction(doc, fraction, { root, filter, acceptN
     return { node: last, offset: last.length }
 }
 
-/** 
+/**
  * Returns the text Selection.toString() would give for the range
  * (no text that isn't rendered, whitespace as the browser serializes it).
  * Needs layout: in a document that isn't rendered the result is unreliable.
@@ -138,9 +138,12 @@ export function textSearchEquivalence(a, b, { locales = 'en', ignorePunctuation 
         a = a.replace(/\p{Format}+/gu, '').replace(/\s+/gu, ' ')
         b = b.replace(/\p{Format}+/gu, '').replace(/\s+/gu, ' ')
     }
+    if (!a) return false
     if (!caseSensitive) {
-        a = a.toLocaleUpperCase(locales).toLocaleLowerCase(locales)
-        b = b.toLocaleUpperCase(locales).toLocaleLowerCase(locales)
+        const collator = new Intl.Collator(
+            locales, { usage: 'search', sensitivity: 'base', ignorePunctuation }
+        )
+        return collator.compare(a, b) === 0
     }
     return a === b
 }

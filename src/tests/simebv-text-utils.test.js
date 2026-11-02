@@ -42,7 +42,10 @@ describe('Textual search equivalence (unit test for textSearchEquivalence)', () 
         { a: '\n Exactly equals with space before!', b: '\n Exactly equals with space before!', expected: {
             cs_ip_noww: true, cs_noip_noww: true, nocs_noip_noww: true, nocs_ip_noww: true,
         }},
-        { a: 'non   normalized \t \n spaces', b: 'non normalized spaces', expected: {
+        { a: 'non   normalized \t \n spaces in query', b: 'non normalized spaces in query', expected: {
+            cs_ip_noww: true, cs_noip_noww: true, nocs_noip_noww: true, nocs_ip_noww: true,
+        }},
+        { a: 'non normalized spaces in content', b: 'non   normalized \t \n spaces in content', expected: {
             cs_ip_noww: true, cs_noip_noww: true, nocs_noip_noww: true, nocs_ip_noww: true,
         }},
         { a: ' \n\t  ', b: ' \n\t  ', expected: {
@@ -57,6 +60,9 @@ describe('Textual search equivalence (unit test for textSearchEquivalence)', () 
         { a: 'Differents in case, and punctuation', b: 'differents in case and punctuation', expected: {
             cs_ip_noww: false, cs_noip_noww: false, nocs_noip_noww: false, nocs_ip_noww: true,
         }},
+        { a: 'split wor ds', b: 'split words', expected: {
+            cs_ip_noww: true, cs_noip_noww: false, nocs_noip_noww: false, nocs_ip_noww: true,
+        }},
         { a: 'Großbuchstabe', b: 'grossbuchstabe', locales: 'de', expected: {
             cs_ip_noww: false, cs_noip_noww: false, nocs_noip_noww: true, nocs_ip_noww: true,
         }},
@@ -65,6 +71,9 @@ describe('Textual search equivalence (unit test for textSearchEquivalence)', () 
         }},
         { a: 'grossbuchstabe', b: 'großbuchstabe', locales: 'de', expected: {
             cs_ip_noww: false, cs_noip_noww: false, nocs_noip_noww: true, nocs_ip_noww: true,
+        }},
+        { a: 'gros', b: 'groß', locales: 'de', expected: {
+            cs_ip_noww: false, cs_noip_noww: false, nocs_noip_noww: false, nocs_ip_noww: false,
         }},
         { a: 'ẞ ﬃ ῳ İ', b: 'SS FFI ΩΙ İ', expected: {
             cs_ip_noww: false, cs_noip_noww: false, nocs_noip_noww: false, nocs_ip_noww: false,
@@ -153,39 +162,62 @@ describe('Textual search equivalence (comparison with real text search)', () => 
         { query: 'pretty printed end.', content: '<p>\n  pretty printed end\n</p>' },
         { query: ', start with punctuation', content: '<p>start with punctuation</p>' },
         { query: '\n Exactly equals with space before!', content: '<div><p>\n<span> Exactly</span> equals with space before!</p></div>'},
-        { query: 'non   normalized \t \n spaces', content: '<p>non normalized spaces</p>' },
+        { query: 'non   normalized \t \n spaces in query', content: '<p>non normalized spaces in query</p>' },
+        { query: 'non normalized spaces in content', content: '<p>non   normalized \t \n spaces in content</p>' },
         { query: ' \n\t  ', content: '<p> \n\t</p>' },
         { query: '', content: '<p></p>' },
         { query: 'two completely', content: '<p>different strings</p>' },
         { query: 'Differents in case, and punctuation', content: '<p>differents in case and punctuation</p>' },
+        { query: 'split wor ds', content: '<p>split words</p>' },
         { query: 'Großbuchstabe', content: '<p>gro<span>ss</span>buchstabe</p>', locales: 'de' },
         { query: 'großbuchstabe', content: '<p>gro<span>ss</span>buchstabe</p>', locales: 'de' },
         { query: 'grossbuchstabe', content: '<p>Gro<span>ß</span>buchstabe</p>', locales: 'de' },
+        { query: 'gros', content: '<p>groß</p>', locales: 'de' },
         { query: 'ẞ ῳ ﬃ İ', content: '<p>SS ΩΙ FFI İ</p>' },
-        { query: 'ẞ ῳ ﬃ İ', content: '<p>SS ῳ FFI İ</p>' }
+        { query: 'ẞ ῳ ﬃ İ', content: '<p>SS ῳ FFI İ</p>' },
     ]
     describe('With default options (case sensitive, ignore punctuation, no whole words)', () => {
         test.for(strs)('', ({query, content, locales = 'en'}) => {
             const { doc, matcher, text } = setupTest(content, { locales, matchCase: true, ignorePunctuation: true })
-            expect([...matcher(doc, query)].length !== 0).toEqual(textSearchEquivalence(query, text))
+            const opts = { locales }
+            const matches = [...matcher(doc, query)]
+            expect(textSearchEquivalence(query, text, opts)).toEqual(matches.length !== 0)
+            matches.forEach(m => {
+                expect(textSearchEquivalence(getMatchText(m.range), text, opts)).toBe(matches.length !== 0)
+            })
         })
     })
     describe('With options: case sensitive, no ignore punctuation, no whole words', () => {
-        test.for(strs)('', ({query, content, locales = 'en'}) => {
+        test.for(strs)('query: "$query"', ({query, content, locales = 'en'}) => {
             const { doc, matcher, text } = setupTest(content, { locales, matchCase: true, ignorePunctuation: false })
-            expect([...matcher(doc, query)].length !== 0).toEqual(textSearchEquivalence(query, text, { ignorePunctuation: false }))
+            const opts = { locales, ignorePunctuation: false }
+            const matches = [...matcher(doc, query)]
+            expect(textSearchEquivalence(query, text, opts)).toEqual(matches.length !== 0)
+            matches.forEach(m => {
+                expect(textSearchEquivalence(getMatchText(m.range), text, opts)).toBe(matches.length !== 0)
+            })
         })
     })
     describe('With options: no case sensitive, no ignore punctuation, no whole words', () => {
         test.for(strs)('', ({query, content, locales = 'en'}) => {
             const { doc, matcher, text } = setupTest(content, { locales, matchCase: false, ignorePunctuation: false })
-            expect([...matcher(doc, query)].length !== 0).toEqual(textSearchEquivalence(query, text, { caseSensitive: false, ignorePunctuation: false }))
+            const opts = { locales, caseSensitive: false, ignorePunctuation: false }
+            const matches = [...matcher(doc, query)]
+            expect(textSearchEquivalence(query, text, opts)).toEqual(matches.length !== 0)
+            matches.forEach(m => {
+                expect(textSearchEquivalence(getMatchText(m.range), text, opts)).toBe(matches.length !== 0)
+            })
         })
     })
     describe('With options: no case sensitive, ignore punctuation, no whole words', () => {
         test.for(strs)('', ({query, content, locales = 'en'}) => {
             const { doc, matcher, text } = setupTest(content, { locales, matchCase: false, ignorePunctuation: true })
-            expect([...matcher(doc, query)].length !== 0).toEqual(textSearchEquivalence(query, text, { caseSensitive: false }))
+            const opts = { locales, caseSensitive: false }
+            const matches = [...matcher(doc, query)]
+            expect(textSearchEquivalence(query, text, opts)).toEqual(matches.length !== 0)
+            matches.forEach(m => {
+                expect(textSearchEquivalence(getMatchText(m.range), text, opts)).toBe(matches.length !== 0)
+            })
         })
     })
 })
