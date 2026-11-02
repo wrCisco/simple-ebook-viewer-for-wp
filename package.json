@@ -5,15 +5,21 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "node ./copy-sre-locales.js"
+    "postbuild": "node ./copy-sre-locales.js",
+    "test": "vitest"
   },
   "type": "module",
   "devDependencies": {
     "@kucrut/vite-for-wp": "^0.12.0",
-    "vite": "^7.3.2",
-    "vite-plugin-node-polyfills": "^0.25.0"
+    "@vitest/browser-playwright": "^5.0.5",
+    "vite": "^7.3.7",
+    "vite-plugin-node-polyfills": "^0.28.0",
+    "vitest": "^5.0.5"
   },
   "dependencies": {
     "speech-rule-engine": "^5.0.0-rc.4"
+  },
+  "allowScripts": {
+    "esbuild@0.27.2": true
   }
 }
