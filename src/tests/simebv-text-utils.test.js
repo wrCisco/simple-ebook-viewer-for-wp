@@ -86,28 +86,28 @@ describe('Textual search equivalence (unit test for textSearchEquivalence)', () 
         test.for(
             strs.map(s => ({ a: s.a, b: s.b, expected: s.expected.cs_ip_noww }))
         )('"$a" and "$b" -> $expected', ({a, b, locales = 'en', expected}) => {
-            expect(textSearchEquivalence(a, b, { locales })).toBe(expected)
+            expect(textSearchEquivalence(a, b, { locales, caseSensitive: true })).toBe(expected)
         })
     })
     describe('With options: case sensitive, no ignore punctuation, no whole words', () => {
         test.for(
             strs.map(s => ({ a: s.a, b: s.b, expected: s.expected.cs_noip_noww }))
         )('"$a" and "$b" -> $expected', ({a, b, locales = 'en', expected}) => {
-            expect(textSearchEquivalence(a, b, { ignorePunctuation: false })).toBe(expected)
+            expect(textSearchEquivalence(a, b, { caseSensitive: true, ignorePunctuation: false })).toBe(expected)
         })
     })
     describe('With options: no case sensitive, no ignore punctuation, no whole words', () => {
         test.for(
             strs.map(s => ({ a: s.a, b: s.b, expected: s.expected.nocs_noip_noww }))
         )('"$a" and "$b" -> $expected', ({a, b, locales = 'en', expected}) => {
-            expect(textSearchEquivalence(a, b, { caseSensitive: false, ignorePunctuation: false })).toBe(expected)
+            expect(textSearchEquivalence(a, b, { ignorePunctuation: false })).toBe(expected)
         })
     })
     describe('With options: no case sensitive, ignore punctuation, no whole words', () => {
         test.for(
             strs.map(s => ({ a: s.a, b: s.b, expected: s.expected.nocs_ip_noww }))
         )('"$a" and "$b" -> $expected', ({a, b, locales = 'en', expected}) => {
-            expect(textSearchEquivalence(a, b, { caseSensitive: false })).toBe(expected)
+            expect(textSearchEquivalence(a, b)).toBe(expected)
         })
     })
 })
@@ -126,7 +126,7 @@ describe('Textual search equivalence (comparison with real text search)', () => 
         iframe.src = URL.createObjectURL(new Blob([`<?xml version="1.0" encoding="UTF-8"?>
             <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
             <head><title>t</title></head>
-            <body></body></html>`]), { type: 'application/xhtml+xml' })
+            <body></body></html>`], { type: 'application/xhtml+xml' }))
         document.body.append(iframe)
     }))
     afterAll(() => {
@@ -179,7 +179,7 @@ describe('Textual search equivalence (comparison with real text search)', () => 
     describe('With default options (case sensitive, ignore punctuation, no whole words)', () => {
         test.for(strs)('', ({query, content, locales = 'en'}) => {
             const { doc, matcher, text } = setupTest(content, { locales, matchCase: true, ignorePunctuation: true })
-            const opts = { locales }
+            const opts = { locales, caseSensitive: true }
             const matches = [...matcher(doc, query)]
             expect(textSearchEquivalence(query, text, opts)).toEqual(matches.length !== 0)
             matches.forEach(m => {
@@ -190,7 +190,7 @@ describe('Textual search equivalence (comparison with real text search)', () => 
     describe('With options: case sensitive, no ignore punctuation, no whole words', () => {
         test.for(strs)('query: "$query"', ({query, content, locales = 'en'}) => {
             const { doc, matcher, text } = setupTest(content, { locales, matchCase: true, ignorePunctuation: false })
-            const opts = { locales, ignorePunctuation: false }
+            const opts = { locales, caseSensitive: true, ignorePunctuation: false }
             const matches = [...matcher(doc, query)]
             expect(textSearchEquivalence(query, text, opts)).toEqual(matches.length !== 0)
             matches.forEach(m => {
@@ -201,7 +201,7 @@ describe('Textual search equivalence (comparison with real text search)', () => 
     describe('With options: no case sensitive, no ignore punctuation, no whole words', () => {
         test.for(strs)('', ({query, content, locales = 'en'}) => {
             const { doc, matcher, text } = setupTest(content, { locales, matchCase: false, ignorePunctuation: false })
-            const opts = { locales, caseSensitive: false, ignorePunctuation: false }
+            const opts = { locales, ignorePunctuation: false }
             const matches = [...matcher(doc, query)]
             expect(textSearchEquivalence(query, text, opts)).toEqual(matches.length !== 0)
             matches.forEach(m => {
@@ -212,7 +212,7 @@ describe('Textual search equivalence (comparison with real text search)', () => 
     describe('With options: no case sensitive, ignore punctuation, no whole words', () => {
         test.for(strs)('', ({query, content, locales = 'en'}) => {
             const { doc, matcher, text } = setupTest(content, { locales, matchCase: false, ignorePunctuation: true })
-            const opts = { locales, caseSensitive: false }
+            const opts = { locales }
             const matches = [...matcher(doc, query)]
             expect(textSearchEquivalence(query, text, opts)).toEqual(matches.length !== 0)
             matches.forEach(m => {
