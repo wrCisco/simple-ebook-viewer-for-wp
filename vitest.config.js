@@ -12,6 +12,7 @@ export default mergeConfig(viteConfig, defineConfig({
             instances: [
                 { browser: 'chromium' },
                 { browser: 'firefox' },
+                { browser: 'webkit' },
             ],
         },
     },
