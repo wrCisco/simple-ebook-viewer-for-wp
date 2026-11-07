@@ -1,5 +1,5 @@
 import { CFI } from './simebv-epubcfi.js'
-import { getNonEmptyRange } from './simebv-utils.js'
+import { getNonEmptyRange } from './simebv-non-empty-range.js'
 
 function getLastNode(cfi) {
     for (let i = cfi.length - 1; i > 0; i--) {
