@@ -1,12 +1,13 @@
 import { __, _x, _n, sprintf } from './simebv-i18n.js'
 
-export function corruptedDataDialog() {
+export function corruptedDataDialog(title, description, idsPostfix = '',
+        { save = true, copy = true, clear = true, keep = true } = {}) {
     let corruptedData = ''
     let type = ''
 
     const dlg = document.createElement('dialog')
-    dlg.setAttribute('aria-labelledby', 'simebv-corrupted-data-dialog-header')
-    dlg.setAttribute('aria-describedby', 'simebv-corrupted-data-legend')
+    dlg.setAttribute('aria-labelledby', 'simebv-corrupted-data-dialog-header' + `-${idsPostfix}`)
+    dlg.setAttribute('aria-describedby', 'simebv-corrupted-data-legend' + `-${idsPostfix}`)
     dlg.classList.add('simebv-form-dialog')
 
     const form = document.createElement('form')
@@ -14,14 +15,14 @@ export function corruptedDataDialog() {
 
     const header = document.createElement('h2')
     header.classList.add('simebv-header-dialog')
-    header.textContent = __('Corrupted data', 'simple-ebook-viewer')
-    header.id = 'simebv-corrupted-data-dialog-header'
+    header.textContent = title ?? __('Corrupted data', 'simple-ebook-viewer')
+    header.id = 'simebv-corrupted-data-dialog-header' + `-${idsPostfix}`
 
     const fieldset = document.createElement('fieldset')
 
     const legend = document.createElement('p')
-    legend.id = 'simebv-corrupted-data-legend'
-    legend.textContent = __(
+    legend.id = 'simebv-corrupted-data-legend' + `-${idsPostfix}`
+    legend.textContent = description ?? __(
         "Your saved bookmarks and reading positions for this site couldn't be read. " +
         "You can download a copy before deleting them. Until then, new bookmarks and " +
         "reading positions won't be saved.", 'simple-ebook-viewer'
@@ -33,42 +34,54 @@ export function corruptedDataDialog() {
     const displayData = document.createElement('textarea')
     displayData.readOnly = true
     displayData.classList.add('simebv-textarea-block')
-    displayData.id = 'simebv-corrupted-data-text'
+    displayData.id = 'simebv-corrupted-data-text' + `-${idsPostfix}`
     displayDataLabel.htmlFor = displayData.id
 
     fieldset.append(legend, displayDataLabel, displayData)
 
     const buttons = document.createElement('div')
     buttons.classList.add('simebv-dialog-buttons')
-    const saveFile = document.createElement('button')
-    saveFile.type = 'button'
-    saveFile.textContent = __('Download data', 'simple-ebook-viewer')
-    saveFile.addEventListener('click', e => { saveDataAsFile(corruptedData) })
-    const copyData = document.createElement('button')
-    copyData.type = 'button'
-    copyData.textContent = __('Copy', 'simple-ebook-viewer')
-    copyData.addEventListener('click', async e => {
-        try {
-            if (!navigator.clipboard) throw new DOMException('', 'NotAllowedError')
-            await navigator.clipboard.writeText(corruptedData)
-        }
-        catch (e) {
-            console.error(e)
-            const msg = e.name === 'NotAllowedError'
-                ? __("Copy to the clipboard is not allowed in the current context.", 'simple-ebook-viewer')
-                : __("Error while copying the data to the clipboard.", 'simple-ebook-viewer')
-            alert(msg)
-        }
-    })
-    const clearData = document.createElement('button')
-    clearData.type = 'submit'
-    clearData.textContent = __('Clear data', 'simple-ebook-viewer')
-    clearData.addEventListener('click', e => { dlg.close('clear') })
-    const keepData = document.createElement('button')
-    keepData.type = 'submit'
-    keepData.textContent = __('Keep data', 'simple-ebook-viewer')
-    keepData.addEventListener('click', e => { dlg.close('keep') })
-    buttons.append(saveFile, copyData, clearData, keepData)
+    if (save) {
+        const saveFile = document.createElement('button')
+        saveFile.type = 'button'
+        saveFile.textContent = __('Download data', 'simple-ebook-viewer')
+        saveFile.addEventListener('click', e => { saveDataAsFile(corruptedData) })
+        buttons.append(saveFile)
+    }
+    if (copy) {
+        const copyData = document.createElement('button')
+        copyData.type = 'button'
+        copyData.textContent = __('Copy', 'simple-ebook-viewer')
+        copyData.addEventListener('click', async e => {
+            try {
+                if (!navigator.clipboard) throw new DOMException('', 'NotAllowedError')
+                await navigator.clipboard.writeText(corruptedData)
+            }
+            catch (e) {
+                console.error(e)
+                const msg = e.name === 'NotAllowedError'
+                    ? __("Copy to the clipboard is not allowed in the current context.", 'simple-ebook-viewer')
+                    : __("Error while copying the data to the clipboard.", 'simple-ebook-viewer')
+                alert(msg)
+            }
+        })
+        buttons.append(copyData)
+    }
+    if (clear) {
+        const clearData = document.createElement('button')
+        clearData.type = 'submit'
+        clearData.textContent = __('Clear data', 'simple-ebook-viewer')
+        clearData.addEventListener('click', e => { dlg.close('clear') })
+        buttons.append(clearData)
+    }
+    if (keep) {
+        const keepData = document.createElement('button')
+        keepData.id = 'simebv-corrupted-data-keep-btn' + `-${idsPostfix}`
+        keepData.type = 'submit'
+        keepData.textContent = __('Keep data', 'simple-ebook-viewer')
+        keepData.addEventListener('click', e => { dlg.close('keep') })
+        buttons.append(keepData)
+    }
 
     form.append(header, fieldset, buttons)
 
