@@ -529,7 +529,8 @@ export class Reader {
         let {
             menuItems, initialMenuStatus, ebookTitle, ebookAuthor,
             fontFamily, allowJS, useMathStyles, filterEbookContent,
-            showAnnotations, showPageDelimiters, popupNotes, openAt
+            showAnnotations, showPageDelimiters, popupNotes, openAt,
+            allowUserBookmarks,
         } = options
         this.view = document.createElement('simebv-foliate-view')
         this._bookContainer.append(this.view)
@@ -651,9 +652,12 @@ export class Reader {
             }
         }
 
-        this._bookmarksManager = this._setBookmarksManager()
-        this._setBookmarksManagerHandlers()
-        this._initBookmarks()
+        if (allowUserBookmarks) {
+            this._bookmarksManager = this._setBookmarksManager()
+            this._headerBar.setAttribute('show-bookmarks-buttons', 'true')
+            this._setBookmarksManagerHandlers()
+            this._initBookmarks()
+        }
 
         if (popupNotes) {
             this._footnoteManager = new FootnoteManager(this, options, this._defaultFontSize)
@@ -1064,6 +1068,7 @@ export class Reader {
      * a precise location and a single page delimiter to look for.
      */
     _redrawOverlappingPageAnnotations(hiddenType, locations) {
+        if (!this._bookmarksManager) return
         if (!['bookmarks', 'pages'].includes(hiddenType)) return
         const guard = hiddenType === 'bookmarks'
             ? this._showPageDelimiters
@@ -1190,6 +1195,7 @@ export class Reader {
                     break
                 }
                 if (e.ctrlKey && !e.shiftKey && !e.altKey) {
+                    if (!this._bookmarksManager) break
                     const activeElement = this.getActiveElement()
                     if (isElementWritable(activeElement)) {
                         break
@@ -1221,7 +1227,7 @@ export class Reader {
             })
         }
         setTouchEvents(doc, this)
-        if (this._bookmarksManager.canBookmarkSelection()) {
+        if (this._bookmarksManager?.canBookmarkSelection()) {
             doc.addEventListener('selectionchange', e => {
                 let docs = this.view.renderer.getContents().map(c => c.doc)
                 const s = new CustomEvent('selection', { detail: { docs }})
@@ -1288,7 +1294,7 @@ export class Reader {
             if (atStart) this._headerBar.hideHeader()
             else this._headerBar.showHeader()
         }
-        this._bookmarksManager.checkBookmarksInSight(this.view.isFixedLayout
+        this._bookmarksManager?.checkBookmarksInSight(this.view.isFixedLayout
             ? this.view.renderer.getContents().map(obj => obj.index) : cfi
         )
     }
@@ -1302,7 +1308,7 @@ export class Reader {
             this._speechManager._lastSection = current
         }
         setMousePanEvents(this.view.renderer)
-        if (this._bookmarksManager.canBookmarkSelection()) {
+        if (this._bookmarksManager?.canBookmarkSelection()) {
             const docs = this.view.renderer.getContents().map(c => c.doc)
             const s = new CustomEvent('selection', { detail: { docs }})
             this._headerBar.dispatchEvent(s)
@@ -1444,6 +1450,9 @@ export const gatherOptionsFromContainer = container => {
     }
     if (container.hasAttribute('data-simebv-open-at')) {
         options.ebook.openAt = container.getAttribute('data-simebv-open-at')
+    }
+    if (container.getAttribute('data-simebv-bookmarks') === 'true') {
+        options.ebook.allowUserBookmarks = true
     }
     options.ebook.ebookTitle = container.getAttribute('data-simebv-ebook-title') || ''
     options.ebook.ebookAuthor = container.getAttribute('data-simebv-ebook-author') || ''

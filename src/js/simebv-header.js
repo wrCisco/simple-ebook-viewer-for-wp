@@ -337,6 +337,9 @@ template.innerHTML = `
     opacity: 1;
     transform: none;
 }
+.non-display {
+    display: none !important;
+}
 @media (prefers-reduced-motion: reduce) {
     #add-bookmark-button {
         transition: none;
@@ -351,13 +354,13 @@ template.innerHTML = `
             </svg>
         </button>
         <div id="bookmarks-button-container">
-            <button id="bookmarks-button" aria-label="Show bookmarks and notes" aria-expanded="false" aria-controls="simebv-bookmarks-dialog">
+            <button id="bookmarks-button" class="non-display" aria-label="Show bookmarks and notes" aria-expanded="false" aria-controls="simebv-bookmarks-dialog">
                 <svg id="icon-bookmarks" class="simebv-icon" width="32" height="32" viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M8 4.5 v14 l4 -3l4 3v-14" />
                 </svg>
             </button>
         </div>
-        <button id="add-bookmark-button" aria-label="Add a bookmark" aria-haspopup="dialog" aria-keyshortcuts="Control+B">
+        <button id="add-bookmark-button" class="non-display" aria-label="Add a bookmark" aria-haspopup="dialog" aria-keyshortcuts="Control+B">
             <svg class="simebv-icon simebv-icon-thin" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M6 11.5 v1h5.5v5.5h1v-5.5h5.5v-1h-5.5v-5.5h-1v5.5z"/>
             </svg>
@@ -399,7 +402,7 @@ template.innerHTML = `
 
 
 export class HeaderBar extends HTMLElement {
-    static observedAttributes = ["show-close-button"]
+    static observedAttributes = ["show-close-button", "show-bookmarks-buttons"]
     root
     header
     buttonSideBar
@@ -558,13 +561,27 @@ export class HeaderBar extends HTMLElement {
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        if (newValue === 'true') {
-            this.buttonFullscreen.style.display = 'none'
-            this.buttonClose.style.display = 'inline-block'
-        }
-        else {
-            this.buttonFullscreen.style.display = ''
-            this.buttonClose.style.display = ''
+        switch (name) {
+            case "show-close-button":
+                if (newValue === 'true') {
+                    this.buttonFullscreen.classList.add('non-display')
+                    this.buttonClose.style.display = 'inline-block'
+                }
+                else {
+                    this.buttonFullscreen.classList.remove('non-display')
+                    this.buttonClose.style.display = ''
+                }
+                break
+            case "show-bookmarks-buttons":
+                if (newValue === 'true') {
+                    this.buttonBookmarks.classList.remove('non-display')
+                    this.buttonAddBookmark.classList.remove('non-display')
+                }
+                else {
+                    this.buttonBookmarks.classList.add('non-display')
+                    this.buttonAddBookmark.classList.add('non-display')
+                }
+                break
         }
     }
 

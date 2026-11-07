@@ -123,6 +123,9 @@ class SIMEBV_Base {
             'open-at' => [
                 'html_name' => 'data-simebv-open-at', 'default' => ''
             ],
+            'bookmarks' => [
+                'html_name' => 'data-simebv-bookmarks', 'default' => 'true'
+            ],
         ],
     ];
 
