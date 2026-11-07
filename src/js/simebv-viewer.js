@@ -88,6 +88,7 @@ export class Reader {
     pageListByValue = new Map()
     _showAnnotations
     _showPageDelimiters
+    _rendererResizeObserver
     container
     menu
     _openEbookFormat
@@ -342,13 +343,12 @@ export class Reader {
     }
 
     pageListCreateOverlay(e) {
-        const { index } = e.detail
+        const { index, doc } = e.detail
         if (!this.pageList.has(index)) {
             const pageList = this.view.book.pageList
             if (!pageList) {
                 return
             }
-            const doc = this.view.renderer.getContents()[0].doc
             const { pageList: pl, pageListByValue } = createPageListForAnnotations(this, pageList, index, doc)
             this.pageList.set(index, pl)
             for (const [v, notes] of pageListByValue.entries()) {
@@ -678,6 +678,12 @@ export class Reader {
         this.view.addEventListener('relocate', this._onRelocate.bind(this))
         if (this.view.isFixedLayout) {
             this.setFxlRendererEventListeners()
+            this._rendererResizeObserver = new ResizeObserver((entries) => {
+                const r = this.view.renderer
+                if (!r || entries[0].target !== r) return
+                this.updateCursorGrab()
+            })
+            this._rendererResizeObserver.observe(this.view.renderer)
         }
 
         await this.goToLastReadPage(openAt)
@@ -699,6 +705,7 @@ export class Reader {
     async reopen() {
         // work in progress
         const { book } = this.view
+        this._rendererResizeObserver.disconnect()
         this.view.close()
         await this.view.open(book, { CFI })
         if (this.view.isFixedLayout) {
@@ -753,6 +760,19 @@ export class Reader {
             }
             this.view.history.pushState(0)
             await this.view.next()
+        }
+    }
+
+    updateCursorGrab() {
+        const r = this.view?.renderer
+        if (!r) return
+        let cursor = ''
+        if (r.scrollWidth > r.clientWidth || r.scrollHeight > r.clientHeight) {
+            cursor = 'grab'
+        }
+        const docs = this.view.renderer.getContents().map(c => c.doc)
+        for (const doc of docs) {
+            if (doc.body) doc.body.style.cursor = cursor
         }
     }
 
@@ -918,6 +938,11 @@ export class Reader {
             this.container.hidePopover?.()
             this.#inerted.forEach(el => el.removeAttribute('inert'))
             this.#inerted = []
+            // To prevent Chromium based browsers from scrolling down the page upon leaving fullscreen
+            setTimeout(() => {
+                document.documentElement.classList.remove('simebv-overflow-anchor-none')
+                document.body?.classList.remove('simebv-overflow-anchor-none')
+            }, 0)
             detail.data = 'exit'
         }
         else {
@@ -927,6 +952,8 @@ export class Reader {
             document.body?.classList.add('simebv-overflow-hidden')
             this.container.showPopover?.()
             this._inertEverythingExcept(this.container)
+            document.documentElement.classList.add('simebv-overflow-anchor-none')
+            document.body?.classList.add('simebv-overflow-anchor-none')
             detail.data = 'enter'
         }
         const toggleFullscreen = new CustomEvent('toggle-fullscreen', { detail })
@@ -1192,6 +1219,7 @@ export class Reader {
                 }
             })
         }
+        setTouchEvents(doc, this)
         if (this._bookmarksManager.canBookmarkSelection()) {
             doc.addEventListener('selectionchange', e => {
                 let docs = this.view.renderer.getContents().map(c => c.doc)
@@ -1200,7 +1228,6 @@ export class Reader {
                 this._bookmarksManager.eventTarget.dispatchEvent(s)
             })
         }
-        setTouchEvents(doc, this)
     }
 
 
@@ -1489,6 +1516,7 @@ export * from './simebv-utils.js'
 export * from './simebv-component-styles.js'
 export * from './simebv-transform-ebook.js'
 export * from './simebv-overlayer-shapes.js'
+export * from './simebv-non-empty-range.js'
 export * from './simebv-search-dialog.js'
 export * from './simebv-filters-dialog.js'
 export * from './simebv-metadata-dialog.js'
