@@ -42,7 +42,7 @@ export function addBookmarkDialog(target) {
     cancel.addEventListener('click', () => dlg.dispatchEvent(new CustomEvent('cancel')))
 
     const locationData = {}
-    let textInBook = ''
+    const textData = {}
     let returnFocus
     dlg.addEventListener('submit', () => {
         target.dispatchEvent(new CustomEvent(
@@ -50,7 +50,7 @@ export function addBookmarkDialog(target) {
                 {
                     content: note.value,
                     loc: locationData.data,
-                    textInBook,
+                    text: textData.data,
                     label: displayLoc.textContent,
                     returnFocus,
                 }
@@ -70,14 +70,14 @@ export function addBookmarkDialog(target) {
         locationData.data = data
         note.value = content
         returnFocus = editedBookmark
-        textInBook = text
+        textData.data = text.data
         h.textContent = header
     }
 
     const close = () => {
         const f = returnFocus
         const loc = locationData.data
-        setData({label: '', data: null}, '', false, '')
+        setData({label: '', data: null}, '', { data: null }, false, '')
         if (dlg.open) dlg.close()
         if (f) target.dispatchEvent(new CustomEvent('focus-bookmark', { detail: { loc }}))
     }

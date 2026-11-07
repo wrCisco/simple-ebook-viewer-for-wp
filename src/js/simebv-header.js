@@ -184,6 +184,11 @@ template.innerHTML = `
     font-size: .8rem;
     white-space: initial;
 }
+.simebv-bookmarks-quote {
+    background: var(--active-bg-2);
+    padding: 1px 5px;
+    border-radius: 5px;
+}
 .simebv-bookmarks-content {
     font-size: 1rem;
 }

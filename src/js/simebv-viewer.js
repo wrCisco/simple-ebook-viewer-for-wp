@@ -974,6 +974,7 @@ export class Reader {
             loadPreference: this._loadPreference.bind(this),
             updatePreference: this._updatePreference.bind(this),
             hasConsent: () => this._prefsManager.hasConsent('functional'),
+            userInteraction: this._prefsManager.userInteraction.bind(this._prefsManager),
         })
         this._prefsManager.registerClient(bm.eventTarget, ['functional'], [bookmarksPrefsName])
         return bm

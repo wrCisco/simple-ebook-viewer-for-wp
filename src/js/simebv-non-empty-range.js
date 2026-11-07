@@ -145,40 +145,13 @@ function getHiddenContent(node) {
 }
 
 /*
- * Try to get a range that contains at least one visible non white-space character
- * starting from the node passed as first argument. If the node is a text node,
- * it's possible to pass a second numeric argument for the text offset.
- * Elements with the style property 'display' set to 'none' will be skipped,
- * and so will the text that can't be seen (see isVisuallyHidden).
- * If the starting node contains visible text, the range selects its first visible
- * character; otherwise it goes from the starting node to the first visible character
- * that follows it. If there isn't an adequate range, use the first element following
- * the starting node as the end container of the range, and if there isn't even that,
- * use the starting node as both the start and the end container of the range.
- * A starting text node with only white space from the offset on is never part of
- * the range, which would select nothing else: the range starts after it (it selects
- * the first visible character that follows, if no visible box comes before it);
- * if nothing visible follows (e.g. at the end of a section), the range selects
- * the last visible character before the offset, and if there's no visible text
- * at all, it's collapsed at the offset.
- * The overlayer draws at the first box of the range, so:
- * - if a visible box (e.g. an image) precedes the first visible character,
- *   the range also contains the box;
- * - if hidden content precedes the first visible content (text, or a box),
- *   the range starts right after the hidden content.
- * Without layout (e.g. in a 'load' event handler, while the paginator keeps the
- * iframe hidden) every text looks hidden: when the starting node is a text node,
- * pass true as the third argument to skip the isVisuallyHidden check on the text,
- * so that any non white-space character counts as visible. Elements with
- * 'display: none' are skipped all the same in Chrome, but not in Firefox,
- * which computes no style in a hidden iframe.
+ * Create a tree walker over the elements and the text nodes of the node's document
+ * (or shadow root) that skips scripts, styles, and the elements with 'display: none'.
  */
-export function getNonEmptyRange(node, textOffset = 0, skipTextVisibilityCheck = false) {
+function createWalker(node) {
     const doc = node.ownerDocument
     const win = doc.defaultView
-    let skippedHidden = false
-
-    function nodeFilter(n) {
+    return doc.createTreeWalker(node.getRootNode(), NodeFilter.SHOW_ELEMENT|NodeFilter.SHOW_TEXT, n => {
         if (n.nodeType !== Node.ELEMENT_NODE) {
             return NodeFilter.FILTER_ACCEPT
         }
@@ -189,7 +162,46 @@ export function getNonEmptyRange(node, textOffset = 0, skipTextVisibilityCheck =
             return NodeFilter.FILTER_REJECT
         }
         return NodeFilter.FILTER_ACCEPT
-    }
+    })
+}
+
+/*
+ * Try to get a range that contains at least one visible non white-space character
+ * starting from the node passed as first argument, at the offset passed as second
+ * argument. As in a Range boundary point, the offset counts the characters of a text
+ * node and the children of an element: only what comes after it is considered.
+ * Elements with the style property 'display' set to 'none' will be skipped,
+ * and so will the text that can't be seen (see isVisuallyHidden).
+ * If the starting node contains visible text after the offset, the range selects its
+ * first visible character; otherwise it goes from the starting node to the first
+ * visible character that follows it. For an element with offset 0, if there isn't
+ * an adequate range, use the first element following the starting node as the end
+ * container of the range, and if there isn't even that, use the starting node as
+ * both the start and the end container of the range.
+ * A starting text node with only white space from the offset on is never part of
+ * the range, which would select nothing else: the range starts after it (it selects
+ * the first visible character that follows, if no visible box comes before it).
+ * With an element and an offset greater than 0, the range starts at the offset,
+ * or after the element if the offset is past its last child.
+ * In both cases, if nothing visible follows (e.g. at the end of a section), the range
+ * selects the last visible character before the offset (see getPreviousCharacterRange),
+ * and if there's no visible text at all, it's collapsed at the offset.
+ * The overlayer draws at the first box of the range, so:
+ * - if a visible box (e.g. an image) precedes the first visible character,
+ *   the range also contains the box;
+ * - if hidden content precedes the first visible content (text, or a box),
+ *   the range starts right after the hidden content.
+ * Without layout (e.g. in a 'load' event handler, while the paginator keeps the
+ * iframe hidden) every text looks hidden: pass true as the third argument to skip
+ * the isVisuallyHidden check on the text, so that any non white-space character
+ * counts as visible. Elements with 'display: none' are skipped all the same
+ * in Chrome, but not in Firefox, which computes no style in a hidden iframe.
+ */
+export function getNonEmptyRange(node, offset = 0, skipTextVisibilityCheck = false) {
+    const doc = node.ownerDocument
+    const isText = node.nodeType === Node.TEXT_NODE
+    offset = Math.min(Math.max(0, offset), isText ? node.length : node.childNodes.length)
+    let skippedHidden = false
 
     function isVisibleText(n) {
         if (n.nodeType !== Node.TEXT_NODE || !n.textContent.trim()) {
@@ -211,26 +223,41 @@ export function getNonEmptyRange(node, textOffset = 0, skipTextVisibilityCheck =
         return range
     }
 
-    // the range must start after a text node with only white space from the offset on
-    let afterText = false
-    if (node.nodeType === Node.TEXT_NODE) {
+    // only what follows the offset counts, and if nothing visible follows, the range
+    // selects what precedes it: for a text node with only white space from the offset on,
+    // and for an element with an offset greater than 0
+    let afterOffset = false
+    // the range must start after a text node with only white space from the offset on,
+    // and after an element when the offset is past its last child
+    let afterNode = false
+    if (isText) {
         if (isVisibleText(node)) {
-            if (getCharacterBounds(node, textOffset)) {
-                return selectCharacter(node, textOffset)
+            if (getCharacterBounds(node, offset)) {
+                return selectCharacter(node, offset)
             }
-            afterText = true
+            afterOffset = afterNode = true
         }
         else {
             // hidden text is handled with the rest of the hidden content
-            afterText = !skippedHidden
+            afterOffset = afterNode = !skippedHidden
         }
     }
-    const walker = doc.createTreeWalker(
-        node.getRootNode(), NodeFilter.SHOW_ELEMENT|NodeFilter.SHOW_TEXT, nodeFilter
-    )
+    else if (offset > 0) {
+        afterOffset = true
+        afterNode = offset === node.childNodes.length
+    }
+    const walker = createWalker(node)
+    // the walker starts from the last node that precedes the offset
+    let before = node
+    if (!isText && offset > 0) {
+        before = node.childNodes[offset - 1]
+        while (before.lastChild) {
+            before = before.lastChild
+        }
+    }
     // the end container: the first visible text, inside the starting node or after it
     let endContainer
-    walker.currentNode = node
+    walker.currentNode = before
     while (walker.nextNode()) {
         const current = walker.currentNode
         if (isVisibleText(current)) {
@@ -245,10 +272,10 @@ export function getNonEmptyRange(node, textOffset = 0, skipTextVisibilityCheck =
     // that precedes the first visible content must stay out of the range instead
     let hiddenRoot = null
     let firstVisible = endContainer
-    if (inside || skippedHidden || afterText) {
+    if (inside || skippedHidden || afterOffset) {
         hiddenRoot = getHiddenContent(node)?.root ?? null
         firstVisible = undefined
-        walker.currentNode = node
+        walker.currentNode = before
         while (walker.nextNode()) {
             const current = walker.currentNode
             if (current === endContainer) {
@@ -270,14 +297,14 @@ export function getNonEmptyRange(node, textOffset = 0, skipTextVisibilityCheck =
             }
         }
     }
-    if ((inside || afterText) && endContainer && firstVisible === endContainer) {
+    if ((inside || afterOffset) && endContainer && firstVisible === endContainer) {
         // nothing else comes first: select the first visible character
-        // (the text offset refers to the starting node, not to the end container)
+        // (the offset refers to the starting node, not to the end container)
         return selectCharacter(endContainer, 0)
     }
-    if (firstVisible && (inside || hiddenRoot || afterText)) {
-        if (!hiddenRoot && !afterText) {
-            range.setStart(node, 0)
+    if (firstVisible && (inside || hiddenRoot || afterOffset)) {
+        if (!hiddenRoot && !afterNode) {
+            range.setStart(node, isText ? 0 : offset)
         }
         // the hidden root could contain visible content too,
         // e.g. absolutely positioned text that escapes its clipping
@@ -305,25 +332,14 @@ export function getNonEmptyRange(node, textOffset = 0, skipTextVisibilityCheck =
         return range
     }
 
-    if (afterText) {
+    if (afterOffset) {
         // nothing visible follows (e.g. at the end of a section):
-        // select the last visible character before the offset.
-        // Without layout Firefox computes no style, so the walker can't skip the head
-        const root = doc.body ?? doc.documentElement
-        walker.currentNode = node
-        let text = node
-        let offset = textOffset
-        while (text && root.contains(text)) {
-            const bounds = isVisibleText(text) ? getLastCharacterBounds(text, offset) : null
-            if (bounds) {
-                range.setStart(text, bounds[0])
-                range.setEnd(text, bounds[1])
-                return range
-            }
-            text = walker.previousNode()
-            offset = Infinity
+        // select the last visible character before the offset
+        const previous = getPreviousCharacterRange(node, offset, skipTextVisibilityCheck)
+        if (previous) {
+            return previous
         }
-        range.setStart(node, Math.min(textOffset, node.length))
+        range.setStart(node, offset)
         range.collapse(true)
         return range
     }
@@ -348,4 +364,50 @@ export function getNonEmptyRange(node, textOffset = 0, skipTextVisibilityCheck =
         endContainer.nodeType === Node.TEXT_NODE ? getCharacterBounds(endContainer)?.[1] ?? 0 : 0
     )
     return range
+}
+
+/*
+ * Get a range that selects the last visible non white-space character (grapheme
+ * cluster) before the offset in the node passed as first argument, or null if there
+ * isn't one in the body. As in getNonEmptyRange, the offset counts the characters
+ * of a text node and the children of an element; without it, the search starts
+ * from the end of the node.
+ * Elements with 'display: none' are skipped (in Firefox only with layout), and so is
+ * the text that can't be seen (see isVisuallyHidden), unless the third argument is
+ * true: then any non white-space character counts as visible.
+ */
+export function getPreviousCharacterRange(node, offset = Infinity, skipTextVisibilityCheck = false) {
+    const doc = node.ownerDocument
+    // without layout Firefox computes no style, so the walker can't skip the head
+    const root = doc.body ?? doc.documentElement
+    const walker = createWalker(node)
+    walker.currentNode = node
+    let current = node
+    if (node.nodeType !== Node.TEXT_NODE) {
+        const child = node.childNodes[Math.max(0, offset)]
+        if (child) {
+            walker.currentNode = child
+            current = walker.previousNode()
+        }
+        else {
+            // past the last child: from the last node inside the element
+            while (walker.lastChild()) {
+                current = walker.currentNode
+            }
+        }
+        offset = Infinity
+    }
+    for (; current && root.contains(current); current = walker.previousNode(), offset = Infinity) {
+        if (current.nodeType !== Node.TEXT_NODE) {
+            continue
+        }
+        const bounds = getLastCharacterBounds(current, offset)
+        if (bounds && (skipTextVisibilityCheck || !isVisuallyHidden(current))) {
+            const range = doc.createRange()
+            range.setStart(current, bounds[0])
+            range.setEnd(current, bounds[1])
+            return range
+        }
+    }
+    return null
 }

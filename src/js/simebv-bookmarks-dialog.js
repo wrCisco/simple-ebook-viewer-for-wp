@@ -91,14 +91,14 @@ export function bookmarksDialog(target, showBookmarks, hasSelection, showHint) {
     dlg.append(list, noBookmarks)
 
     let bookmarks_ = []
-    const updateBookmarks = (bookmarks, bookmarksBin, isFixedLayout, makeLabel, onclick) => {
+    const updateBookmarks = (bookmarks, bookmarksBin, isFixedLayout, makeLabel, makeExcerpt, onclick) => {
         list.replaceChildren()
         bookmarks_ = bookmarks.concat(Array.from(bookmarksBin)).sort((a, b) => CFI.compare(a.loc.cfi, b.loc.cfi))
         let minPage = 0
         for (const [i, bookmark] of bookmarks_.entries()) {
             const { loc, content, inBook } = bookmark
             const isDeleted = bookmarksBin.has(bookmark)
-            const { cfi, tocLabel, section, page, type } = loc
+            const { cfi, section, bookFraction, page, type } = loc
             const item = document.createElement('li')
             if (cfi) item.dataset.cfi = cfi
             const ref = document.createElement('p')
@@ -146,7 +146,10 @@ export function bookmarksDialog(target, showBookmarks, hasSelection, showHint) {
                 if (typeof page === 'number') minPage = Math.max(page, minPage)
                 label.onclick = event => {
                     event.preventDefault()
-                    onclick(cfi ?? section - 1)
+                    const frac = bookFraction ? { fraction: bookFraction } : bookFraction
+                    const target = cfi ?? frac ?? section - 1
+                    const fallback = (target === frac ? section - 1 : frac) ?? section - 1
+                    onclick(target, fallback)
                 }
                 label.id = 'simebv-user-bookmark-' + (i + 1)
                 label.dataset.section = section
@@ -188,11 +191,15 @@ export function bookmarksDialog(target, showBookmarks, hasSelection, showHint) {
             item.append(ref)
             const textInBook = document.createElement('p')
             textInBook.classList.add('simebv-bookmarks-textinbook')
-            if (inBook) {
-                textInBook.textContent = sprintf(
-                    /* translators: %1$s: first words of the ebook's text associated with a bookmark */
-                    __('In book: "%1$s"', 'simple-ebook-viewer'), inBook
-                )
+            // CDATA text content in Chrome is skipped by selection.toString(),
+            // so fallback to matchText in the rare case of a CDATA bookmarked
+            const text = inBook.text.trim() ? inBook.text : inBook.matchText ?? ''
+            const textAfter = inBook.textAfter.trim() ? inBook.textAfter : inBook.matchTextAfter ?? ''
+            if (text || textAfter) {
+                const quote = document.createElement('span')
+                quote.classList.add('simebv-bookmarks-quote')
+                quote.textContent = makeExcerpt(text + textAfter)
+                textInBook.append(__('In book: ', 'simple-ebook-viewer'), quote)
             }
             else if (type === 'page') {
                 textInBook.textContent = __('Page bookmark', 'simple-ebook-viewer')
@@ -200,6 +207,7 @@ export function bookmarksDialog(target, showBookmarks, hasSelection, showHint) {
             const note = document.createElement('p')
             note.classList.add('simebv-bookmarks-content')
             note.textContent = content ?? ''
+            if (content) note.setAttribute('aria-label', __('User annotation', 'simple-ebook-viewer'))
             item.append(textInBook, note)
             list.append(item)
         }
