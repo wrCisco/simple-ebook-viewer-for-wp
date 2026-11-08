@@ -27,6 +27,15 @@ export class TextSearch {
         this.#view = view
         this.#container = container
         this.target = new EventTarget()
+
+        this.#view.addEventListener('create-overlay', async e => {
+            const { index } = e.detail
+            for (const { index: i, cfi } of this.#currentMatch?.parts ?? []) {
+                if (i === index) {
+                    await this.#view.addAnnotation({ value: cfi, type: 'current-search'})
+                }
+            }
+        })
     }
 
     openDialog(returnFocusTo) {
@@ -54,7 +63,8 @@ export class TextSearch {
         this.#opts.matchCase = matchCase
         this.#opts.matchWholeWords = matchWholeWords
         this.#opts.ignorePunctuation = ignorePunctuation
-        this.#sectionsIndex = this.#view.lastLocation.section.current
+        this.#sectionsIndex = Math.min(...this.#view.renderer.getContents().map(c => c.index))
+        if (this.#sectionsIndex === Infinity) this.#sectionsIndex = this.#view.lastLocation.section.current
         this.#totSections = this.#view.lastLocation.section.total
         await this.#matchUntilCurrentLocation()
         if (this.#count > 0) {
@@ -111,7 +121,7 @@ export class TextSearch {
 
     async #matchUntilCurrentLocation() {
         const currentLoc = this.#view.lastLocation
-        const currentSection = currentLoc.section.current
+        const currentSection = this.#sectionsIndex
         while (true) {
             const results = await this.#searchInSection(this.#runId)
             if (!this.#currentSearch) {
@@ -119,38 +129,28 @@ export class TextSearch {
                 return
             }
             if (results.length > 0) {
-                if (this.#sectionsIndex > currentSection) {
+                if (this.#sectionsIndex !== currentSection || this.#view.isFixedLayout) {
                     this.#matchesIndex = 0
                     return
                 }
-                if (this.#sectionsIndex === currentSection) {
-                    for (const [i, result] of results.entries()) {
-                        if (CFI.compare(currentLoc.cfi, result.cfi) <= 0) {
-                            this.#matchesIndex = i
-                            return
-                        }
+                for (const [i, result] of results.entries()) {
+                    if (CFI.compare(currentLoc.cfi, result.cfi) <= 0) {
+                        this.#matchesIndex = i
+                        return
                     }
                 }
-                else {
-                    this.#matchesIndex = results.length - 1
-                    return
-                }
             }
-            if (this.#sectionsIndex < currentSection) {
-                this.#sectionsIndex--
+            if (this.#sectionsIndex === this.#totSections - 1) {
+                this.#sectionsIndex = 0
             }
-            else if (this.#sectionsIndex === this.#totSections - 1) {
-                this.#sectionsIndex = currentSection - 1
+            else {
+                this.#sectionsIndex++
             }
-            if (this.#sectionsIndex < 0) {
-                this.#sectionsIndex = currentSection
+            if (this.#sectionsIndex === currentSection) {
                 if (this.#results[currentSection].length > 0) {
-                    this.#matchesIndex = this.#results[currentSection].length - 1
+                    this.#matchesIndex = 0
                 }
                 return
-            }
-            if (this.#sectionsIndex >= currentSection) {
-                this.#sectionsIndex++
             }
         }
     }
@@ -158,26 +158,21 @@ export class TextSearch {
     async #goToMatch() {
         const runId = this.#runId
         const results = this.#results[this.#sectionsIndex]
-        const newCFI = results[this.#matchesIndex].cfi
-        if (this.#currentMatch?.cfi) {
-            this.#view.deleteAnnotation({ value: this.#currentMatch.cfi })
+        const match = results[this.#matchesIndex]
+        const parts = match.parts ?? [{ index: this.#sectionsIndex, cfi: match.cfi }]
+        for (const { cfi } of this.#currentMatch?.parts ?? []) {
+            this.#view.deleteAnnotation({ value: cfi })
         }
-        if (this.#view.isFixedLayout) {
-            const oldIndex = this.#currentMatch?.cfi
-                ? this.#view.resolveCFI(this.#currentMatch?.cfi).index
-                : undefined
-            const newIndex = this.#view.resolveCFI(newCFI).index
-            if (oldIndex !== newIndex) {
-                await this.#view.goTo(newCFI)
-                if (runId !== this.#runId) { return }
-            }
-        }
-        else {
-            await this.#view.goTo(newCFI)
+        this.#currentMatch = { cfi: match.cfi, parts, index: this.#sectionsIndex }
+        const visible = this.#view.renderer.getContents().map(c => c.index)
+        if (!this.#view.isFixedLayout || !visible.includes(this.#sectionsIndex)) {
+            await this.#view.goTo(match.cfi)
             if (runId !== this.#runId) { return }
         }
-        this.#currentMatch = { cfi: newCFI, index: this.#sectionsIndex }
-        await this.#view.addAnnotation({ value: newCFI, type: 'current-search' })
+        // reverse the parts to draw the first one last (cfr. scrollIntoView)
+        for (const { cfi } of parts.toReversed()) {
+            await this.#view.addAnnotation({ value: cfi, type: 'current-search'})
+        }
     }
 
     async #goToAdjacentSection({ previous = false } = {}) {
@@ -245,8 +240,8 @@ export class TextSearch {
     }
 
     async searchCleanUp() {
-        if (this.#currentMatch?.cfi) {
-            this.#view.deleteAnnotation({ value: this.#currentMatch?.cfi })
+        for (const { cfi } of this.#currentMatch?.parts ?? []) {
+            this.#view.deleteAnnotation({ value: cfi })
         }
         this.#currentSearch?.return?.()
         this.#currentSearch = undefined
