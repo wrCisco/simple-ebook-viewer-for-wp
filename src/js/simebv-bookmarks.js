@@ -1,5 +1,5 @@
 import { textWalker, textWalkerFilters } from '../../vendor/foliate-js/text-walker.js'
-import { searchMatcher, search } from '../../vendor/foliate-js/search.js'
+import { search, crossSectionText, searchOptions } from '../../vendor/foliate-js/search.js'
 import { bookmarksDialog } from './simebv-bookmarks-dialog.js'
 import { addBookmarkDialog } from './simebv-bookmarks-add-dialog.js'
 import { corruptedDataDialog } from './simebv-corrupted-data-dialog.js'
@@ -302,7 +302,17 @@ export class BookmarksManager {
             const toRestore = []
             for (const bookmark of bookmarks) {
                 try {
-                    const range = this.#view.resolveCFI(bookmark.loc.cfi).anchor(doc)
+                    const u = bookmark.loc.toUpdate
+                    if (u?.includes('relocated') || u?.includes('fallback')) {
+                        toRestore.push(bookmark)
+                        continue
+                    }
+                    const { index: i, anchor } = this.#view.resolveCFI(bookmark.loc.cfi)
+                    if (i !== index) {
+                        toRestore.push(bookmark)
+                        continue
+                    }
+                    const range = anchor(doc)
                     // no text comparisons for ebooks that don't support selection bookmarks
                     if (!this.canBookmarkSelection()) continue
                     let text
@@ -327,10 +337,14 @@ export class BookmarksManager {
                 }
             }
             if (toRestore.length) {
+                let lost = []
                 try {
-                    this.restoreCFI(index, doc, toRestore)
+                    lost = this.restoreCFI(index, doc, toRestore)
                 } catch (e) {
                     console.error(e)
+                }
+                if (lost.length) {
+                    this.#relocate(index, lost).catch(e => console.error(e))
                 }
             }
             // fonts may take longer to load and change layout (and number) of non-fixed-layout pages
@@ -340,6 +354,46 @@ export class BookmarksManager {
                 }
             })
         })
+    }
+
+    async #relocate(index, lost) {
+        const found = await this.#scanSections(
+            index, lost.filter(b => this.#normalizeBookmarkTexts(b.inBook).join('').trim())
+        )
+        const moved = new Map()
+        for (const b of lost) {
+            const oldCFI = b.loc.cfi
+            const cur = this.#bookmarks.find(x => x.loc.cfi === oldCFI)
+            if (!cur) continue  // deleted, or already moved by another run
+            const f = found.get(b)
+            if (f) {
+                Object.assign(cur.loc, { section: f.section, cfi: f.cfi,
+                    textSectionFraction: f.textSectionFraction })
+                if (this.#view.isFixedLayout) cur.loc.page = f.section
+            }
+            cur.loc.toUpdate = [f ? 'relocated' : 'fallback']
+            moved.set(oldCFI, cur)
+        }
+        if (this.showBookmarksInPage) {
+            this.updateOverlay([], [...moved.keys()].map(cfi => ({ loc: { cfi, section: index + 1 } })))
+        }
+        this.#bookmarks = this.#updateStoredBookmarks(list => updateSorted(list, moved)[0])
+        // pages on screen already had their create-overlay: run the sync pass now
+        for (const { index: j, doc } of this.#view.renderer.getContents()) {
+            const pending = this.getBookmarks(j).filter(b => b.loc.toUpdate?.includes('relocated') || b.loc.toUpdate?.includes('fallback'))
+            if (!pending.length) continue
+            this.restoreCFI(j, doc, pending)
+            if (this.showBookmarksInPage) pending.forEach(b => this.drawAnnotation(b))
+            doc.fonts.ready.then(() => {
+                if (this.#view.renderer.getContents().some(c => c.doc === doc)) {
+                    this.restoreLocations(j, doc)
+                }
+            })
+        }
+
+        if (this.isDialogOpen()) {
+            this.updateBookmarks()
+        }
     }
 
     get showBookmarksInPage() {
@@ -406,10 +460,14 @@ export class BookmarksManager {
         for (const bookmark of bookmarks) {
             if (isFromNewerVersion(bookmark)) continue
             const errors = validateBookmark(bookmark, true)
+            const sec = bookmark?.loc?.section
+            if (!Number.isInteger(sec) || sec < 1 || sec > this.#view?.book?.sections?.length) {
+                errors.push('section not in book')
+            }
             if (errors.length > 0) {
                 try {
                     const oldCFI = bookmark?.loc?.cfi
-                    if (this.#restoreInvalidBookmark(bookmark)) {
+                    if (this.#restoreInvalidBookmark(bookmark, this.#view?.book)) {
                         toUpdate.set(oldCFI, bookmark)
                     }
                 }
@@ -494,12 +552,14 @@ export class BookmarksManager {
      * Ensures a minimum level of usability for loaded bookmarks,
      * in terms of format and types. Returns true if it updates the bookmark,
      * false otherwise.
-     * It does not verify the correctness of the location in the ebook.
+     * It does not verify the correctness of the location in the ebook,
+     * other than checking that the section number is between 1 and
+     * the number of sections in the ebook.
      * If the bookmark is not recoverable, throws UnrecoverableBookmark Error.
      * If the bookmark has a version number greater than the current supported
      * version, the function doesn't change the bookmark and returns false.
      */
-    #restoreInvalidBookmark(bookmark) {
+    #restoreInvalidBookmark(bookmark, book) {
         const b = bookmark
         let version = isNumeric(b?.version) ? Number(b.version) : 1
 
@@ -524,18 +584,25 @@ export class BookmarksManager {
                     version = CURRENT_VERSION
                     updated = true
                 }
-                if (!Object.hasOwn(b.loc, 'section') || typeof b.loc.section !== 'number') {
+                if (!Object.hasOwn(b.loc, 'section') || typeof b.loc.section !== 'number'
+                        || !Number.isInteger(b.loc.section) || b.loc.section < 1
+                        || b.loc.section > book?.sections.length) {
                     try {
                         const index = this.#view.resolveCFI(b.loc.cfi).index
+                        if (!Number.isInteger(index) || index < 1 || index >= book?.sections.length) {
+                            throw new Error
+                        }
                         b.loc.section = index + 1
-                        if (isNaN(b.loc.section)) {
+                        updated = true
+                    } catch (e) {
+                        if (typeof b.loc.section === 'number') {
+                            b.loc.section = Math.min(Math.max(Math.round(b.loc.section), 1), book?.sections.length) || 1
+                            updated = true
+                        }
+                        else {
                             b.toRemove = true
                             throw new UnrecoverableBookmark()
                         }
-                        updated = true
-                    } catch (e) {
-                        b.toRemove = true
-                        throw new UnrecoverableBookmark()
                     }
                 }
                 const inBookProps = ['text', 'textBefore', 'textAfter', 'matchText', 'matchTextAfter']
@@ -598,109 +665,220 @@ export class BookmarksManager {
         return updated
     }
 
-    restoreCFI(index, doc, bookmarks) {
-        if (!bookmarks.length) {
-            return
+    async #scanSections(index, bookmarks) {
+        const found = new Map()
+        if (!bookmarks.length || !this.canBookmarkSelection()) {
+            return found
         }
-        // normalization analogous to the one applied by searchMatcher
+        const searchOpts = {
+            defaultLocale: this.#ebookLocales, matchCase: false, matchDiacritics: false,
+            matchWholeWords: false, ignorePunctuation: true,
+        }
+        const cache = new Map()
+        const cacheSize = 4
+        const query = ({ inBook: b }) => b.textBefore + (b.matchText ?? b.text) + (b.matchTextAfter ?? b.textAfter)
+        const need = 2 * bookmarks.reduce((a, b) => Math.max(a, query(b).length), 0) + 50
+        const sections = this.#view.book.sections
+        const sectionsToSearch = [index]
+        for (let i = 1; i < sections.length; i++) {
+            if (index + i < sections.length) {
+                sectionsToSearch.push(index + i)
+            }
+            if (index - i >= 0) {
+                sectionsToSearch.push(index - i)
+            }
+        }
+        for (const i of sectionsToSearch) {
+            if (found.size === bookmarks.length) break
+            let t
+            try {
+                t = await crossSectionText(i, sections, textWalker, cache, need, cacheSize)
+            } catch (e) {
+                console.error(e)
+                continue
+            }
+            if (!t) continue
+            for (const bookmark of bookmarks) {
+                if (found.has(bookmark)) continue
+                try {
+                    const pos = this.locateBookmark(
+                        t, bookmark.inBook, bookmark.loc.textSectionFraction, searchOptions(t.doc, searchOpts)
+                    )
+                    if (!pos) continue
+                    const parts = t.split({
+                        startIndex: pos.start[0], startOffset: pos.start[1],
+                        endIndex: pos.end[0], endOffset: pos.end[1],
+                    })
+                    if (!parts.length) continue
+                    const [{ index: newIndex, range }] = parts
+                    found.set(bookmark, {
+                        section: newIndex + 1,
+                        cfi: this.#view.getCFI(newIndex, range),
+                        textSectionFraction: pos.textSectionFraction,
+                    })
+                }
+                catch (e) {
+                    console.error(e)
+                }
+            }
+        }
+        return found
+    }
+
+    #normalizeBookmarkTexts(texts) {
+        // normalization analogous to the one applied by search
         const normalize = text => text
             .replace(/\s+/gu, ' ')
             .replace(/[\p{P}\p{Z}\t\n\v\f\r\u0085\p{Format}]/gu, '')
-        const matcher = searchMatcher(textWalker, {
-            defaultLocale: this.#ebookLocales, matchCase: false, matchDiacritics: false,
-            matchWholeWords: false, ignorePunctuation: true,
-        })
+        const before = normalize(texts.textBefore)
+        const text = normalize(texts.matchText ?? texts.text)
+        const after = normalize(texts.matchTextAfter ?? texts.textAfter)
+        return [before, text, after]
+    }
+
+    locateBookmark(t, inBook, textSectionFraction, options) {
+        const inBookText = inBook.matchText ?? inBook.text
+        const inBookTextAfter = inBook.matchTextAfter ?? inBook.textAfter
+        let query = inBook.textBefore + inBookText + inBookTextAfter
+        if (query) {
+            let match
+            let minDelta = Infinity
+            const offset = inBook.textBefore.length
+            const sums = new Map()
+            const fractionAt = (i, offset) => {
+                const s = t.segs.find(s => i >= s.from && i < s.to)
+                if (!s) return NaN
+                if (!sums.has(s)) sums.set(s, s.w.strs.reduce((a, str) => (a.push(a.at(-1) + str.length), a), [0]))
+                const p = sums.get(s)
+                return p.at(-1) ? (p[i - s.from] + offset) / p.at(-1) : 0
+            }
+            for (const { range } of search(t.strs, query, options)) {
+                if (range.startIndex >= t.segs[0].to) break
+                if (!match) match = range
+                if (isNumeric(textSectionFraction)) {
+                    const matchFraction = fractionAt(range.startIndex, range.startOffset + offset)
+                    const delta = Math.abs(textSectionFraction - matchFraction)
+                    if (delta < minDelta) {
+                        minDelta = delta
+                        match = range
+                    }
+                    else break
+                }
+            }
+            if (match) {
+                const [before, text, after] = this.#normalizeBookmarkTexts(inBook)
+                const prevOccurrences = s => {
+                    return [...search(
+                        [inBook.textBefore, inBookText, inBookTextAfter], s, options
+                    )].filter(({range}) => range.startIndex === 0).length
+                }
+                const inMatch = (a, b) => {
+                    if (a.startIndex > b.startIndex ||
+                        (a.startIndex === b.startIndex && a.startOffset > b.startOffset)) return false
+                    return true
+                }
+                let result
+                if (text) {
+                    const qty = prevOccurrences(inBookText)
+                    const ranges = [...search(t.strs, inBookText, options)].map(m => m.range)
+                    for (const [i, range] of ranges.entries()) {
+                        if (!inMatch(match, range)) continue
+                        if (i + qty >= ranges.length) break
+                        const r = ranges[i + qty]
+                        result = { start: [r.startIndex, r.startOffset], end: [r.endIndex, r.endOffset] }
+                        break
+                    }
+                }
+                else if (before.length > after.length) {
+                    // to avoid including the string between pages (one whitespace or empty string used for text search)
+                    const nextCharacter = (strs, i, offset) => {
+                        for (; i < strs.length; i++, offset = 0) {
+                            const k = strs[i].slice(offset).search(/[^\s\u0085\p{Format}]/u)
+                            if (k >= 0) return [i, offset + k]
+                        }
+                    }
+                    const ranges = [...search(t.strs, inBook.textBefore, options)].map(m => m.range)
+                    for (const range of ranges) {
+                        if (!inMatch(match, range)) continue
+                        const r = nextCharacter(t.strs, range.endIndex, range.endOffset) ?? [range.endIndex, range.endOffset]
+                        result = { start: r, end: r }
+                        break
+                    }
+                }
+                else {
+                    const qty = prevOccurrences(inBookTextAfter)
+                    const ranges = [...search(t.strs, inBookTextAfter, options)].map(m => m.range)
+                    for (const [i, range] of ranges.entries()) {
+                        if (!inMatch(match, range)) continue
+                        if (i + qty >= ranges.length) break
+                        const r = ranges[i + qty]
+                        result = { start: [r.startIndex, r.startOffset], end: [r.startIndex, r.startOffset] }
+                        break
+                    }
+                }
+                if (result) {
+                    const fraction = fractionAt(...result.start)
+                    return { ...result, textSectionFraction: fraction }
+                }
+            }
+        }
+    }
+
+    restoreCFI(index, doc, bookmarks) {
+        if (!bookmarks.length) {
+            return []
+        }
+        let searchOpts
+        let w
+        let t
+        if (this.canBookmarkSelection()) {
+            try {
+                searchOpts = searchOptions(doc, {
+                    defaultLocale: this.#ebookLocales, matchCase: false, matchDiacritics: false,
+                    matchWholeWords: false, ignorePunctuation: true,
+                })
+                textWalker(doc, function* (strs, makeRange) { w = { strs, makeRange } }).next()
+                t = { strs: w.strs, segs: [{ w, from: 0, to: w.strs.length }] }
+            }
+            catch (e) {
+                console.error(e)
+            }
+        }
         const oldCFIs = new Map()
+        const lost = new Set()
         for (const bookmark of bookmarks) {
             const storedLoc = structuredClone(bookmark.loc)
             try {
                 const { inBook, loc } = bookmark
                 const oldCFI = loc.cfi
                 let foundNewCFI = false
-                if (this.canBookmarkSelection()) {
-                    let matches
-                    const inBookText = inBook.matchText ?? inBook.text
-                    const inBookTextAfter = inBook.matchTextAfter ?? inBook.textAfter
-                    let query = inBook.textBefore + inBookText + inBookTextAfter
-                    if (query) {
-                        // TODO: if no matches, search in other sections
-                        // (and, if isFixedLayout, combine the sections to search 'em together)
-                        matches = [...matcher(doc, query)].map(m => m.range)
-                        let match
-                        if (matches.length === 1) match = matches[0]
-                        else if (matches.length > 1 && Object.hasOwn(loc, 'textSectionFraction')) {
-                            const tsf = loc.textSectionFraction
-                            let minDelta = 999
-                            const offset = inBook.textBefore.length
-                            for (const [i, m] of matches.entries()) {
-                                const delta = Math.abs(tsf - getTextFraction(doc, m, offset))
-                                if (delta < minDelta) {
-                                    minDelta = delta
-                                    match = m
-                                }
-                            }
-                        }
-                        if (match) {
-                            const text = normalize(inBookText)
-                            const before = normalize(inBook.textBefore)
-                            const after = normalize(inBookTextAfter)
-                            const locales = doc.body.lang || doc.documentElement.lang || this.#ebookLocales || 'en'
-                            const prevOccurrences = t => {
-                                return [...search(
-                                    [inBook.textBefore, inBookText, inBookTextAfter], t,
-                                    { locales, granularity: 'grapheme', sensitivity: 'base', ignorePunctuation: true }
-                                )].filter(({range}) => range.startIndex === 0).length
-                            }
-                            if (text) {
-                                const qty = prevOccurrences(inBookText)
-                                const ranges = [...matcher(doc, inBookText)].map(m => m.range)
-                                for (const [i, range] of ranges.entries()) {
-                                    if (match.comparePoint(range.startContainer, range.startOffset) === 0) {
-                                        if (i + qty >= ranges.length) break
-                                        const r = ranges[i + qty]
-                                        const cfi = this.#view.getCFI(index, r)
-                                        loc.cfi = cfi
-                                        foundNewCFI = true
-                                        break
-                                    }
-                                }
-                            }
-                            else if (before.length > after.length) {
-                                const ranges = [...matcher(doc, inBook.textBefore)].map(m => m.range)
-                                for (const range of ranges) {
-                                    if (match.comparePoint(range.startContainer, range.startOffset) === 0) {
-                                        const nonEmpty = getNonEmptyRange(range.endContainer, range.endOffset)
-                                        const cfi = this.#view.getCFI(index, nonEmpty)
-                                        loc.cfi = cfi
-                                        foundNewCFI = true
-                                        break
-                                    }
-                                }
-                            }
-                            else {
-                                const qty = prevOccurrences(inBookTextAfter)
-                                const ranges = [...matcher(doc, inBookTextAfter)].map(m => m.range)
-                                for (const [i, range] of ranges.entries()) {
-                                    if (match.comparePoint(range.startContainer, range.startOffset) === 0) {
-                                        if (i + qty >= ranges.length) break
-                                        const r = ranges[i + qty]
-                                        const nonEmpty = getNonEmptyRange(r.startContainer, r.startOffset)
-                                        const cfi = this.#view.getCFI(index, nonEmpty)
-                                        loc.cfi = cfi
-                                        foundNewCFI = true
-                                        break
-                                    }
-                                }
-                            }
+                if (t) {
+                    const pos = this.locateBookmark(t, inBook, loc.textSectionFraction, searchOpts)
+                    if (pos) {
+                        const r = w.makeRange(...pos.start, ...pos.end)
+                        loc.cfi = this.#view.getCFI(index, r.collapsed
+                            ? getNonEmptyRange(r.startContainer, r.startOffset) : r)
+                        foundNewCFI = true
+                    }
+                }
+                if (!foundNewCFI && loc.toUpdate?.includes('relocated')) {
+                    // a match across a page break can't be found again on one page: use the scan's result
+                    try {
+                        const { index: i, anchor } = this.#view.resolveCFI(loc.cfi)
+                        if (i === index) {
+                            const r = anchor(doc)
+                            loc.cfi = this.#view.getCFI(index, r.collapsed ? getNonEmptyRange(r.startContainer, r.startOffset) : r)
+                            foundNewCFI = true
                         }
                     }
+                    catch (e) {}
                 }
                 if (foundNewCFI) {
                     // update also text to defend against browsers's quirks
                     // in handling ranges and selections textual content
                     loc.toUpdate = ['location', 'text']
                 }
-                else {
+                else if (loc.toUpdate?.includes('relocated') || loc.toUpdate?.includes('fallback')) {
                     let bookmarkRange
                     const fallback = getFirstSuitableNode(doc)
                     if (!this.canBookmarkSelection()) {
@@ -723,6 +901,13 @@ export class BookmarksManager {
                     loc.cfi = cfi
                     loc.type = 'page'
                     loc.toUpdate = this.canBookmarkSelection() ? ['location', 'text'] : ['location']
+                    foundNewCFI = true
+                }
+                if (!foundNewCFI) {
+                    // bookmarks to be relocated in another section
+                    this.#toRestore.delete(bookmark.loc.cfi)
+                    lost.add(bookmark.loc.cfi)
+                    continue
                 }
                 // try to avoid perfectly overlapping bookmarks
                 let sameCFIs = this.#bookmarks.filter(b => b.loc.cfi === loc.cfi)
@@ -767,7 +952,9 @@ export class BookmarksManager {
                 bookmark.loc = storedLoc
             }
         }
-        this.#bookmarks = this.#updateStoredBookmarks(list => updateSorted(list, oldCFIs)[0])
+        if (oldCFIs.size) {
+            this.#bookmarks = this.#updateStoredBookmarks(list => updateSorted(list, oldCFIs)[0])
+        }
         if (new Set(this.#bookmarks.map(b => b.loc.cfi)).size < this.#bookmarks.length) {
             this.#bookmarks = this.#updateStoredBookmarks(list => mergeOverlapping(list)[0])
         }
@@ -775,6 +962,7 @@ export class BookmarksManager {
         if (this.isDialogOpen()) {
             this.updateBookmarks()
         }
+        return this.#bookmarks.filter(b => lost.has(b.loc.cfi))
     }
 
     #toBookFraction(index, fraction, size = 0) {
@@ -1163,9 +1351,7 @@ export class BookmarksManager {
 
     updateBookmarks({ updateOverlay, added = [], deleted = [] } = {}) {
         if (updateOverlay) {
-            for (const { index } of this.#view.renderer.getContents()) {
-                this.updateOverlay(index, added, deleted)
-            }
+            this.updateOverlay(added, deleted)
         }
         added.forEach(d => this.#bookmarksBin.delete(d))
         if (this.isDialogOpen()) deleted.forEach(d => this.#bookmarksBin.add(d))
@@ -1210,7 +1396,7 @@ export class BookmarksManager {
         return { value: bookmark.loc.cfi, type: `user-bookmark-${bookmark.loc.type}` }
     }
 
-    updateOverlay(index, add, remove) {
+    updateOverlay(add, remove) {
         const indices = this.#view.renderer.getContents().map(c => c.index)
         for (const bookmark of add) {
             if (!indices.includes(bookmark.loc.section - 1)) continue
