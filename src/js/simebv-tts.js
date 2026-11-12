@@ -7,6 +7,9 @@
  * - add highlight in TTS.start
  */
 
+import { pdfArtifactSelector } from '../../vendor/foliate-js/text-walker.js'
+import { joinLines } from '../../vendor/foliate-js/search.js'
+
 const NS = {
     XML: 'http://www.w3.org/XML/1998/namespace',
     SSML: 'http://www.w3.org/2001/10/synthesis',
@@ -19,6 +22,8 @@ const blockTags = new Set([
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'li',
     'main', 'math', 'nav', 'ol', 'p', 'pre', 'section', 'tr',
 ])
+
+const isPDFArtifact = node => node?.closest?.(pdfArtifactSelector)
 
 const getLang = el => {
     const x = el.lang || el?.getAttributeNS?.(NS.XML, 'lang')
@@ -137,9 +142,14 @@ const fragmentToSSML = async (fragment, inherited, SRE) => {
 
 const markInvisibleElements = (range) => {
     const root = range.commonAncestorContainer
-    const checkVisibility = typeof root.checkVisibility === 'function'
-        ? node => node.checkVisibility({ opacityProperty: true, visibilityProperty: true })
-        : node => !['script', 'style'].includes(node.nodeName.toLowerCase())
+    const checkVisibility = node => {
+        if (isPDFArtifact(node)) return false
+        if (typeof node.checkVisibility === 'function') {
+            return node.checkVisibility({ opacityProperty: true, visibilityProperty: true }) ||
+                    getComputedStyle(node).display === 'contents'
+        }
+        return !['script', 'style'].includes(node.nodeName.toLowerCase())
+    }
     const invisibleNodes = []
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT)
     walker.currentNode = range.startContainer
@@ -149,7 +159,7 @@ const markInvisibleElements = (range) => {
             node.setAttribute('data-foliate-invisible', '')
             invisibleNodes.push(node)
         }
-        if (node === range.endContainer) {
+        if (range.comparePoint(node, 0) > 0) {
             break
         }
     } while (node = walker.nextNode())
@@ -160,7 +170,24 @@ const unmarkInvisibleElements = (elems) => {
     elems.forEach(el => el.removeAttribute('data-foliate-invisible'))
 }
 
-const getFragmentWithMarks = async (range, textWalker, granularity, SRE) => {
+const joinPDFLines = fragment => {
+    const w = document.createTreeWalker(fragment, NodeFilter.SHOW_TEXT, node => {
+        return node.nodeValue && !node.parentElement?.closest('[data-foliate-invisible]')
+            ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
+    })
+    for (const br of fragment.querySelectorAll('br')) {
+        w.currentNode = br
+        const prev = w.previousNode()
+        if (!prev) continue
+        w.currentNode = br
+        const next = w.nextNode()
+        const [text, sep] = joinLines(prev.nodeValue, next?.nodeValue ?? '')
+        prev.nodeValue = text
+        sep ? br.replaceWith(sep) : br.remove()
+    }
+}
+
+const getFragmentWithMarks = async (range, textWalker, granularity, SRE, format) => {
     const lang = getLang(range.commonAncestorContainer)
     const alphabet = getAlphabet(range.commonAncestorContainer)
 
@@ -180,16 +207,26 @@ const getFragmentWithMarks = async (range, textWalker, granularity, SRE) => {
         mark.dataset.name = name
         range.insertNode(mark)
     }
+    if (format === 'pdf') {
+        joinPDFLines(fragment)
+    }
     const ssml = await fragmentToSSML(fragment, { lang, alphabet }, SRE)
     return { entries, ssml }
 }
 
 const rangeIsEmpty = range => {
-    if (range.toString().trim()) {
+    const root = range.commonAncestorContainer
+    if (isPDFArtifact(root.nodeType === Node.ELEMENT_NODE ? root : root.parentElement)) {
+        return true
+    }
+    const fragment = range.cloneContents()
+    for (const el of fragment.querySelectorAll(pdfArtifactSelector)) {
+        el.remove()
+    }
+    if (fragment.textContent.trim()) {
         return false
     }
-    const imgs = range.cloneContents().querySelectorAll('img')
-    for (const img of imgs) {
+    for (const img of fragment.querySelectorAll('img')) {
         if (img.alt.trim()) {
             return false
         }
@@ -197,23 +234,35 @@ const rangeIsEmpty = range => {
     return true
 }
 
-function* getBlocks(doc) {
+function* getBlocks(doc, format) {
+    const isPDF = format === 'pdf'
+    const pdfTextFilter = node => {
+        if (isPDFArtifact(node)) return NodeFilter.FILTER_REJECT
+        if (node.matches('span:not(.markedContent)')) return NodeFilter.FILTER_ACCEPT
+        return NodeFilter.FILTER_SKIP
+    }
     let last
     const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT)
+    const pdfWalker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, pdfTextFilter)
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         const name = node.tagName.toLowerCase()
-        if (blockTags.has(name)) {
+        if (blockTags.has(name) || (isPDF && name === 'br')) {
             if (last) {
-                // the text layer of pdfs is just a sequence of span and br,
-                // so I add a bit of heuristics to split the blocks
+                // the text layer of pdfs is mainly a sequence of nested spans and br
+                // (presentation spans and br, plus .markedContent spans as wrappers
+                // in case of tagged pdfs), so I add a bit of heuristics to split the blocks
                 if (name === 'br') {
-                    const next = node.nextElementSibling
-                    const prev = node.previousElementSibling
-                    if ([next?.tagName.toLowerCase(), prev?.tagName.toLowerCase()].includes('span')) {
-                        const nextSize = next.style.getPropertyValue('--font-height')
-                        const prevSize = prev.style?.getPropertyValue('--font-height')
-                        if (!/[\n\p{Sentence_Terminal}\p{Terminal_Punctuation}]\s*$/u.test(prev.textContent) && nextSize === prevSize) {
-                            continue
+                    if (!isPDFArtifact(node) && !isPDFArtifact(last.startContainer)) {
+                        pdfWalker.currentNode = node
+                        const next = pdfWalker.nextNode()
+                        pdfWalker.currentNode = node
+                        const prev = pdfWalker.previousNode()
+                        if (prev && !(last.startContainer.compareDocumentPosition(prev) & Node.DOCUMENT_POSITION_PRECEDING)) {
+                            const nextSize = next?.style.getPropertyValue('--font-height')
+                            const prevSize = prev?.style.getPropertyValue('--font-height')
+                            if (!/[\n\p{Sentence_Terminal}:]\s*$/u.test(prev.textContent) && nextSize === prevSize) {
+                                continue
+                            }
                         }
                     }
                 }
@@ -298,11 +347,10 @@ export class TTS {
     #lastMark
     #serializer = new XMLSerializer()
     constructor(doc, textWalker, highlight, granularity, SRE, ebookFormat) {
-        if (ebookFormat === 'pdf') blockTags.add('br')
         this.doc = doc
         this.highlight = highlight
-        this.#list = new ListIterator(getBlocks(doc), async range => {
-            const { entries, ssml } = await getFragmentWithMarks(range, textWalker, granularity, SRE)
+        this.#list = new ListIterator(getBlocks(doc, ebookFormat), async range => {
+            const { entries, ssml } = await getFragmentWithMarks(range, textWalker, granularity, SRE, ebookFormat)
             this.#ranges = new Map(entries)
             return [ssml, range]
         })
