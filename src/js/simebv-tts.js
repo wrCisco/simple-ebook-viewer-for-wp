@@ -3,7 +3,7 @@
  * - integrate speech-rule-engine for math expressions
  * - insert images's alt text in ssml output
  * - don't insert invisible elements in ssml output
- * - add pdf heuristics in getBlocks
+ * - add pdf heuristics in getBlocks and to join or separate lines
  * - add highlight in TTS.start
  */
 
@@ -170,21 +170,51 @@ const unmarkInvisibleElements = (elems) => {
     elems.forEach(el => el.removeAttribute('data-foliate-invisible'))
 }
 
-const joinPDFLines = fragment => {
-    const w = document.createTreeWalker(fragment, NodeFilter.SHOW_TEXT, node => {
+const getLines = function* (root) {
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, node => {
         return node.nodeValue && !node.parentElement?.closest('[data-foliate-invisible]')
             ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP
     })
-    for (const br of fragment.querySelectorAll('br')) {
+    for (const br of root.querySelectorAll('br')) {
         w.currentNode = br
         const prev = w.previousNode()
         if (!prev) continue
         w.currentNode = br
         const next = w.nextNode()
+        yield [prev, next, br]
+    }
+}
+
+const joinPDFLines = fragment => {
+    let last = []
+    for (const [prev, next, br] of getLines(fragment)) {
+        // consecutive <br> (pdf.js adds one for each empty line) are a single line break:
+        // after the first one has been joined, the others are removed
+        if (prev === last[0] && next === last[1]) {
+            br.remove()
+            continue
+        }
+        last = [prev, next]
         const [text, sep] = joinLines(prev.nodeValue, next?.nodeValue ?? '')
         prev.nodeValue = text
         sep ? br.replaceWith(sep) : br.remove()
     }
+}
+
+// the strings of the text nodes, with the lines joined like joinPDFLines joins them in
+// the fragment, so that the words are the same (otherwise the last word of a line and
+// the first word of the next one would be a single word, with a single mark)
+const buildPDFStrs = (nodes, root) => {
+    const strs = nodes.map(node => node.nodeValue ?? '')
+    const indices = new Map(nodes.map((node, i) => [node, i]))
+    for (const [prev, next] of getLines(root)) {
+        const i = indices.get(prev)
+        if (i === undefined || nodes[i + 1] !== next) continue
+        // the same for each <br> between the same lines
+        const [text, sep] = joinLines(prev.nodeValue, next.nodeValue)
+        strs[i] = text + sep
+    }
+    return strs
 }
 
 const getFragmentWithMarks = async (range, textWalker, granularity, SRE, format) => {
@@ -194,13 +224,16 @@ const getFragmentWithMarks = async (range, textWalker, granularity, SRE, format)
     const segmenter = getSegmenter(lang, granularity)
     const invisibleNodes = markInvisibleElements(range)
     const fragment = range.cloneContents()
-    unmarkInvisibleElements(invisibleNodes)
 
     // we need ranges on both the original document (for highlighting)
     // and the document fragment (for inserting marks)
-    // so unfortunately need to do it twice, as you can't copy the ranges
-    const entries = [...textWalker(range, segmenter)]
-    const fragmentEntries = [...textWalker(fragment, segmenter)]
+    // so unfortunately need to do it twice, as you can't copy the ranges;
+    // in the document, the invisible elements are still marked, so that the lines are
+    // joined like in the fragment (e.g. getLines skips an artifact at the end of a line)
+    const buildStrs = format === 'pdf' ? buildPDFStrs : undefined
+    const entries = [...textWalker(range, segmenter, undefined, buildStrs)]
+    const fragmentEntries = [...textWalker(fragment, segmenter, undefined, buildStrs)]
+    unmarkInvisibleElements(invisibleNodes)
 
     for (const [name, range] of fragmentEntries) {
         const mark = document.createElement('foliate-mark')
@@ -402,8 +435,10 @@ export class TTS {
             fromRange.compareBoundaryPoints(Range.END_TO_START, range_) <= 0)
         let mark
         const toHighlight = doc.createRange()
+        // the first word that ends after the start of fromRange: the word in which it starts
+        // (e.g. the second half of a word hyphenated across two lines), or the next one
         for (const [name, range_] of this.#ranges.entries())
-            if (fromRange.compareBoundaryPoints(Range.START_TO_START, range_) <= 0) {
+            if (fromRange.compareBoundaryPoints(Range.END_TO_START, range_) < 0) {
                 mark = name
                 toHighlight.setStart(range_.startContainer, range_.startOffset)
                 toHighlight.setEnd(range.endContainer, range.endOffset)

@@ -59,7 +59,7 @@ describe('artifacts', () => {
     })
 
     test('are not counted by the word marks', () => {
-        for (const { marks, range } of blocks) expect(markMismatches(marks, range)).toEqual([])
+        for (const block of blocks) expect(markMismatches(block)).toEqual([])
     })
 
     test('reading from a word skips the words before it', async () => {
@@ -92,6 +92,16 @@ describe('lines of a block', () => {
         ['an artifact on the same line is not the line end',
             line('Another charac-', 12, false) + artifact(span('12'), false) + line('teristically example.'),
             'Another characteristically example.'],
+        ['an artifact on the same line is not the line end (without a hyphen)',
+            line('Some words and', 12, false) + artifact(span('12'), false) + line('more words here.'),
+            'Some words and more words here.'],
+        // pdf.js adds a <br> also for an empty line, without a span
+        ['two <br> are a single line break',
+            line('A first line that is longer than the next', 12, false) + '<br role="presentation">' + line('short end.'),
+            'A first line that is longer than the next short end.'],
+        ['two <br> after a hyphen between letters',
+            line('Another charac-', 12, false) + '<br role="presentation">' + line('teristically example.'),
+            'Another characteristically example.'],
         ['a comma does not end the block',
             line('First part,', 12, false) + line('second part.'),
             'First part, second part.'],
@@ -101,7 +111,17 @@ describe('lines of a block', () => {
         const doc = await loadTextLayer(content)
         const blocks = await readAll(doc, 'pdf')
         expect(blocks.map(b => b.text)).toEqual([expected])
-        expect(markMismatches(blocks[0].marks, blocks[0].range)).toEqual([])
+        expect(markMismatches(blocks[0])).toEqual([])
+    })
+
+    test('reading from the first word of a line starts from it', async () => {
+        const doc = await loadTextLayer(line('Extraordinarily long words like', 12, false) + line('internationalization appear here.'))
+        expect(await readFrom(doc, 'pdf', 'internationalization')).toBe('internationalization appear here.')
+    })
+
+    test('reading from the second half of a word split by a hyphen starts from the whole word', async () => {
+        const doc = await loadTextLayer(line('The word charac-', 12, false) + line('teristically appears here.'))
+        expect(await readFrom(doc, 'pdf', 'teristically')).toBe('characteristically appears here.')
     })
 
     test('a sentence end, a colon or a different font size end the block', async () => {

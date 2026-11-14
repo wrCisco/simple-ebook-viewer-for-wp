@@ -1,8 +1,8 @@
 import { expect, test, describe, beforeAll } from 'vitest'
 import { makePDF } from '../../../vendor/foliate-js/pdf.js'
-import { textWalker } from '../../../vendor/foliate-js/text-walker.js'
+import { textWalker, pdfArtifactSelector } from '../../../vendor/foliate-js/text-walker.js'
 import { searchCrossSections } from '../../../vendor/foliate-js/search.js'
-import { readAll, markMismatches, letters } from './tts-helpers.js'
+import { readAll, readFromRange, markMismatches, letters } from './tts-helpers.js'
 
 // a path from the root of the vite server: the asset urls made by vite (?url imports,
 // new URL(..., import.meta.url)) have the origin of the server for WordPress (server.origin)
@@ -84,7 +84,25 @@ describe.each([0, 1])('rendered page %i', index => {
     })
 
     test('the word marks match the highlighted words', () => {
-        for (const { marks, range } of blocks) expect(markMismatches(marks, range)).toEqual([])
+        for (const block of blocks) expect(markMismatches(block)).toEqual([])
+    })
+
+    test('reading from the first word of a text node starts from that word', async () => {
+        // e.g. the first word of a line, which pdf.js doesn't separate from the end of the previous one
+        const segmenter = new Intl.Segmenter('en', { granularity: 'word' })
+        const walker = doc.createTreeWalker(doc.querySelector('.textLayer'), NodeFilter.SHOW_TEXT)
+        const wrong = []
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            const first = Array.from(segmenter.segment(node.nodeValue)).find(x => x.isWordLike)
+            if (!first || node.parentElement.closest(pdfArtifactSelector)) continue
+            const range = doc.createRange()
+            range.setStart(node, first.index)
+            range.setEnd(node, first.index + first.segment.length)
+            const text = await readFromRange(doc, 'pdf', range)
+            // the second half of a hyphenated word is read with the first one
+            if (!letters(text.split(' ')[0]).includes(first.segment)) wrong.push(`"${first.segment}": "${text.slice(0, 30)}"`)
+        }
+        expect(wrong).toEqual([])
     })
 })
 

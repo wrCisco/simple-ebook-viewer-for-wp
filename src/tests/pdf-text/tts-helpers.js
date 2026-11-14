@@ -1,4 +1,4 @@
-import { textWalker } from '../../../vendor/foliate-js/text-walker.js'
+import { textWalker, pdfArtifactSelector } from '../../../vendor/foliate-js/text-walker.js'
 import { TTS } from '../../js/simebv-tts.js'
 
 // speech-rule-engine is only used for math
@@ -18,14 +18,6 @@ export function loadIframe(source, type = 'text/html') {
     })
 }
 
-/** The words of a range, numbered like the marks of the TTS (same walker, same segmentation) */
-export function rangeWords(range) {
-    const segmenter = new Intl.Segmenter('en', { granularity: 'word' })
-    return [...textWalker(range, function* (strs) {
-        for (const x of segmenter.segment(strs.join(''))) if (x.isWordLike) yield x.segment
-    })]
-}
-
 /** The text of an SSML string, and the first word after each mark */
 export function parseSSML(s) {
     const doc = new DOMParser().parseFromString(s, 'application/xml')
@@ -40,27 +32,42 @@ export function parseSSML(s) {
     return { text: doc.documentElement.textContent.replace(/\s+/gu, ' ').trim(), marks }
 }
 
-/**
- * The marks whose word in the SSML doesn't start the word with the same number in the
- * highlighted range. The SSML word can be shorter: the text layer has no space between
- * lines, so in the range the last word of a line and the first of the next one are one
- * word (one mark), while the SSML has a space between them.
- */
-export function markMismatches(marks, range) {
-    const words = rangeWords(range)
-    return Object.entries(marks)
-        .filter(([name, word]) => !words[name]?.startsWith(word))
-        .map(([name, word]) => `mark ${name}: "${word}" in the SSML, "${words[name]}" in the range`)
+/** The text of a range without artifacts (a word split across two lines can have one in the middle) */
+const textWithoutArtifacts = range => {
+    const fragment = range.cloneContents()
+    for (const el of fragment.querySelectorAll(pdfArtifactSelector)) el.remove()
+    return fragment.textContent
 }
 
-/** Reads the whole document: for each block, the SSML, its text, the highlighted range and the marks */
+/**
+ * The marks of a block whose word in the SSML doesn't start the word that the TTS
+ * highlights for the mark (letters only: the highlighted word can have a hyphen
+ * at the end of a line, and the SSML word stops at an apostrophe)
+ */
+export function markMismatches({ marks, words }) {
+    return Object.entries(marks)
+        .filter(([name, word]) => !letters(words[name] ?? '').startsWith(word))
+        .map(([name, word]) => `mark ${name}: "${word}" in the SSML, "${words[name]}" highlighted`)
+}
+
+/**
+ * Reads the whole document: for each block, the SSML, its text, the highlighted range,
+ * the marks, and the word that the TTS highlights for each mark (with setMark)
+ */
 export async function readAll(doc, format) {
     const blocks = []
     let highlighted
     const tts = new TTS(doc, textWalker, range => highlighted = range, 'word', SRE, format)
     for (let s = await tts.start(); s !== undefined; s = await tts.next(true)) {
         const { text, marks } = parseSSML(s)
-        blocks.push({ ssml: s, text, range: highlighted, marks })
+        const range = highlighted
+        const words = {}
+        for (const name of Object.keys(marks)) {
+            highlighted = null
+            tts.setMark(name)
+            words[name] = highlighted && textWithoutArtifacts(highlighted)
+        }
+        blocks.push({ ssml: s, text, range, marks, words })
         highlighted = null
     }
     return blocks
@@ -75,6 +82,11 @@ export async function readFrom(doc, format, word) {
     const i = node.nodeValue.indexOf(word)
     range.setStart(node, i)
     range.setEnd(node, i + word.length)
+    return readFromRange(doc, format, range)
+}
+
+/** The SSML text from a range, e.g. a word selected by the user */
+export async function readFromRange(doc, format, range) {
     const tts = new TTS(doc, textWalker, () => {}, 'word', SRE, format)
     return parseSSML(await tts.from(range)).text
 }
