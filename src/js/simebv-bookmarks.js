@@ -1004,7 +1004,7 @@ export class BookmarksManager {
 
                 if (bookmark.loc.toUpdate?.includes('text')) {
                     const { text, matchText } = bookmark.loc.type === 'selection'
-                        ? getTextFromRange(range)
+                        ? getTextFromRange(range, { defaultLocale: this.#ebookLocales })
                         : { text: '', matchText: null }
                     let textBefore = ''
                     let textAfter = ''
@@ -1123,7 +1123,7 @@ export class BookmarksManager {
             rangeAfter.setEnd(node, node.nodeValue.length)
             node = walker.next().value
         }
-        const t = getTextFromRange(rangeAfter)
+        const t = getTextFromRange(rangeAfter, { defaultLocale: this.#ebookLocales })
         const textAfter = this.#truncateString(t.text.replace(/\s+/ug, ' '), length)
         const matchTextAfter = t.matchText
             ? this.#truncateString(t.matchText.replace(/\s+/ug, ' '), length) : null
@@ -1149,7 +1149,7 @@ export class BookmarksManager {
                 const range = sel.getRangeAt(0)
                 const { tocItem, pageItem } = this.#view.getProgressOf(index, range)
                 const cfi = this.#view.getCFI(index, range)
-                const { text, matchText } = getTextFromRange(range)
+                const { text, matchText } = getTextFromRange(range, { defaultLocale: this.#ebookLocales })
                 let textBefore = ''
                 let textAfter = ''
                 let matchTextAfter = null

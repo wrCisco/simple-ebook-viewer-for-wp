@@ -18,12 +18,13 @@ const find = async (pages, query, opts = {}) => {
     return results
 }
 
+const wholeWords = { matchWholeWords: true }
 const modes = {
     'default options': {},
-    'match case and diacritics (simpleSearch)': { matchCase: true, matchDiacritics: true },
+    'match case and diacritics': { matchCase: true, matchDiacritics: true },
     'ignore punctuation': { ignorePunctuation: true },
+    'whole words': wholeWords,
 }
-const wholeWords = { matchWholeWords: true }
 
 const splitWords = [
     ['hyphen', [['The word charac-'], ['teristically appears']]],
@@ -46,12 +47,6 @@ describe('a word split across pages', () => {
         const [{ parts }] = await find([['The word charac-'], ['teristically appears']], 'characteristically')
         expect(parts[0].range).toEqual([0, 9, 0, 'The word charac-'.length])
         expect(parts[1].range).toEqual([0, 0, 0, 'teristically'.length])
-    })
-
-    // known limit: with whole words, segmenterSearch segments each string separately,
-    // so a word in two text nodes is never found (it happens inside pages too)
-    test.fails('whole words (known limit)', async () => {
-        expect(await find(splitWords[0][1], 'characteristically', wholeWords)).toHaveLength(1)
     })
 })
 
@@ -87,7 +82,7 @@ describe('scripts without spaces between words', () => {
         ['Japanese', [['文章の'], ['つづき']], 'のつづき'],
         ['Chinese, blank page between', [['这是一个'], [''], ['句子。']], '一个句子'],
     ]
-    describe.each(Object.entries({ ...modes, 'whole words': wholeWords }))('%s', (_, opts) => {
+    describe.each(Object.entries(modes))('%s', (_, opts) => {
         test.each(cases)('%s', async (_, pages, query) => {
             const results = await find(pages, query, opts)
             expect(results).toHaveLength(1)

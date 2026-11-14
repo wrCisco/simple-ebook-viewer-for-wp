@@ -1,4 +1,5 @@
 import { textWalkerFilters } from '../../vendor/foliate-js/text-walker.js'
+import { search, searchOptions } from '../../vendor/foliate-js/search.js'
 
 export function createTextWalker(doc, { root, filter, acceptNode } = {}) {
     if (!filter && !acceptNode) {
@@ -125,14 +126,24 @@ export function getMatchText(range, { filter, acceptNode } = {}) {
 
 /**
  * Returns the text inside a range: displayText from getSelectionText
- * and matchText from getMatchText. If displayText and matchText are
- * equivalent in a text search, matchText is set to null.
+ * and matchText from getMatchText. If searching for displayText finds
+ * all of matchText (punctuation and white space at its edges aside),
+ * matchText is set to null.
  */
-export function getTextFromRange(range, { filter, acceptNode } = {}) {
+export function getTextFromRange(range, { filter, acceptNode, defaultLocale = 'en' } = {}) {
     const sel = getSelectionText(range)
     let match = getMatchText(range, { filter, acceptNode })
-    if (textSearchEquivalence(sel, match)) {
-        match = null
+    const doc = range.commonAncestorContainer.ownerDocument ?? range.commonAncestorContainer
+    const opts = searchOptions(doc, {
+        defaultLocale, matchCase: false, matchDiacritics: false,
+        matchWholeWords: false, ignorePunctuation: true
+    })
+    const skipped = s => !s.trim() || isPunctuation(s)
+    for (const { range: r } of search([match], sel, opts)) {
+        if (skipped(match.slice(0, r.startOffset)) && skipped(match.slice(r.endOffset))) {
+            match = null
+            break
+        }
     }
     return { text: sel, matchText: match }
 }
@@ -140,7 +151,28 @@ export function getTextFromRange(range, { filter, acceptNode } = {}) {
 /**
  * Whether a text search would find a match between the strings a and b.
  * The function accept ignorePunctuation and caseSensitive options
- * as part of the optional third argument, while 'whole words' is always off.
+ * as part of the optional third argument, while 'whole words' and
+ * 'match diacritics' are always off.
+ * It compares the whole strings with a collator, so it differs from the
+ * search (search() in vendor/foliate-js/search.js) in these cases:
+ * - the search finds the query anywhere in the text, while here a and b
+ *   must be equivalent from start to end (punctuation and white space aside,
+ *   with ignorePunctuation)
+ * - the search can start or end a match inside a character that is equivalent
+ *   to several (e.g. 'ﬁ' and 'fi', 'ß' and 'ss'), and the match covers the whole
+ *   character: searching 'ine' finds 'ﬁne', and 'gros' finds 'groß', while here
+ *   they're different
+ * - here the strings can be equivalent with a different number of graphemes,
+ *   while the search compares the query with as many graphemes of the text, after
+ *   splitting the compatibility characters and those that change length with the
+ *   case (e.g. 'ﬁ', '㎏', 'ß'): 'aa' and 'å' are equivalent here in Danish ('da'),
+ *   but the search doesn't find one with the other
+ * - the search gets its locale from searchOptions (the language of the document,
+ *   or else the default locale), here it's `locales`, 'en' if not given: for a
+ *   search, some languages treat as different letters some that 'en' treats as
+ *   equal with sensitivity 'base' (e.g. 'a' and 'ä' in German and Swedish, 'o'
+ *   and 'ø' in Danish, 'n' and 'ñ' in Spanish)
+ * - without Intl.Segmenter, the search only approximates the collator
  */
 export function textSearchEquivalence(a, b, { locales = 'en', ignorePunctuation = true, caseSensitive = false } = {}) {
     if (ignorePunctuation) {
@@ -153,13 +185,10 @@ export function textSearchEquivalence(a, b, { locales = 'en', ignorePunctuation 
         b = b.replace(/\p{Format}+/gu, '').replace(/\s+/gu, ' ')
     }
     if (!a) return false
-    if (!caseSensitive) {
-        const collator = new Intl.Collator(
-            locales, { usage: 'search', sensitivity: 'base', ignorePunctuation }
-        )
-        return collator.compare(a, b) === 0
-    }
-    return a === b
+    const collator = new Intl.Collator(
+        locales, { usage: 'search', sensitivity: caseSensitive ? 'case' : 'base', ignorePunctuation }
+    )
+    return collator.compare(a, b) === 0
 }
 
 /**

@@ -67,10 +67,10 @@ describe('Textual search equivalence (unit test for textSearchEquivalence)', () 
             cs_ip_noww: false, cs_noip_noww: false, nocs_noip_noww: true, nocs_ip_noww: true,
         }},
         { a: 'großbuchstabe', b: 'grossbuchstabe', locales: 'de', expected: {
-            cs_ip_noww: false, cs_noip_noww: false, nocs_noip_noww: true, nocs_ip_noww: true,
+            cs_ip_noww: true, cs_noip_noww: true, nocs_noip_noww: true, nocs_ip_noww: true,
         }},
         { a: 'grossbuchstabe', b: 'großbuchstabe', locales: 'de', expected: {
-            cs_ip_noww: false, cs_noip_noww: false, nocs_noip_noww: true, nocs_ip_noww: true,
+            cs_ip_noww: true, cs_noip_noww: true, nocs_noip_noww: true, nocs_ip_noww: true,
         }},
         { a: 'gros', b: 'groß', locales: 'de', expected: {
             cs_ip_noww: false, cs_noip_noww: false, nocs_noip_noww: false, nocs_ip_noww: false,
@@ -172,7 +172,6 @@ describe('Textual search equivalence (comparison with real text search)', () => 
         { query: 'Großbuchstabe', content: '<p>gro<span>ss</span>buchstabe</p>', locales: 'de' },
         { query: 'großbuchstabe', content: '<p>gro<span>ss</span>buchstabe</p>', locales: 'de' },
         { query: 'grossbuchstabe', content: '<p>Gro<span>ß</span>buchstabe</p>', locales: 'de' },
-        { query: 'gros', content: '<p>groß</p>', locales: 'de' },
         { query: 'ẞ ῳ ﬃ İ', content: '<p>SS ΩΙ FFI İ</p>' },
         { query: 'ẞ ῳ ﬃ İ', content: '<p>SS ῳ FFI İ</p>' },
     ]
@@ -219,5 +218,15 @@ describe('Textual search equivalence (comparison with real text search)', () => 
                 expect(textSearchEquivalence(getMatchText(m.range), text, opts)).toBe(matches.length !== 0)
             })
         })
+    })
+    // a match can end inside a character, covering all of it: 'gros' is found in 'groß' (as in 'grosse'),
+    // and 'ine' is found in ﬁne', while textSearchEquivalence compares whole texts
+    test.for([
+        [true, true], [true, false], [false, false], [false, true],
+    ])('a match that ends inside a character (case sensitive: %s, ignore punctuation: %s)', ([matchCase, ignorePunctuation]) => {
+        const { doc, matcher, text } = setupTest('<p>groß</p>', { locales: 'de', matchCase, ignorePunctuation })
+        const opts = { locales: 'de', caseSensitive: matchCase, ignorePunctuation }
+        expect([...matcher(doc, 'gros')].map(m => getMatchText(m.range))).toEqual(['groß'])
+        expect(textSearchEquivalence('gros', text, opts)).toBe(false)
     })
 })
