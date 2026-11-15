@@ -38,5 +38,8 @@ function copyFiles(srcDir, destDir, { include, exclude } = {}) {
 copyFiles(sreSrc, sreDest, { include: /\.json$/ });
 console.log('SRE locales copied.\n');
 
-copyFiles(pdfjsSrc, pdfjsDest, { exclude: /js\.map$/ });
+// pdf(.min).mjs is directly imported: don't ship as separate file
+// quickjs is used for pdf scripting, which is not supported
+// js.map's are only useful for debugging purposes with unminified pdfjs files
+copyFiles(pdfjsSrc, pdfjsDest, { exclude: /(?:pdf\.min\.mjs$|LICENSE_.*QUICKJS|quickjs-eval\.|js\.map$)/ });
 console.log('Pdfjs files copied.\n');
