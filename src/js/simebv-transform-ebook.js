@@ -68,10 +68,24 @@ export function applyTransform(data, type, ops) {
                     s.textContent, fontSize)
                 )
         }
-        return doc.documentElement.outerHTML
+        return serializeDocument(doc)
     }
     catch (e) { console.error(e) }
     return data
+}
+
+// serializes what precedes the root (doctype, processing instructions
+// like xml-stylesheet that can be used in svg files, comment), but skips
+// the xml declaration (the blob built by foliate-js is always utf-8,
+// a different declared encoding can cause issues)
+function serializeDocument(doc) {
+    const serializer = new XMLSerializer()
+    let result = ''
+    for (const node of doc.childNodes) {
+        if (node === doc.documentElement) return result + node.outerHTML
+        result += serializer.serializeToString(node) + '\n'
+    }
+    throw new Error('Document without root element')
 }
 
 function addCSPMeta(doc) {
