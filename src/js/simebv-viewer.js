@@ -574,6 +574,18 @@ export class Reader {
         book.transformTarget?.addEventListener('data', ({ detail }) => {
             detail.data = transformDoc(detail, options, this._defaultFontSize)
         })
+        if (allowJS) {
+            this.view.addEventListener('external-link', e => {
+                try {
+                    const url = new URL(e.detail.href)
+                    if (url.protocol === 'javascript:') {
+                        e.detail.native = true
+                    }
+                } catch {
+                    console.warn(`Invalid url: ${e.detail?.href}`)
+                }
+            })
+        }
 
         this._navBar.addEventListener('go-left', () => this.view.goLeft())
         this._navBar.addEventListener('go-right', () => this.view.goRight())
