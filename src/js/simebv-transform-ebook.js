@@ -1,40 +1,53 @@
 import { safeCSSString } from './simebv-utils.js'
 
+const MIME = {
+    XHTML: 'application/xhtml+xml',
+    HTML: 'text/html',
+    XML: 'application/xml',
+    XML_TEXT: 'text/xml',
+    SVG: 'image/svg+xml',
+}
+// foliate-js is lenient in the media types that it accepts
+// so I can't just make a simple comparison of the raw strings
+const mimeEssence = type => typeof type === 'string'
+    ? type.split(';')[0].trim().toLowerCase() : ''
+const isXMLType = type => type === MIME.XML || type === MIME.XML_TEXT
+    || (type.endsWith('+xml') && type !== MIME.XHTML)
+const isSniffed = type => !/^[\w!#$%&'*+.^`|~-]+\/[\w!#$%&'*+.^`|~-]+$/.test(type)
+    || ['unknown/unknown', 'application/unknown', '*/*'].includes(type)
+// foliate passes types it doesn't recognize as a Blob (EPUB) or a Uint8Array (KF8)
+const toText = data => typeof data === 'string' ? data : new Response(data).text()
+
 export function transformDoc(detail, options, defaultFontSize) {
     const { filterEbookContent, allowJS, useMathStyles } = options
+    const type = mimeEssence(detail.type)
+    if (isSniffed(type)) {
+        detail.type = 'application/octet-stream'
+    }
     return Promise
         .resolve(detail.data)
         .then(data => typeof filterEbookContent === 'function' ? filterEbookContent(data) : data)
-        .then(data => {
+        .then(async data => {
             const ops = new Map()
-            switch(detail.type) {
-                case 'application/xhtml+xml':
-                case 'text/html':
-                    if (!allowJS) {
-                        ops.set('addCSPMeta', [])
-                    }
-                    if (['fonts', 'styles', 'all'].includes(useMathStyles)) {
-                        ops.set('useMathStyles', [useMathStyles])
-                    }
-                    ops.set('convertFontSizePxToRem', [defaultFontSize])
-                    if (ops.size > 0) {
-                        data = applyTransform(data, detail.type, ops)
-                    }
-                    return data
-                case 'image/svg+xml':
-                case 'application/xml':
-                    if (!allowJS) {
-                        ops.set('removeInlineScripts', [])
-                    }
-                    if (ops.size > 0) {
-                        data = applyTransform(data, detail.type, ops)
-                    }
-                    return data
-                case 'text/css':
-                    return convertFontSizePxToRem(data, defaultFontSize)
-                default:
-                    return data
+            if (type === MIME.XHTML || type === MIME.HTML) {
+                if (!allowJS) {
+                    ops.set('addCSPMeta', [])
+                }
+                if (['fonts', 'styles', 'all'].includes(useMathStyles)) {
+                    ops.set('useMathStyles', [useMathStyles])
+                }
+                ops.set('convertFontSizePxToRem', [defaultFontSize])
+                return applyTransform(await toText(data), type, ops)
             }
+            if (isXMLType(type)) {
+                if (allowJS) return data
+                ops.set('sanitizeXML', [])
+                return applyTransform(await toText(data), type, ops)
+            }
+            if (type === 'text/css') {
+                return convertFontSizePxToRem(await toText(data), defaultFontSize)
+            }
+            return data
         })
         .catch(e => {
             console.error(new Error(`Failed to load ${detail.name}`, { cause: e }))
@@ -43,18 +56,20 @@ export function transformDoc(detail, options, defaultFontSize) {
 }
 
 export function applyTransform(data, type, ops) {
+    // the parser allows only five specific media types (html, xhtml, svg, 2 xml)
+    const acceptedTypes = Object.values(MIME)
     try {
         let doc
         typeof data === 'string'
-            ? doc = new DOMParser().parseFromString(data, type)
+            ? doc = new DOMParser().parseFromString(data, acceptedTypes.includes(type) ? type : 'application/xml')
             : doc = data
         for (const [op, args] of ops.entries()) {
             switch (op) {
                 case 'addCSPMeta':
                     addCSPMeta(doc)
                     break
-                case 'removeInlineScripts':
-                    removeInlineScripts(doc)
+                case 'sanitizeXML':
+                    sanitizeXML(doc)
                     break
                 case 'useMathStyles':
                     useMathStyles(doc, args[0])
@@ -96,8 +111,34 @@ function addCSPMeta(doc) {
     doc.head ? doc.head.prepend(meta) : doc.documentElement.prepend(meta)
 }
 
-function removeInlineScripts(doc) {
-    doc.querySelectorAll('script').forEach(el => el.replaceWith(doc.createElement('style')))
+function sanitizeXML(doc) {
+    const XHTML_NS = 'http://www.w3.org/1999/xhtml'
+    for (const el of [...doc.getElementsByTagName('*')]) {
+        const name = el.localName
+        if (name === 'script') {
+            // replace instead of remove to not mess up the epubcfis
+            el.replaceWith(doc.createElement('style'))
+            continue
+        }
+        // SMIL can set attributes at runtime, e.g. href="javascript:...":
+        // without attributeName the animation has no target
+        if ((name === 'set' || name === 'animate')
+            && /^(?:on|(?:\w+:)?href$)/i.test(el.getAttribute('attributeName') ?? '')) {
+            el.removeAttribute('attributeName')
+        }
+        if (el.namespaceURI === XHTML_NS && (name === 'iframe' || name === 'frame')) {
+            el.removeAttribute('srcdoc')
+        }
+        for (const attr of [...el.attributes]) {
+            const n = attr.localName.toLowerCase()
+            if (n.startsWith('on')) el.removeAttributeNode(attr)
+            else if (['href', 'src', 'action', 'formaction', 'data'].includes(n)) {
+                let protocol
+                try { protocol = new URL(attr.value, 'https://invalid.invalid/').protocol } catch {}
+                if (protocol === 'javascript:') el.removeAttributeNode(attr)
+            }
+        }
+    }
 }
 
 // TODO: reconsider usage of a custom version of MathJax
