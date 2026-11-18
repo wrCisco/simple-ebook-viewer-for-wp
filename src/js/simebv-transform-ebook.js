@@ -1,4 +1,4 @@
-import { safeCSSString } from './simebv-utils.js'
+import { pluginBaseUrl, safeCSSString } from './simebv-utils.js'
 
 const MIME = {
     XHTML: 'application/xhtml+xml',
@@ -19,7 +19,7 @@ const isSniffed = type => !/^[\w!#$%&'*+.^`|~-]+\/[\w!#$%&'*+.^`|~-]+$/.test(typ
 const toText = data => typeof data === 'string' ? data : new Response(data).text()
 
 export function transformDoc(detail, options, defaultFontSize) {
-    const { filterEbookContent, allowJS, useMathStyles } = options
+    const { filterEbookContent, allowJS, allowRemoteResources, useMathStyles } = options
     const type = mimeEssence(detail.type)
     if (isSniffed(type)) {
         detail.type = 'application/octet-stream'
@@ -30,8 +30,9 @@ export function transformDoc(detail, options, defaultFontSize) {
         .then(async data => {
             const ops = new Map()
             if (type === MIME.XHTML || type === MIME.HTML) {
-                if (!allowJS) {
-                    ops.set('addCSPMeta', [])
+                if (!allowJS || !allowRemoteResources) {
+                    ops.set('addCSPMeta', [ebookCSP({ allowJS, allowRemoteResources })])
+                    ops.set('removeMetaRefresh', [])
                 }
                 if (['fonts', 'styles', 'all'].includes(useMathStyles)) {
                     ops.set('useMathStyles', [useMathStyles])
@@ -40,8 +41,10 @@ export function transformDoc(detail, options, defaultFontSize) {
                 return applyTransform(await toText(data), type, ops)
             }
             if (isXMLType(type)) {
-                if (allowJS) return data
-                ops.set('sanitizeXML', [])
+                if (!allowJS || !allowRemoteResources) {
+                    ops.set('sanitizeXML', [allowJS, allowRemoteResources])
+                }
+                else return data
                 return applyTransform(await toText(data), type, ops)
             }
             if (type === 'text/css') {
@@ -66,10 +69,13 @@ export function applyTransform(data, type, ops) {
         for (const [op, args] of ops.entries()) {
             switch (op) {
                 case 'addCSPMeta':
-                    addCSPMeta(doc)
+                    addCSPMeta(doc, args[0])
+                    break
+                case 'removeMetaRefresh':
+                    removeMetaRefresh(doc)
                     break
                 case 'sanitizeXML':
-                    sanitizeXML(doc)
+                    sanitizeXML(doc, ...args)
                     break
                 case 'useMathStyles':
                     useMathStyles(doc, args[0])
@@ -103,39 +109,69 @@ function serializeDocument(doc) {
     throw new Error('Document without root element')
 }
 
-function addCSPMeta(doc) {
+const pluginDir = pluginBaseUrl().replace(/[;,]/g, encodeURIComponent)
+
+function ebookCSP({ allowJS, allowRemoteResources }) {
+    const d = []
+    if (!allowJS) d.push("script-src 'none'", "script-src-attr 'none'", "script-src-elem 'none'")
+    if (!allowRemoteResources) {
+        const local = `blob: data: ${pluginDir}`
+        d.push("default-src 'none'", `img-src ${local}`, `font-src ${local}`,
+            `style-src 'unsafe-inline' ${local}`, 'media-src blob: data:',
+            'frame-src blob:', 'object-src blob:', "form-action 'none'", "base-uri 'none'")
+        if (allowJS) {
+            d.push("script-src 'unsafe-inline' 'unsafe-eval' blob: data:")
+        }
+    }
+    return d.join('; ')
+}
+
+function addCSPMeta(doc, csp) {
+    if (!csp) return
     const meta = doc.createElement('meta')
     meta.setAttribute('http-equiv', 'content-security-policy')
-    meta.setAttribute('content', "script-src 'none'; script-src-attr 'none'; script-src-elem 'none'")
+    meta.setAttribute('content', csp)
     meta.setAttribute('data-simebv-inject', 'true')
     doc.head ? doc.head.prepend(meta) : doc.documentElement.prepend(meta)
 }
 
-function sanitizeXML(doc) {
+function removeMetaRefresh(doc) {
+    doc.querySelectorAll('meta[http-equiv="refresh"]').forEach(el => el.removeAttribute('http-equiv'))
+}
+
+function sanitizeXML(doc, allowJS, allowRemoteResources) {
     const XHTML_NS = 'http://www.w3.org/1999/xhtml'
     for (const el of [...doc.getElementsByTagName('*')]) {
         const name = el.localName
-        if (name === 'script') {
-            // replace instead of remove to not mess up the epubcfis
-            el.replaceWith(doc.createElement('style'))
-            continue
+        if (!allowJS) {
+            if (name === 'script') {
+                // replace instead of remove to not mess up the epubcfis
+                el.replaceWith(doc.createElement('style'))
+                continue
+            }
+            // SMIL can set attributes at runtime, e.g. href="javascript:...":
+            // without attributeName the animation has no target
+            if ((name === 'set' || name === 'animate')
+                    && /^(?:on|(?:\w+:)?href$)/i.test(el.getAttribute('attributeName') ?? '')) {
+                el.removeAttribute('attributeName')
+            }
+            if (el.namespaceURI === XHTML_NS && (name === 'iframe' || name === 'frame')) {
+                el.removeAttribute('srcdoc')
+            }
         }
-        // SMIL can set attributes at runtime, e.g. href="javascript:...":
-        // without attributeName the animation has no target
-        if ((name === 'set' || name === 'animate')
-            && /^(?:on|(?:\w+:)?href$)/i.test(el.getAttribute('attributeName') ?? '')) {
-            el.removeAttribute('attributeName')
-        }
-        if (el.namespaceURI === XHTML_NS && (name === 'iframe' || name === 'frame')) {
-            el.removeAttribute('srcdoc')
+        if (name === 'meta' && el.getAttribute('http-equiv') === 'refresh') {
+            el.removeAttribute('http-equiv')
         }
         for (const attr of [...el.attributes]) {
             const n = attr.localName.toLowerCase()
-            if (n.startsWith('on')) el.removeAttributeNode(attr)
+            if (!allowJS && n.startsWith('on')) el.removeAttributeNode(attr)
             else if (['href', 'src', 'action', 'formaction', 'data'].includes(n)) {
                 let protocol
                 try { protocol = new URL(attr.value, 'https://invalid.invalid/').protocol } catch {}
-                if (protocol === 'javascript:') el.removeAttributeNode(attr)
+                if ((!allowJS && protocol === 'javascript:')
+                        || (!allowRemoteResources && ['http:', 'https:'].includes(protocol))) {
+                    el.removeAttributeNode(attr)
+                }
             }
         }
     }

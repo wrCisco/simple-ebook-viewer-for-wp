@@ -528,9 +528,9 @@ export class Reader {
     async open(fileUrl, options) {
         let {
             menuItems, initialMenuStatus, ebookTitle, ebookAuthor,
-            fontFamily, allowJS, useMathStyles, filterEbookContent,
-            showAnnotations, showPageDelimiters, popupNotes, openAt,
-            allowUserBookmarks,
+            fontFamily, allowJS, allowRemoteResources, useMathStyles,
+            filterEbookContent, showAnnotations, showPageDelimiters,
+            popupNotes, openAt, allowUserBookmarks,
         } = options
         this.view = document.createElement('simebv-foliate-view')
         this._bookContainer.append(this.view)
@@ -573,6 +573,9 @@ export class Reader {
         const { book } = this.view
         book.transformTarget?.addEventListener('data', ({ detail }) => {
             detail.data = transformDoc(detail, options, this._defaultFontSize)
+        })
+        book.transformTarget?.addEventListener('fetch-external-resource', e => {
+            e.detail.allow = allowRemoteResources
         })
         if (allowJS) {
             this.view.addEventListener('external-link', e => {
@@ -1444,6 +1447,9 @@ export const gatherOptionsFromContainer = container => {
     }
     if (container.getAttribute('data-simebv-allow-js') === 'true') {
         options.ebook.allowJS = true
+    }
+    if (container.getAttribute('data-simebv-allow-remote-resources') === 'true') {
+        options.ebook.allowRemoteResources = true
     }
     if (['fonts', 'styles', 'all'].includes(container.getAttribute('data-simebv-math-styles'))) {
         options.ebook.useMathStyles = container.getAttribute('data-simebv-math-styles')

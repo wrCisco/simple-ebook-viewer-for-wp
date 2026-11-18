@@ -81,6 +81,9 @@ class SIMEBV_Base {
             'allow-js' => [
                 'html_name' => 'data-simebv-allow-js', 'default' => 'false'
             ],
+            'allow-remote-resources' => [
+                'html_name' => 'data-simebv-allow-remote-resources', 'default' => 'false'
+            ],
             'math-styles' => [
                 'html_name' => 'data-simebv-math-styles', 'default' => ''
             ],
