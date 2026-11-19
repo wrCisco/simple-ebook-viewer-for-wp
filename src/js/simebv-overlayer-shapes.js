@@ -161,7 +161,7 @@ export function currentSearchOutline(rects, options = {}) {
  * don't leave slivers between rects that touch, or steps where their edges are aligned.
  */
 
-function coverageGrid(rects, epsilon = 0.01) {
+function coverageGrid(rects, epsilon = 0.5) {
     const boxes = []
     for (const { left, top, width, height } of rects ?? []) {
         // also excludes NaN
