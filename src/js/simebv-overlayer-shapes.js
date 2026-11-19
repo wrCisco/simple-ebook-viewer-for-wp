@@ -130,7 +130,6 @@ export function searchResultsHighlight(rects, options = {}) {
 let clipPathPathSupport
 function supportsClipPathPath() {
     clipPathPathSupport ??= globalThis.CSS?.supports?.('clip-path', "path('M0 0H1V1Z')") ?? false
-    console.log('supports clip path?', clipPathPathSupport)
     return clipPathPathSupport
 }
 
