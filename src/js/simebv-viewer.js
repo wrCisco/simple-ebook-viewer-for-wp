@@ -26,7 +26,7 @@ import { TextSearch } from './simebv-search.js'
 import { SpeechManager } from './simebv-speech.js'
 import { FootnoteManager } from './simebv-footnotes.js'
 import { BookmarksManager } from './simebv-bookmarks.js'
-import { setMousePanEvents } from './simebv-fxl-mousepan.js'
+import { MousePanManager } from './simebv-fxl-mousepan.js'
 import { setTouchEvents } from './simebv-doc-touchevents.js'
 import { getPreferencesManager, PreferencesLoader } from './simebv-preferences.js'
 import { __, _x, _n, sprintf } from './simebv-i18n.js'
@@ -696,6 +696,7 @@ export class Reader {
 
         this.view.addEventListener('relocate', this._onRelocate.bind(this))
         if (this.view.isFixedLayout) {
+            this._mousePanManager = new MousePanManager(this.view.renderer)
             this.setFxlRendererEventListeners()
             this._rendererResizeObserver = new ResizeObserver((entries) => {
                 const r = this.view.renderer
@@ -724,11 +725,13 @@ export class Reader {
     async reopen() {
         // work in progress
         const { book } = this.view
-        this._rendererResizeObserver.disconnect()
+        this._rendererResizeObserver?.disconnect()
         this.view.close()
         await this.view.open(book, { CFI })
         if (this.view.isFixedLayout) {
+            this._mousePanManager.reset(this.view.renderer)
             this.setFxlRendererEventListeners()
+            this._rendererResizeObserver.observe(this.view.renderer)
         }
         this.goToLastReadPage()
     }
@@ -784,15 +787,9 @@ export class Reader {
 
     updateCursorGrab() {
         const r = this.view?.renderer
-        if (!r) return
-        let cursor = ''
-        if (r.scrollWidth > r.clientWidth || r.scrollHeight > r.clientHeight) {
-            cursor = 'grab'
-        }
-        const docs = this.view.renderer.getContents().map(c => c.doc)
-        for (const doc of docs) {
-            if (doc.body) doc.body.style.cursor = cursor
-        }
+        if (!r || !this._mousePanManager) return
+        const pannable = r.scrollWidth > r.clientWidth || r.scrollHeight > r.clientHeight
+        for (const { doc } of r.getContents()) this._mousePanManager.setPannable(doc, pannable)
     }
 
     _populateMenu(customMenuItems) {
@@ -1322,13 +1319,14 @@ export class Reader {
             }
             this._speechManager._lastSection = current
         }
-        setMousePanEvents(this.view.renderer)
+        this._mousePanManager.setEvents()
         if (this._bookmarksManager?.canBookmarkSelection()) {
             const docs = this.view.renderer.getContents().map(c => c.doc)
             const s = new CustomEvent('selection', { detail: { docs }})
             this._headerBar.dispatchEvent(s)
             this._bookmarksManager.eventTarget.dispatchEvent(s)
         }
+        this.updateCursorGrab()
     }
     _boundOnFxlRelocate = this._onFxlRelocate.bind(this)
 

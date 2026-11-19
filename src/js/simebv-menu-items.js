@@ -407,7 +407,7 @@ export function createMenuItemsStd(reader, injectCSS) {
                             inputElem.dispatchEvent(new Event('change'))
                         }
                 }
-                reader.updateCursorGrab()
+                setTimeout(() => reader.updateCursorGrab(), 0)
             },
             onvalidate: (value) => {
                 return (
