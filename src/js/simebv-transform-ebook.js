@@ -1,5 +1,8 @@
 import { pluginBaseUrl, safeCSSString } from './simebv-utils.js'
 
+const NS = {
+    XHTML: 'http://www.w3.org/1999/xhtml',
+}
 const MIME = {
     XHTML: 'application/xhtml+xml',
     HTML: 'text/html',
@@ -31,7 +34,10 @@ export function transformDoc(detail, options, defaultFontSize) {
             const ops = new Map()
             if (type === MIME.XHTML || type === MIME.HTML) {
                 if (!allowJS || !allowRemoteResources) {
-                    ops.set('addCSPMeta', [ebookCSP({ allowJS, allowRemoteResources })])
+                    ops.set('sanitizePIs', [allowRemoteResources])
+                    ops.set('addCSPMeta', [
+                        ebookCSP({ allowJS, allowRemoteResources }), allowJS, allowRemoteResources
+                    ])
                     ops.set('removeMetaRefresh', [])
                 }
                 if (['fonts', 'styles', 'all'].includes(useMathStyles)) {
@@ -48,7 +54,9 @@ export function transformDoc(detail, options, defaultFontSize) {
                 return applyTransform(await toText(data), type, ops)
             }
             if (type === 'text/css') {
-                return convertFontSizePxToRem(await toText(data), defaultFontSize)
+                let text = await toText(data)
+                if (!allowRemoteResources) text = stripRemoteCSS(text)
+                return convertFontSizePxToRem(text, defaultFontSize)
             }
             return data
         })
@@ -68,8 +76,11 @@ export function applyTransform(data, type, ops) {
             : doc = data
         for (const [op, args] of ops.entries()) {
             switch (op) {
+                case 'sanitizePIs':
+                    sanitizePIs(doc, args[0])
+                    break
                 case 'addCSPMeta':
-                    addCSPMeta(doc, args[0])
+                    addCSPMeta(doc, ...args)
                     break
                 case 'removeMetaRefresh':
                     removeMetaRefresh(doc)
@@ -126,21 +137,78 @@ function ebookCSP({ allowJS, allowRemoteResources }) {
     return d.join('; ')
 }
 
-function addCSPMeta(doc, csp) {
+function addCSPMeta(doc, csp, allowJS, allowRemoteResources) {
     if (!csp) return
+    const root = doc.documentElement
+    // a CSP <meta> only works in the <head> of a (X)HTML document:
+    // sanitize as generic XML if it's not really (X)HTML
+    // (XHTML namespace works for HTML here too)
+    if (root.namespaceURI !== NS.XHTML || root.localName !== 'html') {
+        sanitizeXML(doc, allowJS, allowRemoteResources)
+        return
+    }
+    // the CSP applies only to what comes after it: ensure that <head> is the first element
+    let head = doc.head
+    if (!head || root.firstElementChild !== head) {
+        head = doc.createElement('head')
+        head.setAttribute('data-simebv-inject', 'true')
+        root.prepend(head)
+    }
     const meta = doc.createElement('meta')
     meta.setAttribute('http-equiv', 'content-security-policy')
     meta.setAttribute('content', csp)
     meta.setAttribute('data-simebv-inject', 'true')
-    doc.head ? doc.head.prepend(meta) : doc.documentElement.prepend(meta)
+    head.prepend(meta)
 }
 
 function removeMetaRefresh(doc) {
-    doc.querySelectorAll('meta[http-equiv="refresh"]').forEach(el => el.removeAttribute('http-equiv'))
+    doc.querySelectorAll('meta[http-equiv="refresh" i]').forEach(el => el.removeAttribute('http-equiv'))
 }
 
+const urlProtocol = value => {
+    try { return new URL(value).protocol }
+    catch { return ''}
+}
+const isRemoteProtocol = protocol => protocol === 'http:' || protocol === 'https:'
+
+// Remove processing instructions other than CSS stylesheets
+// (they come before the CSP, and XSLTs replace the whole document,
+// CSP included)
+function sanitizePIs(doc, allowRemoteResources) {
+    for (const node of [...doc.childNodes]) {
+        if (node.nodeType !== Node.PROCESSING_INSTRUCTION_NODE) continue
+        const attrs = new Map()
+        for (const [_, name, quote, value] of node.data.matchAll(/([^\s=]+)\s*=\s*(["'])(.*?)\2/g)) {
+            if (!attrs.has(name)) attrs.set(name, { quote, value })
+        }
+        const type = attrs.get('type')?.value.trim().toLowerCase() ?? 'text/css'
+        const href = attrs.get('href')?.value
+        const keep = node.target === 'xml-stylesheet' && type === 'text/css' && href
+            && (allowRemoteResources || ['blob:', 'data:'].includes(urlProtocol(href)))
+        if (!keep) {
+            node.remove() // outside the root node: CFIs unaffected
+            continue
+        }
+        const data = ['type', 'href', 'media'].filter(name => attrs.has(name))
+            .map(name => {
+                const { quote, value } = attrs.get(name)
+                return `${name}=${quote}${value}${quote}`
+            })
+        node.replaceWith(doc.createProcessingInstruction('xml-stylesheet', data.join(' ')))
+    }
+}
+
+// this isn't foolproof, but it isn't a security issue
+function stripRemoteCSS(css) {
+    return css
+        .replace(/url\(\s*(?:https?:)?\/\/[^\s)]+\s*\)/gi, 'url(about:invalid)')
+        .replace(/(["'])\s*(?:https?:)?\/\/[^\s'"]+\s*\1/gi, '$1about:invalid$1')
+}
+
+const URL_ATTRIBUTES = ['href', 'src', 'action', 'formaction', 'data', 'poster', 'background']
+
 function sanitizeXML(doc, allowJS, allowRemoteResources) {
-    const XHTML_NS = 'http://www.w3.org/1999/xhtml'
+    sanitizePIs(doc, allowRemoteResources)
     for (const el of [...doc.getElementsByTagName('*')]) {
         const name = el.localName
         if (!allowJS) {
@@ -155,22 +223,39 @@ function sanitizeXML(doc, allowJS, allowRemoteResources) {
                     && /^(?:on|(?:\w+:)?href$)/i.test(el.getAttribute('attributeName') ?? '')) {
                 el.removeAttribute('attributeName')
             }
-            if (el.namespaceURI === XHTML_NS && (name === 'iframe' || name === 'frame')) {
+            if (el.namespaceURI === NS.XHTML && (name === 'iframe' || name === 'frame')) {
                 el.removeAttribute('srcdoc')
             }
         }
-        if (name === 'meta' && el.getAttribute('http-equiv') === 'refresh') {
+        if (name === 'meta' && el.getAttribute('http-equiv')?.toLowerCase() === 'refresh') {
             el.removeAttribute('http-equiv')
+        }
+        if (!allowRemoteResources && name === 'style') {
+            const css = stripRemoteCSS(el.textContent)
+            if (css !== el.textContent) el.textContent = css
         }
         for (const attr of [...el.attributes]) {
             const n = attr.localName.toLowerCase()
-            if (!allowJS && n.startsWith('on')) el.removeAttributeNode(attr)
-            else if (['href', 'src', 'action', 'formaction', 'data'].includes(n)) {
-                let protocol
-                try { protocol = new URL(attr.value, 'https://invalid.invalid/').protocol } catch {}
-                if ((!allowJS && protocol === 'javascript:')
-                        || (!allowRemoteResources && ['http:', 'https:'].includes(protocol))) {
+            if (!allowJS && n.startsWith('on')) {
+                el.removeAttributeNode(attr)
+                continue
+            }
+            const protocol = URL_ATTRIBUTES.includes(n) ? urlProtocol(attr.value) : ''
+            if (!allowJS && protocol === 'javascript:') {
+                el.removeAttributeNode(attr)
+            }
+            else if (!allowRemoteResources) {
+                // remove attributes that load remote resources, while leaving alone a[href]
+                if (isRemoteProtocol(protocol) && !(name === 'a' && !attr.namespaceURI)) {
                     el.removeAttributeNode(attr)
+                }
+                else if ((n === 'srcset' || n === 'imagesrcset') && attr.value.split(',')
+                        .some(c => isRemoteProtocol(urlProtocol(c.trim().split(/\s+/)[0])))) {
+                    el.removeAttributeNode(attr)
+                }
+                else if (/url\(|image-set\(/i.test(attr.value)) {
+                    const value = stripRemoteCSS(attr.value)
+                    if (value !== attr.value) attr.value = value
                 }
             }
         }
