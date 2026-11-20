@@ -114,12 +114,13 @@ function set_script_type_attribute( string $target_handle, string $tag, string $
 
 	$script_found = false;
 
-	do {
-		$script_found = $processor->next_tag( 'script' );
-	} while ( $processor->get_attribute( 'src' ) !== $src );
-
-	if ( $script_found ) {
-		$processor->set_attribute( 'type', 'module' );
+	// script's src may have been altered by some other callback, check also id
+	while ( $processor->next_tag( 'script' ) ) {
+		if ( $processor->get_attribute( 'id' ) === "${target_handle}-js"
+				|| $processor->get_attribute( 'src' ) === $src) {
+			$processor->set_attribute( 'type', 'module' );
+			break;
+		}
 	}
 
 	return $processor->get_updated_html();
