@@ -58,7 +58,10 @@ class SIMEBV_Viewer extends SIMEBV_Base {
     }
 
     public static function fix_textdomain_path($relative, $src) {
-        $relative = 'dist/assets/simebv-viewer.js';
+        $script = wp_scripts()->query(self::$js_core_script_handle);
+        if ($script && $script->src === $src) {
+            $relative = 'dist/assets/simebv-viewer.js';
+        }
         return $relative;
     }
 
