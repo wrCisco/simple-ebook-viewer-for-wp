@@ -10,11 +10,11 @@ class SIMEBV_Admin extends SIMEBV_Base {
         do_action('simebv_admin_before_init');
 
         add_action('admin_init', [self::class, 'suggest_privacy_policy']);
-        add_filter('upload_mimes', [self::class, 'allow_ebook_uploads']);
+        add_filter('upload_mimes', [self::class, 'allow_ebook_uploads'], 10, 2);
         add_action('add_attachment', [self::class, 'handle_ebook_uploads'], 10, 1);
         add_filter('attachment_fields_to_edit', [self::class, 'add_media_custom_field'], 10, 2);
         add_filter('attachment_fields_to_save', [self::class, 'save_media_custom_field'], 10, 2);
-        add_filter('wp_check_filetype_and_ext', [self::class, 'allow_azw_uploads'], 100, 5);
+        add_filter('wp_check_filetype_and_ext', [self::class, 'allow_azw_uploads'], 5, 5);
 
         do_action('simebv_admin_after_init');
     }
@@ -50,16 +50,28 @@ class SIMEBV_Admin extends SIMEBV_Base {
     }
 
     public static function allow_azw_uploads($types, $file, $filename, $mimes, $real_mime) {
+        $exp_mimes = ['application/x-mobipocket-ebook', 'application/vnd.amazon.ebook', 'application/octet-stream'];
+        $expected = ['azw'  => $exp_mimes, 'azw3' => $exp_mimes];
+        // accepts also fb2, but only from users that can insert unfiltered html
+        // (e.g. scripts) in pages, as scripts in xml can sometimes be executed by browsers
+        if (current_user_can('unfiltered_html')) {
+            $expected['fb2'] = ['text/xml', 'application/xml'];
+        }
         $wp_filetype = wp_check_filetype($filename, $mimes);
-        if (in_array($wp_filetype['ext'], ['azw', 'azw3', 'fb2', 'fbz'])) {
-            $types['ext'] = $wp_filetype['ext'];
+        $ext = $wp_filetype['ext'];
+        if (isset($expected[$ext]) && in_array($real_mime, $expected[$ext], true)) {
+            $types['ext'] = $ext;
             $types['type'] = $wp_filetype['type'];
         }
         return $types;
     }
 
-    public static function allow_ebook_uploads($mimes) {
+    public static function allow_ebook_uploads($mimes, $user = null) {
+        $can_fb2 = $user ? user_can($user, 'unfiltered_html') : current_user_can('unfiltered_html');
         foreach (self::$ebook_mimetypes as $ext => $type) {
+            if ($ext === 'fb2' && !$can_fb2) {
+                continue;
+            }
             if (!isset($mimes[$ext])) {
                 $mimes[$ext] = $type;
             }
