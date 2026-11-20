@@ -130,11 +130,12 @@ class SIMEBV_Viewer extends SIMEBV_Base {
     }
 
     public static function get_ebook_id($slug) {
-        $ebook_id = '';
         $args = array(
             'post_type' => 'attachment',
             // 'post_mime_type' => 'application/epub+zip',
             'post_status' => 'inherit',
+            'posts_per_page' => 1,
+            'fields' => 'ids',
             'meta_query' => [
                 [
                     'key' => 'simebv_ebook_slug',
@@ -143,12 +144,8 @@ class SIMEBV_Viewer extends SIMEBV_Base {
                 ],
             ],
         );
-        $query = new WP_Query($args);
-        if ($query->have_posts()) {
-            $query->the_post();  // used to bump to the next post retrieved by the query, usually used in a loop e.g. while ($query->have_posts()) { $query->the_post(); ... }
-            $ebook_id = get_the_ID();
-            wp_reset_postdata();
-        }
+        $ids = get_posts($args);
+        $ebook_id = $ids[0] ?? '';
         return $ebook_id;
     }
 
