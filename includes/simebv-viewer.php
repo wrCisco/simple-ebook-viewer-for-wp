@@ -3,7 +3,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use Kucrut\Vite;
+use SIMEBV\Kucrut\Vite;
 
 class SIMEBV_Viewer extends SIMEBV_Base {
 
