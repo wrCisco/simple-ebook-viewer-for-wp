@@ -14,7 +14,6 @@ class SIMEBV_Viewer extends SIMEBV_Base {
         add_action('wp_enqueue_scripts', [self::class, 'conditionally_enqueue_assets']);
         add_action('wp_enqueue_scripts', [self::class, 'register_javascript_translations'], 100);
         add_filter('load_script_textdomain_relative_path', [self::class, 'fix_textdomain_path'], 10, 2);
-        add_action('rest_api_init', [self::class, 'register_rest_routes']);
 
         do_action('simebv_viewer_after_init');
     }
@@ -40,22 +39,6 @@ class SIMEBV_Viewer extends SIMEBV_Base {
     //     }
     //     return true;
     // }
-
-    public static function register_rest_routes() {
-        register_rest_route('simebv/v1', '/nonce', [
-            'methods' => 'GET',
-            'callback' => [self::class, 'rest_get_nonce'],
-            'permission_callback' => '__return_true',
-        ]);
-    }
-
-    public static function rest_get_nonce(WP_REST_Request $request) {
-        nocache_headers();
-        $response = new WP_REST_Response([
-            'nonce' => wp_create_nonce('wp_rest'),
-        ]);
-        return $response;
-    }
 
     public static function fix_textdomain_path($relative, $src) {
         $script = wp_scripts()->query(self::$js_core_script_handle);
@@ -88,7 +71,7 @@ class SIMEBV_Viewer extends SIMEBV_Base {
         self::enqueue_assets(
             self::$js_core_script_handle,
             self::$js_core_script_path,
-            ['wp-i18n', 'wp-api'],
+            ['wp-i18n', 'wp-api-fetch'],
         );
         do_action('simebv_enqueued_core_js');
     }

@@ -1381,36 +1381,9 @@ const fetchFile = async url => {
 }
 
 
-const refreshRestNonce = async () => {
-    const res = await fetch(`${wpApiSettings.root}simebv/v1/nonce`, {
-        credentials: 'same-origin',
-        cache: 'no-store',
-    })
-    if (!res.ok) {
-        throw new Error(`Nonce refresh failed: ${res.status}`)
-    }
-    const { nonce } = await res.json()
-    wpApiSettings.nonce = nonce
-    if (wp.api?.settings) wp.api.settings.nonce = nonce
-    return nonce
-}
-
-
 export const get_ebook_url = async id => {
-    await wp.api.loadPromise
-    const fetchMedia = async () => {
-        const media = new wp.api.models.Media({ id })
-        const res = await media.fetch()
-        return new URL(res.source_url).href
-    }
-    try {
-        return await fetchMedia()
-    } catch (e) {
-        const status = e?.status ?? e?.statusCode
-        if (status !== 401 && status !== 403) throw e
-        await refreshRestNonce()
-        return fetchMedia()
-    }
+    const res = await wp.apiFetch({ path: '/wp/v2/media/' + id })
+    return new URL(res.source_url).href
 }
 
 
@@ -1495,14 +1468,14 @@ export const initializeViewer = async containerID => {
                 const msg = __('Error: I couldn\'t retrieve the book to display.', 'simple-ebook-viewer')
                 show_error_msg(ebook_path_el, msg)
                 console.error(e)
-                if (e.status === 404) {
+                if (e?.data?.status === 404) {
                     ebook_path_el.append(
                         document.createElement('br'),
                         __('Resource not found on the server', 'simple-ebook-viewer')
                     )
                 }
-                else if (e.responseJSON?.message) {
-                    ebook_path_el.append(document.createElement('br'), e.responseJSON.message)
+                else if (e?.code && e?.message) {
+                    ebook_path_el.append(document.createElement('br'), e.message)
                 }
             }
         }
