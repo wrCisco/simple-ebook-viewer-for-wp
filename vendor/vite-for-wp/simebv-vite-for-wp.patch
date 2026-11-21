@@ -1,8 +1,39 @@
 diff --git a/vendor/vite-for-wp/vite-for-wp.php b/vendor/vite-for-wp/vite-for-wp.php
-index 10e589f..d561478 100644
+index 10e589f..06294b1 100644
 --- a/vendor/vite-for-wp/vite-for-wp.php
 +++ b/vendor/vite-for-wp/vite-for-wp.php
-@@ -288,7 +288,7 @@ function load_production_asset( object $manifest, string $entry, array $options
+@@ -6,7 +6,7 @@
+  */
+ declare( strict_types=1 );
+ 
+-namespace Kucrut\Vite;
++namespace SIMEBV\Kucrut\Vite;
+ 
+ use Exception;
+ use WP_HTML_Tag_Processor;
+@@ -112,14 +112,13 @@ function set_script_type_attribute( string $target_handle, string $tag, string $
+ 
+ 	$processor = new WP_HTML_Tag_Processor( $tag );
+ 
+-	$script_found = false;
+-
+-	do {
+-		$script_found = $processor->next_tag( 'script' );
+-	} while ( $processor->get_attribute( 'src' ) !== $src );
+-
+-	if ( $script_found ) {
+-		$processor->set_attribute( 'type', 'module' );
++	// script's src may have been altered by some other callback, check also id
++	while ( $processor->next_tag( 'script' ) ) {
++		if ( $processor->get_attribute( 'id' ) === "{$target_handle}-js"
++				|| $processor->get_attribute( 'src' ) === $src) {
++			$processor->set_attribute( 'type', 'module' );
++			break;
++		}
+ 	}
+ 
+ 	return $processor->get_updated_html();
+@@ -288,7 +287,7 @@ function load_production_asset( object $manifest, string $entry, array $options
  
  		// Don't worry about browser caching as the version is embedded in the file name.
  		// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
@@ -11,7 +42,7 @@ index 10e589f..d561478 100644
  			$assets['scripts'][] = $options['handle'];
  		}
  	}
-@@ -345,7 +345,7 @@ function register_stylesheets( array &$assets, array $stylesheets, string $url,
+@@ -345,7 +344,7 @@ function register_stylesheets( array &$assets, array $stylesheets, string $url,
  
  		// Don't worry about browser caching as the version is embedded in the file name.
  		// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
@@ -20,7 +51,7 @@ index 10e589f..d561478 100644
  			$assets['styles'][] = $style_handle;
  		}
  	}
-@@ -368,6 +368,7 @@ function parse_options( array $options ): array {
+@@ -368,6 +367,7 @@ function parse_options( array $options ): array {
  		'dependencies' => [],
  		'handle' => '',
  		'in-footer' => false,
