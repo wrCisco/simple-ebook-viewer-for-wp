@@ -162,10 +162,15 @@ class SIMEBV_Admin extends SIMEBV_Base {
             'posts_per_page' => 200,
             'paged' => 1,
             'no_found_rows' => true,
+            'suppress_filters' => true,
+            // avoid non-deterministic ordering that, combined with
+            // pagination, can result in skipped or repeated records
+            // (cfr. https://github.com/WordPress/wordpress-develop/pull/10262)
+            'orderby' => ['date' => 'DESC', 'ID' => 'DESC'],
         );
         while (true) {
-            $query = new WP_Query($args);
-            foreach ($query->posts as $attachment) {
+            $posts = get_posts($args);
+            foreach ($posts as $attachment) {
                 $attachment_ID = $attachment->ID;
                 $existing = get_post_meta($attachment_ID, 'simebv_ebook_slug', true);
                 if (empty($existing)) {
@@ -175,7 +180,7 @@ class SIMEBV_Admin extends SIMEBV_Base {
                     }
                 }
             }
-            if (count($query->posts) < $args['posts_per_page']) {
+            if (count($posts) < $args['posts_per_page']) {
                 break;
             }
             $args['paged']++;
