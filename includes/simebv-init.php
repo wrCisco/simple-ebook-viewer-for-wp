@@ -11,6 +11,7 @@ class SIMEBV_Init {
             // each site runs the backfill on its own first request, in on_upgrade
             return;
         }
+        SIMEBV_Notices::maybe_schedule_upgrade_notice(get_option('simebv-version', '0.0.0'));
         SIMEBV_Admin::add_ebook_slugs();
         update_option('simebv-version', SIMEBV_VERSION);
     }
@@ -28,6 +29,7 @@ class SIMEBV_Init {
         if ($db_version === SIMEBV_VERSION && !$new_activation) {
             return;
         }
+        SIMEBV_Notices::maybe_schedule_upgrade_notice($db_version);
         // Runs for upgrades from 0.x and 1.x, and for sites where
         // the activation never ran (e.g. parts of a multisite).
         // For operations that can't be safely repeated, consider

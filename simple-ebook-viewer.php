@@ -28,10 +28,12 @@ require_once SIMEBV_PLUGIN_DIR . 'includes/simebv-base.php';
 require_once SIMEBV_PLUGIN_DIR . 'includes/simebv-viewer.php';
 require_once SIMEBV_PLUGIN_DIR . 'includes/simebv-admin.php';
 require_once SIMEBV_PLUGIN_DIR . 'includes/simebv-init.php';
+require_once SIMEBV_PLUGIN_DIR . 'includes/simebv-notices.php';
 
 add_action('init', ['SIMEBV_Init', 'on_upgrade']);
 add_action('plugins_loaded', ['SIMEBV_Viewer', 'init']);
 add_action('plugins_loaded', ['SIMEBV_Admin', 'init']);
+add_action('plugins_loaded', ['SIMEBV_Notices', 'init']);
 
 register_activation_hook(__FILE__, ['SIMEBV_Init', 'on_activation']);
 
