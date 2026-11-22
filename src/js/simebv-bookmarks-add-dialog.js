@@ -19,7 +19,7 @@ export function addBookmarkDialog(target) {
     displayLoc.classList.add('simebv-bookmark-loc')
 
     const noteLabel = document.createElement('label')
-    noteLabel.textContent = __('Note (optional)', 'simple-ebook-viewer')
+    noteLabel.textContent = __('Note', 'simple-ebook-viewer')
     noteLabel.classList.add('simebv-label-block')
     const note = document.createElement('textarea')
     note.maxLength = 512

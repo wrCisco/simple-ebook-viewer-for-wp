@@ -534,21 +534,24 @@ input, button, select {
 }
 #simebv-add-bookmarks-dialog .simebv-bookmark-loc {
     margin-block-start: 0;
-    margin-block-end: .5rem;
+    margin-block-end: 1rem;
     margin-inline: .2rem;
     font-weight: bold;
 }
 .simebv-label-block,
 .simebv-textarea-block {
     display: block;
-    width: 100%;
     box-sizing: border-box;
 }
 .simebv-label-block {
     font-size: .9rem;
+    width: 100%;
 }
 .simebv-textarea-block {
-    height: 6rem;
+    height: 10rem;
+    margin-inline: .2rem;
+    width: calc(100% - .4rem);
+    margin-block-start: .2rem;
 }
 .simebv-add-bookmarks-storage-legend {
     font-size: .8rem;
