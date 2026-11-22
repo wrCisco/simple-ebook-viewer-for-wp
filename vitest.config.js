@@ -39,4 +39,11 @@ export default mergeConfig(viteConfig, defineConfig({
             ],
         },
     },
+    optimizeDeps: {
+        include: [
+            'vite-plugin-node-polyfills/shims/global',
+            'vite-plugin-node-polyfills/shims/process',
+            'vite-plugin-node-polyfills/shims/buffer'
+        ],
+    },
 }))
