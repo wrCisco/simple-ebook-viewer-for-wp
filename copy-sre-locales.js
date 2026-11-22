@@ -4,8 +4,10 @@ import { fileURLToPath } from 'url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
-const sreSrc = resolve(__dirname, 'node_modules/speech-rule-engine/lib/mathmaps');
-const sreDest = resolve(__dirname, 'dist/speech-rule-engine/lib/mathmaps');
+const sreSrcBase = resolve(__dirname, 'node_modules/speech-rule-engine');
+const sreSrc = join(sreSrcBase, 'lib/mathmaps');
+const sreDestBase = resolve(__dirname, 'dist/speech-rule-engine');
+const sreDest = join(sreDestBase, 'lib/mathmaps');
 
 const pdfjsSrc = resolve(__dirname, 'vendor/foliate-js/vendor/pdfjs');
 const pdfjsDest = resolve(__dirname, 'dist/vendor/pdfjs');
@@ -36,6 +38,7 @@ function copyFiles(srcDir, destDir, { include, exclude } = {}) {
 }
 
 copyFiles(sreSrc, sreDest, { include: /\.json$/ });
+copyFileSync(join(sreSrcBase, 'LICENSE'), join(sreDestBase, 'LICENSE'));
 console.log('SRE locales copied.\n');
 
 // pdf(.min).mjs is directly imported: don't ship as separate file
@@ -43,3 +46,20 @@ console.log('SRE locales copied.\n');
 // js.map's are only useful for debugging purposes with unminified pdfjs files
 copyFiles(pdfjsSrc, pdfjsDest, { exclude: /(?:pdf\.min\.mjs$|LICENSE_.*QUICKJS|quickjs-eval\.|js\.map$)/ });
 console.log('Pdfjs files copied.\n');
+
+
+const fontsSrcBase = resolve(__dirname, 'resources/fonts');
+const fontsDestBase = resolve(__dirname, 'dist/assets');
+copyFileSync(
+  join(fontsSrcBase, 'latinmodern/GUST-FONT-LICENSE.txt'),
+  join(fontsDestBase, 'LICENSE_LATINMODERN.txt'),
+);
+copyFileSync(
+  join(fontsSrcBase, 'manrope/OFL.txt'),
+  join(fontsDestBase, 'LICENSE_MANROPE.txt'),
+);
+copyFileSync(
+  join(fontsSrcBase, 'opendyslexic/OFL.txt'),
+  join(fontsDestBase, 'LICENSE_OPENDYSLEXIC.txt'),
+);
+console.log('Fonts licenses copied.\n');
