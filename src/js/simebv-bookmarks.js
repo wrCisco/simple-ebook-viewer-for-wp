@@ -285,7 +285,7 @@ export class BookmarksManager {
             const { type } = e.detail
             const msg = sprintf(
                 /* translators: %1$s: data category (functional, preference, marketing...) */
-                __("Bookmarks not saved: missing permission to save %1$s data in this device"), type
+                __("Bookmarks not saved: missing permission to save %1$s data in this device", 'simple-ebook-viewer'), type
             )
             if (!this.#dlg) {
                 this.eventTarget.dispatchEvent(new CustomEvent('create-bookmarks-dlg'))
