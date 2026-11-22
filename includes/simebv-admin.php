@@ -37,6 +37,7 @@ class SIMEBV_Admin extends SIMEBV_Base {
 <li>Chosen color theme and any color filters</li>
 <li>Zoom level</li>
 <li>Speech synthesis preferences</li>
+<li>Custom bookmarks and annotations</li>
 </ul>
 <p>This information is stored <strong>only on your device</strong> and is never transmitted to our servers. It is used exclusively to personalize your ebook reading experience on this website.</p>
 <p>If you use the Text-to-Speech functionality offered by the ebook viewer with a remote voice (the available voices depend on the browser and the operating system: Chrome offers Google remote voices, Edge offers Microsoft remote ones, for example), the text to be synthesized and the voice and language parameters will be transmitted to these remote services. As with any network request, your IP address and browser identifiers are also transmitted. You can avoid this by selecting a local voice, if available in your system.</p>
