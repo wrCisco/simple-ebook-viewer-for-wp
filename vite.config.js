@@ -31,12 +31,21 @@ export default defineConfig({
         }),
         bustImports,
     ],
-    esbuild: {
-        minifyIdentifiers: false,
-        keepNames: true,
-    },
     build: {
-        minify: true,
+        minify: 'terser',
+        terserOptions: {
+            mangle: false,
+            keep_classnames: true,
+            keep_fnames: true,
+            compress: {
+                // Otherwise `c ? __('A', d) : __('B', d)` becomes `__(c ? 'A' : 'B', d)`
+                // which doesn't work for translations
+                conditionals: false,
+            },
+            format: {
+                comments: /^\s*translators:/i,
+            },
+        },
         sourcemap: false,
         manifest: true,
         rollupOptions: {
