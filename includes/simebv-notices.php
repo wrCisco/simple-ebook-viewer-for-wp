@@ -6,7 +6,6 @@ if (!defined('ABSPATH')) {
 
 class SIMEBV_Notices {
 
-    // First release with the changes described in the notice
     const UPGRADE_NOTICE = '3.0.0';
 
     public static function init() {
@@ -98,7 +97,7 @@ class SIMEBV_Notices {
             ) . ' ' . $who,
             sprintf(
                 /* translators: %s: unfiltered_html */
-                esc_html__('Only users with the %s capability can upload FB2 files, because browsers can run scripts embedded in XML files. FB2 files already in the Media Library are not affected. AZW and AZW3 files are now checked against their content.', 'simple-ebook-viewer'),
+                esc_html__('Only users with the %s capability can upload FB2 files, because browsers can run scripts embedded in XML files. FB2 files already in the Media Library are not affected. AZW and AZW3 files are now checked against their content before allowing their upload.', 'simple-ebook-viewer'),
                 $code('unfiltered_html')
             ),
             sprintf(
@@ -121,6 +120,7 @@ class SIMEBV_Notices {
         <li><?php echo wp_kses($item, ['code' => []]); ?></li>
         <?php endforeach; ?>
     </ul>
+    <p><?php esc_html_e("Remember that the plugin does its best to prevent scripts inside ebooks from running, but it can't guarantee complete safety: don't display ebooks from untrusted sources, and check your ebooks before uploading them.", 'simple-ebook-viewer'); ?></p>
     <p><?php
         echo wp_kses(
             sprintf(
