@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Simple Ebook Viewer 0.4.1\n"
+"Project-Id-Version: Simple Ebook Viewer 3.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/simple-ebook-viewer\n"
 "Last-Translator: Francesco Martini\n"
 "Language-Team: \n"
@@ -29,560 +29,667 @@ msgstr "Un plugin per incorporare e visualizzare ebook"
 msgid "Francesco Martini"
 msgstr "Francesco Martini"
 
-#: includes/simebv-viewer.php:150
+#: includes/simebv-viewer.php:151
 msgid "It seems that JavaScript is not enabled in your browser, you need to enable it in order to use the Ebook Viewer."
 msgstr "Sembra che JavaScript non sia abilitato nel tuo browser, è necessario che lo abiliti per poter usare il visualizzatore di Ebook."
 
-#: includes/simebv-viewer.php:170
+#: includes/simebv-viewer.php:178
 msgid "No Web Publication file provided."
 msgstr "Non è stata fornita alcuna pubblicazione."
 
-#: src/js/simebv-menu-items.js:46
+#: dist/assets/simebv-viewer.js:1
 msgid "Paginated"
 msgstr "Pagine"
 
-#: src/js/simebv-menu-items.js:47
+#: dist/assets/simebv-viewer.js:1
 msgid "Scrolled"
 msgstr "Scorrimento"
 
-#: src/js/simebv-menu-items.js:112
+#: dist/assets/simebv-viewer.js:1
 msgid "Max pages per view"
 msgstr "Max pagine per vista"
 
-#: src/js/simebv-menu-items.js:43
+#: dist/assets/simebv-viewer.js:1
 msgid "Layout"
 msgstr "Layout"
 
-#: src/js/simebv-menu-items.js:126
+#: dist/assets/simebv-viewer.js:1
 msgid "Font Size"
 msgstr "Grandezza del testo"
 
-#: src/js/simebv-menu-items.js:144
+#: dist/assets/simebv-viewer.js:1
 msgid "Page Margins"
 msgstr "Margini"
 
-#: src/js/simebv-menu-items.js:231
+#: dist/assets/simebv-viewer.js:1
 msgid "Colors"
 msgstr "Colori"
 
-#: src/js/simebv-menu-items.js:8
+#: dist/assets/simebv-viewer.js:1
 msgid "Search..."
 msgstr "Cerca..."
 
 #. translators: %1$s: page number
-#: src/js/simebv-viewer.js:929
-#: src/js/simebv-viewer.js:933
+#: dist/assets/simebv-viewer.js:11
+#: dist/assets/simebv-viewer.js:17
+#: dist/assets/simebv-viewer.js:19
 #, js-format
 msgid "Page %1$s"
 msgstr "Pagina %1$s"
 
-#: src/js/simebv-viewer.js:1003
+#: dist/assets/simebv-viewer.js:23
 msgid "Loading..."
 msgstr "Caricamento..."
 
-#: src/js/simebv-header.js:417
+#: dist/assets/simebv-viewer.js:1
 msgid "Show sidebar"
 msgstr "Mostra barra laterale"
 
-#: src/js/simebv-header.js:416
+#: dist/assets/simebv-viewer.js:1
 msgid "No title"
 msgstr "Senza titolo"
 
-#: src/js/simebv-header.js:420
+#: dist/assets/simebv-viewer.js:1
 msgid "Show settings"
 msgstr "Mostra impostazioni"
 
-#: src/js/simebv-search-dialog.js:13
-#: src/js/simebv-search-dialog.js:14
+#: dist/assets/simebv-viewer.js:1
 msgid "Search"
 msgstr "Cerca"
 
-#: src/js/simebv-search-dialog.js:29
+#: dist/assets/simebv-viewer.js:1
 msgid "Previous result"
 msgstr "Precedente"
 
-#: src/js/simebv-search-dialog.js:42
+#: dist/assets/simebv-viewer.js:1
 msgid "Next result"
 msgstr "Successivo"
 
-#: src/js/simebv-fonts-dialog.js:96
-#: src/js/simebv-search-dialog.js:73
-#: src/js/simebv-speech-dialog.js:77
-#: src/js/simebv-speech-dialog.js:387
+#: dist/assets/simebv-viewer.js:1
 msgid "Close"
 msgstr "Chiudi"
 
-#: src/js/simebv-menu-items.js:129
+#: dist/assets/simebv-viewer.js:1
 msgctxt "Font Size"
 msgid "Small"
 msgstr "Piccola"
 
-#: src/js/simebv-menu-items.js:130
+#: dist/assets/simebv-viewer.js:1
 msgctxt "Font Size"
 msgid "Medium"
 msgstr "Media"
 
-#: src/js/simebv-menu-items.js:131
+#: dist/assets/simebv-viewer.js:1
 msgctxt "Font Size"
 msgid "Large"
 msgstr "Grande"
 
-#: src/js/simebv-menu-items.js:132
+#: dist/assets/simebv-viewer.js:1
 msgctxt "Font Size"
 msgid "X-Large"
 msgstr "Molto grande"
 
-#: src/js/simebv-menu-items.js:147
+#: dist/assets/simebv-viewer.js:1
 msgctxt "Margins"
 msgid "Small"
 msgstr "Stretti"
 
-#: src/js/simebv-menu-items.js:148
+#: dist/assets/simebv-viewer.js:1
 msgctxt "Margins"
 msgid "Medium"
 msgstr "Medi"
 
-#: src/js/simebv-menu-items.js:149
+#: dist/assets/simebv-viewer.js:1
 msgctxt "Margins"
 msgid "Large"
 msgstr "Larghi"
 
-#: src/js/simebv-menu-items.js:234
+#: dist/assets/simebv-viewer.js:1
 msgctxt "Theme color"
 msgid "Auto"
 msgstr "Auto"
 
-#: src/js/simebv-menu-items.js:235
+#: dist/assets/simebv-viewer.js:1
 msgctxt "Theme color"
 msgid "Sepia"
 msgstr "Seppia"
 
 #. translators: %s: example of an ebook slug based on the opened ebook
-#: includes/simebv-admin.php:109
+#: includes/simebv-admin.php:122
 #, php-format
 msgid "Use this slug in the shortcode \"simebv_viewer\" to view the ebook in your pages (e.g. [simebv_viewer book=\"%s\"]). If left empty, the value of post_name will be used instead."
 msgstr "Usa questo slug nello shortcode \"simebv_viewer\" per visualizzare l'ebook nelle tue pagine (e.g. [simebv_viewer book=\"%s\"]). Se lasciato vuoto, verrà usato al suo posto il valore di post_name."
 
-#: src/js/simebv-menu-items.js:19
+#: dist/assets/simebv-viewer.js:1
 msgid "History"
 msgstr "Cronologia"
 
-#: src/js/simebv-menu-items.js:24
+#: dist/assets/simebv-viewer.js:1
 msgid "Previous"
 msgstr "Precedente"
 
-#: src/js/simebv-menu-items.js:32
+#: dist/assets/simebv-viewer.js:1
 msgid "Next"
 msgstr "Successivo"
 
-#: src/js/simebv-menu-items.js:352
+#: dist/assets/simebv-viewer.js:1
 msgid "Zoom"
 msgstr "Zoom"
 
-#: src/js/simebv-menu-items.js:355
+#: dist/assets/simebv-viewer.js:1
 msgid "Fit page"
 msgstr "Adatta alla pagina"
 
-#: src/js/simebv-menu-items.js:356
+#: dist/assets/simebv-viewer.js:1
 msgid "Fit width"
 msgstr "Adatta alla larghezza"
 
-#: src/js/simebv-menu-items.js:357
+#: dist/assets/simebv-viewer.js:1
 msgid "Custom"
 msgstr "Personalizzato"
 
-#: src/js/simebv-viewer.js:1087
+#: dist/assets/simebv-viewer.js:23
 msgid "Error: I couldn't retrieve the book to display."
 msgstr "Errore: non ho potuto recuperare il libro da mostrare."
 
-#: src/js/simebv-viewer.js:1093
+#: dist/assets/simebv-viewer.js:23
 msgid "Resource not found on the server"
 msgstr "Risorsa non trovata nel server"
 
-#: src/js/simebv-filters-dialog.js:15
+#: dist/assets/simebv-viewer.js:1
 msgid "Activate color filters"
 msgstr "Attiva i filtri colore"
 
-#: src/js/simebv-filters-dialog.js:31
+#: dist/assets/simebv-viewer.js:1
 msgid "Invert colors:"
 msgstr "Inverti colori:"
 
-#: src/js/simebv-filters-dialog.js:45
+#: dist/assets/simebv-viewer.js:1
 msgid "Rotate hues:"
 msgstr "Ruota tonalità:"
 
-#: src/js/simebv-filters-dialog.js:57
+#: dist/assets/simebv-viewer.js:1
 msgid "Transparent background:"
 msgstr "Sfondo trasparente:"
 
-#: src/js/simebv-filters-dialog.js:69
+#: dist/assets/simebv-viewer.js:1
 msgid "Background color:"
 msgstr "Colore di sfondo:"
 
-#: src/js/simebv-annotations-dialog.js:49
-#: src/js/simebv-filters-dialog.js:76
-#: src/js/simebv-fonts-dialog.js:93
-#: src/js/simebv-footnotes.js:101
-#: src/js/simebv-metadata-dialog.js:32
-#: src/js/simebv-show-annotation-dialog.js:13
-#: src/js/simebv-speech-dialog.js:384
+#: dist/assets/simebv-viewer.js:1
 msgid "OK"
 msgstr "OK"
 
-#: src/js/simebv-menu-items.js:342
+#: dist/assets/simebv-viewer.js:1
 msgid "Color filter..."
 msgstr "Filtro colore..."
 
-#: src/js/simebv-menu-items.js:236
+#: dist/assets/simebv-viewer.js:1
 msgctxt "Theme color"
 msgid "Light"
 msgstr "Chiaro"
 
-#: src/js/simebv-menu-items.js:237
+#: dist/assets/simebv-viewer.js:1
 msgctxt "Theme color"
 msgid "Dark"
 msgstr "Scuro"
 
-#: src/js/simebv-annotations-dialog.js:13
+#: dist/assets/simebv-viewer.js:1
 msgid "Show/hide annotations"
 msgstr "Mostra/nascondi annotazioni"
 
-#: src/js/simebv-annotations-dialog.js:25
+#: dist/assets/simebv-viewer.js:1
 msgid "Show Calibre Bookmarks"
 msgstr "Mostra note di Calibre"
 
-#: src/js/simebv-annotations-dialog.js:40
+#: dist/assets/simebv-viewer.js:1
 msgid "Show page delimiters"
 msgstr "Mostra i punti di separazione delle pagine"
 
-#: src/js/simebv-annotations-dialog.js:39
+#: dist/assets/simebv-viewer.js:1
 msgid "(e.g. of the ebook's paper version)"
 msgstr "(e.g. della versione cartacea del libro)"
 
-#: src/js/simebv-annotations-dialog.js:52
+#: dist/assets/simebv-viewer.js:1
+#: dist/assets/simebv-viewer.js:3
 msgid "Cancel"
 msgstr "Cancella"
 
-#: src/js/simebv-fonts-dialog.js:26
-#: src/js/simebv-menu-items.js:90
-#: src/js/simebv-menu-items.js:180
-#: src/js/simebv-menu-items.js:199
-#: src/js/simebv-menu-items.js:217
+#: dist/assets/simebv-viewer.js:1
 msgid "Auto"
 msgstr "Auto"
 
-#: src/js/simebv-fonts-dialog.js:38
+#: dist/assets/simebv-viewer.js:1
 msgid "Serif"
 msgstr "Serif"
 
-#: src/js/simebv-fonts-dialog.js:51
+#: dist/assets/simebv-viewer.js:1
 msgid "Sans Serif"
 msgstr "Sans Serif"
 
-#: src/js/simebv-fonts-dialog.js:64
+#: dist/assets/simebv-viewer.js:1
 msgid "Monospace"
 msgstr "Monospaziato"
 
-#: src/js/simebv-fonts-dialog.js:77
+#: dist/assets/simebv-viewer.js:1
 msgid "OpenDyslexic"
 msgstr "OpenDyslexic"
 
-#: src/js/simebv-header.js:423
+#: dist/assets/simebv-viewer.js:1
 msgid "Toggle full screen"
 msgstr "Attiva/disattiva schermo intero"
 
-#: src/js/simebv-header.js:426
+#: dist/assets/simebv-viewer.js:1
 msgid "Close Reader"
 msgstr "Chiudi il lettore"
 
-#: src/js/simebv-menu-items.js:161
+#: dist/assets/simebv-viewer.js:1
 msgid "Show position"
 msgstr "Mostra posizione"
 
-#: src/js/simebv-menu-items.js:164
+#: dist/assets/simebv-viewer.js:1
 msgid "Slider"
 msgstr "Slider"
 
-#: src/js/simebv-menu-items.js:165
+#: dist/assets/simebv-viewer.js:1
 msgid "Percentage"
 msgstr "Percentuale"
 
-#: src/js/simebv-menu-items.js:166
+#: dist/assets/simebv-viewer.js:1
 msgid "Pages"
 msgstr "Pagine"
 
-#: src/js/simebv-menu-items.js:238
+#: dist/assets/simebv-viewer.js:1
 msgctxt "Theme color"
 msgid "Light (forced)"
 msgstr "Chiaro (forzato)"
 
-#: src/js/simebv-menu-items.js:239
+#: dist/assets/simebv-viewer.js:1
 msgctxt "Theme color"
 msgid "Dark (forced)"
 msgstr "Scuro (forzato)"
 
-#: src/js/simebv-menu-items.js:311
+#: dist/assets/simebv-viewer.js:1
 msgid "Font style..."
 msgstr "Stile font..."
 
-#: src/js/simebv-menu-items.js:321
+#: dist/assets/simebv-viewer.js:1
 msgid "Show/hide annotations..."
 msgstr "Mostra/nascondi annotazioni"
 
-#: src/js/simebv-footnotes.js:89
-#: src/js/simebv-menu-items.js:331
+#: dist/assets/simebv-viewer.js:1
 msgid "Read aloud..."
 msgstr "Leggi ad alta voce..."
 
-#: src/js/simebv-metadata-dialog.js:4
+#: dist/assets/simebv-viewer.js:1
 msgid "Title"
 msgstr "Titolo"
 
-#: src/js/simebv-metadata-dialog.js:5
+#: dist/assets/simebv-viewer.js:1
 msgid "Subtitle"
 msgstr "Sottotitolo"
 
-#: src/js/simebv-metadata-dialog.js:6
+#: dist/assets/simebv-viewer.js:1
 msgid "Author"
 msgstr "Autore"
 
-#: src/js/simebv-metadata-dialog.js:7
+#: dist/assets/simebv-viewer.js:1
 msgid "Editor"
 msgstr "Editore"
 
-#: src/js/simebv-metadata-dialog.js:8
+#: dist/assets/simebv-viewer.js:1
 msgid "Translator"
 msgstr "Traduttore"
 
-#: src/js/simebv-metadata-dialog.js:9
+#: dist/assets/simebv-viewer.js:1
 msgid "Artist"
 msgstr "Artista"
 
-#: src/js/simebv-metadata-dialog.js:10
+#: dist/assets/simebv-viewer.js:1
 msgid "Illustrator"
 msgstr "Illustratore"
 
-#: src/js/simebv-metadata-dialog.js:11
+#: dist/assets/simebv-viewer.js:1
 msgid "Colorist"
 msgstr "Colorista"
 
-#: src/js/simebv-metadata-dialog.js:12
+#: dist/assets/simebv-viewer.js:1
 msgid "Narrator"
 msgstr "Narratore"
 
-#: src/js/simebv-metadata-dialog.js:13
+#: dist/assets/simebv-viewer.js:1
 msgid "Language"
 msgstr "Lingua"
 
-#: src/js/simebv-metadata-dialog.js:14
+#: dist/assets/simebv-viewer.js:1
 msgid "Publisher"
 msgstr "Editore"
 
-#: src/js/simebv-metadata-dialog.js:15
+#: dist/assets/simebv-viewer.js:1
 msgid "Publication date"
 msgstr "Data di pubblicazione"
 
-#: src/js/simebv-metadata-dialog.js:16
+#: dist/assets/simebv-viewer.js:1
 msgid "Subject"
 msgstr "Soggetto"
 
-#: src/js/simebv-metadata-dialog.js:17
+#: dist/assets/simebv-viewer.js:1
 msgid "Description"
 msgstr "Descrizione"
 
-#: src/js/simebv-metadata-dialog.js:18
+#: dist/assets/simebv-viewer.js:1
 msgid "Source"
 msgstr "Sorgente"
 
-#: src/js/simebv-metadata-dialog.js:19
+#: dist/assets/simebv-viewer.js:1
 msgid "Rights"
 msgstr "Diritti"
 
-#: src/js/simebv-metadata-dialog.js:20
+#: dist/assets/simebv-viewer.js:1
 msgid "Source of the page list"
 msgstr "Opera da cui deriva la lista delle pagine"
 
-#: src/js/simebv-metadata-dialog.js:21
+#: dist/assets/simebv-viewer.js:1
 msgid "Identifier"
 msgstr "Identificatore"
 
-#: src/js/simebv-metadata-dialog.js:22
+#: dist/assets/simebv-viewer.js:1
 msgid "Other identifiers"
 msgstr "Altri identificatori"
 
-#: src/js/simebv-metadata-dialog.js:28
+#: dist/assets/simebv-viewer.js:1
 msgid "Ebook metadata"
 msgstr "Metadati dell'ebook"
 
-#: src/js/simebv-metadata-dialog.js:55
+#: dist/assets/simebv-viewer.js:1
 msgid "Ebook format"
 msgstr "Formato dell'ebook"
 
-#: src/js/simebv-navbar.js:99
+#: dist/assets/simebv-viewer.js:1
 msgid "Turn left page"
 msgstr "Gira pagina a sinistra"
 
-#: src/js/simebv-navbar.js:102
+#: dist/assets/simebv-viewer.js:1
 msgid "Turn right page"
 msgstr "Gira pagina a destra"
 
-#: src/js/simebv-navbar.js:105
+#: dist/assets/simebv-viewer.js:1
 msgid "Location in ebook"
 msgstr "Posizione nell'ebook"
 
-#: src/js/simebv-show-annotation-dialog.js:20
+#: dist/assets/simebv-viewer.js:1
 msgid "Annotation"
 msgstr "Annotazione"
 
-#: src/js/simebv-sidebar.js:163
+#: dist/assets/simebv-viewer.js:1
 msgid "Details"
 msgstr "Dettagli"
 
-#: src/js/simebv-sidebar.js:180
+#: dist/assets/simebv-viewer.js:1
 msgid "Ebook metadata and navigation trees"
 msgstr "Metadati dell'ebook e alberi di navigazione"
 
-#: src/js/simebv-sidebar.js:269
+#: dist/assets/simebv-viewer.js:1
 msgid "Table of contents"
 msgstr "Indice generale"
 
-#: src/js/simebv-sidebar.js:278
-#: src/js/simebv-viewer.js:346
+#: dist/assets/simebv-viewer.js:1
+#: dist/assets/simebv-viewer.js:15
 msgid "Page list"
 msgstr "Indice delle pagine"
 
-#: src/js/simebv-speech-dialog.js:16
+#: dist/assets/simebv-viewer.js:1
 msgid "Play"
 msgstr "Play"
 
-#: src/js/simebv-speech-dialog.js:17
+#: dist/assets/simebv-viewer.js:1
 msgid "Pause"
 msgstr "Pausa"
 
-#: src/js/simebv-speech-dialog.js:35
+#: dist/assets/simebv-viewer.js:1
 msgid "Speech Options"
 msgstr "Opzioni"
 
-#: src/js/simebv-speech-dialog.js:226
+#: dist/assets/simebv-viewer.js:1
 msgid "Text To Speech Options"
 msgstr "Opzioni sintesi vocale"
 
-#: src/js/simebv-speech-dialog.js:240
+#: dist/assets/simebv-viewer.js:1
 msgid "Volume: "
 msgstr "Volume: "
 
-#: src/js/simebv-speech-dialog.js:260
+#: dist/assets/simebv-viewer.js:1
 msgid "Pitch: "
 msgstr "Tonalità: "
 
-#: src/js/simebv-speech-dialog.js:280
+#: dist/assets/simebv-viewer.js:1
 msgid "Speed: "
 msgstr "Velocità: "
 
-#: src/js/simebv-speech-dialog.js:316
+#: dist/assets/simebv-viewer.js:1
 msgid "Voice: "
 msgstr "Voce: "
 
-#: src/js/simebv-speech-dialog.js:364
+#: dist/assets/simebv-viewer.js:1
 msgid "The voice is automatically selected based on the ebook and the system language. If you have more than one voice for the language, you can select your preferred one in the system settings."
 msgstr "La voce è selezionata automaticamente a seconda dell'ebook e della lingua di sistema. Se hai installato più di una voce per lingua, puoi selezionare quella che preferisci fra le impostazioni di sistema del tuo dispositivo."
 
-#: src/js/simebv-speech-dialog.js:370
+#: dist/assets/simebv-viewer.js:1
 msgid "If you select a word in the text, the speech will begin from that word."
 msgstr "Se selezioni una parola nel testo, la lettura comincerà da quella parola."
 
-#: src/js/simebv-speech-dialog.js:371
+#: dist/assets/simebv-viewer.js:1
 msgid "Warning: remote voices may restart from the beginning of the paragraph when they are changed. On Android, all voices may do the same when paused also."
 msgstr "Attenzione: le voci remote possono ripartire dall'inizio del paragrafo quando vengono cambiate. Su Android, tutte le voci possono fare lo stesso anche quando messe in pausa."
 
-#: src/js/simebv-speech.js:30
+#: dist/assets/simebv-viewer.js:1
 msgid "I cannot access the audio output device because it's already in use, maybe by another application."
 msgstr "Non posso accedere al dispotivo di uscita dell'audio perché già in uso, forse da un'altra applicazione."
 
-#: src/js/simebv-speech.js:31
+#: dist/assets/simebv-viewer.js:1
 msgid "I cannot identify an audio output channel on this device."
 msgstr "Non posso identificare un canale di uscita audio in questo dispositivo."
 
-#: src/js/simebv-speech.js:32
+#: dist/assets/simebv-viewer.js:1
 msgid "A required network operation to start the speech synthesis failed."
 msgstr "Un'operazione di rete necessaria per far partire la sintesi vocale non è riuscita."
 
-#: src/js/simebv-speech.js:33
+#: dist/assets/simebv-viewer.js:1
 msgid "No speech synthesis engine available at this moment."
 msgstr "Nessun motore di sintesi vocale disponibile al momento."
 
-#: src/js/simebv-speech.js:34
+#: dist/assets/simebv-viewer.js:1
 msgid "The speech synthesis engine raised an error."
 msgstr "Il motore di sintesi vocale ha riportato un errore."
 
-#: src/js/simebv-speech.js:35
+#: dist/assets/simebv-viewer.js:1
 msgid "No appropriate voice available"
 msgstr "Non è disponibile alcuna voce adeguata."
 
-#: src/js/simebv-speech.js:36
+#: dist/assets/simebv-viewer.js:1
 msgid "The selected voice is not available."
 msgstr "La voce selezionata non è disponibile."
 
-#: src/js/simebv-speech.js:37
+#: dist/assets/simebv-viewer.js:1
 msgid "The text is too long to synthesize."
 msgstr "Il testo è troppo lungo per farne la sintesi vocale."
 
-#: src/js/simebv-speech.js:38
+#: dist/assets/simebv-viewer.js:1
 msgid "The value of at least one amongst Speed, Pitch and Volume is not valid."
 msgstr "Il valore di almeno uno fra Velocità, Tonalità e Volume non è valido."
 
-#: src/js/simebv-speech.js:39
+#: dist/assets/simebv-viewer.js:1
 msgid "The operation's start was not allowed."
 msgstr "Operazione non permessa."
 
-#: src/js/simebv-speech.js:236
+#: dist/assets/simebv-viewer.js:1
 #, js-format
 msgid "No appropriate voice available for the language %1$s"
 msgstr "Nessuna voce appropriata per il linguaggio %1$s"
 
-#: src/js/simebv-viewer.js:345
+#: dist/assets/simebv-viewer.js:15
 msgid "Start of page "
 msgstr "Inizio della pagina "
 
-#: src/js/simebv-viewer.js:937
-#: src/js/simebv-viewer.js:938
+#: dist/assets/simebv-viewer.js:19
 msgid "Front matter"
 msgstr "Pagine preliminari"
 
 #. translators: Location in the book, followed by a numerical fraction
-#: src/js/simebv-viewer.js:943
+#: dist/assets/simebv-viewer.js:21
 #, js-format
 msgid "Location %1$s/%2$s"
 msgstr "Posizione %1$s/%2$s"
 
 #. translators: current page number / total pages number
-#: src/js/simebv-viewer.js:947
+#: dist/assets/simebv-viewer.js:23
 #, js-format
 msgid "Page %1$s / %2$s"
 msgstr "Pagina %1$s / %2$s"
 
-#: src/js/simebv-viewer.js:1004
+#: dist/assets/simebv-viewer.js:23
 msgid "Ebook contents"
 msgstr "Contenuti dell'ebook"
 
-#: src/js/simebv-viewer.js:1108
+#: dist/assets/simebv-viewer.js:23
 msgid "Error while opening the book:"
 msgstr "Errore durante l'apertura del libro:"
 
-#: src/js/simebv-footnotes.js:14
+#: dist/assets/simebv-viewer.js:1
 msgid "Bibliography"
 msgstr "Bibliografia"
 
-#: src/js/simebv-footnotes.js:15
+#: dist/assets/simebv-viewer.js:1
 msgid "Definition"
 msgstr "Definizione"
 
-#: src/js/simebv-footnotes.js:16
-#: src/js/simebv-footnotes.js:17
-#: src/js/simebv-footnotes.js:65
-#: src/js/simebv-footnotes.js:77
+#: dist/assets/simebv-viewer.js:1
+#: dist/assets/simebv-viewer.js:3
 msgid "Note"
 msgstr "Nota"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Select Font Style"
+msgstr "Stile Font"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Ctrl+F"
+msgstr "Ctrl+F"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "First page"
+msgstr "Prima pagina"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Left"
+msgstr "Sinistra"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Right"
+msgstr "Destra"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Page direction"
+msgstr "Direzione pagine"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Left To Right"
+msgstr "Da sinistra a destra"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Right To Left"
+msgstr "Da destra a sinistra"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Text Alignment"
+msgstr "Allineamento testo"
+
+#: dist/assets/simebv-viewer.js:1
+msgctxt "Text alignment"
+msgid "Left"
+msgstr "Sinistra"
+
+#: dist/assets/simebv-viewer.js:1
+msgctxt "Text alignment"
+msgid "Center"
+msgstr "Centrato"
+
+#: dist/assets/simebv-viewer.js:1
+msgctxt "Text alignment"
+msgid "Right"
+msgstr "Destra"
+
+#: dist/assets/simebv-viewer.js:1
+msgctxt "Text alignment"
+msgid "Justified"
+msgstr "Giustificato"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Line Spacing"
+msgstr "Interlinea"
+
+#: dist/assets/simebv-viewer.js:1
+msgctxt "Line spacing"
+msgid "Tight"
+msgstr "Stretta"
+
+#: dist/assets/simebv-viewer.js:1
+msgctxt "Line spacing"
+msgid "Normal"
+msgstr "Normale"
+
+#: dist/assets/simebv-viewer.js:1
+msgctxt "Line spacing"
+msgid "Loose"
+msgstr "Ampia"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Hyphenation"
+msgstr "Sillabazione"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Yes"
+msgstr "Sì"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "No"
+msgstr "No"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Shift+P"
+msgstr "Maiusc+P"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Zoom out"
+msgstr "Zoom out"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Zoom in"
+msgstr "Zoom in "
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Search Options"
+msgstr "Opzioni ricerca"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Case sensitive"
+msgstr "Maiuscole/minuscole"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Whole words"
+msgstr "Parole intere"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Go to previous paragraph"
+msgstr "Paragrafo precedente"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Go to next paragraph"
+msgstr "Paragrafo successivo"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Highlight: "
+msgstr "Evidenziatura: "
 
 #. translators: Suggested privacy policy. %s: name of the plugin
 #: includes/simebv-admin.php:26
@@ -601,6 +708,7 @@ msgid ""
 "<li>Chosen color theme and any color filters</li>\n"
 "<li>Zoom level</li>\n"
 "<li>Speech synthesis preferences</li>\n"
+"<li>Custom bookmarks and annotations</li>\n"
 "</ul>\n"
 "<p>This information is stored <strong>only on your device</strong> and is never transmitted to our servers. It is used exclusively to personalize your ebook reading experience on this website.</p>\n"
 "<p>If you use the Text-to-Speech functionality offered by the ebook viewer with a remote voice (the available voices depend on the browser and the operating system: Chrome offers Google remote voices, Edge offers Microsoft remote ones, for example), the text to be synthesized and the voice and language parameters will be transmitted to these remote services. As with any network request, your IP address and browser identifiers are also transmitted. You can avoid this by selecting a local voice, if available in your system.</p>\n"
@@ -619,131 +727,234 @@ msgstr ""
 "<li>Il tema colore scelto e i filtri colore</li>\n"
 "<li>Il livello di zoom</li>\n"
 "<li>Le preferenze della sintesi vocale</li>\n"
+"<li>Segnalibri e annotazioni personalizzate</li>\n"
 "</ul>\n"
 "<p>Queste informazioni sono memorizzate <strong>solo sul tuo dispositivo</strong> e non vengono mai trasmesse ai nostri server. Sono usate esclusivamente per personalizzare la tua esperienza nella lettura degli ebook su questo sito web.</p>\n"
 "<p>Se usi la funzionalità di sintesi vocale (Text-to-Speech) offerta dall'ebook viewer con una voce remota (le voci disponibili dipendono dal browser e dal sistema operativo: per esempio, Chrome offre le voci remote di Google, Edge offre quelle della Microsoft), il testo da elaborare e i parametri della voce e della lingua saranno trasmessi a questi servizi remoti. Come per ogni richiesta di rete, verranno trasmessi anche il tuo indirizzo IP e gli identificatori del browser. Puoi evitare questa cosa selezionando una voce locale, se disponibile nel tuo sistema.</p>\n"
 "<p><strong>Nota:</strong> Per recuperare e mostrare il contenuto dell'ebook, il plugin interagisce con la REST API di WordPress. Questo processo può comprtare l'uso di <strong>cookie tecnici</strong> impostati da WordPress per garantire una sicura e corretta trasmissione dei dati. Questi cookie non ti tracciano e sono essenziali per il corretto funzionamento del sito web.</p>\n"
 "<p>Puoi cancellare in ogni momento le tue preferenze salvate svuotando il local storage del tuo browser, o utilizzando le impostazioni di privacy del tuo browser.</p>"
 
-#: src/js/simebv-fonts-dialog.js:12
-msgid "Select Font Style"
-msgstr "Stile Font"
+#: includes/simebv-notices.php:86
+msgid "On this site no user has it, because DISALLOW_UNFILTERED_HTML is set."
+msgstr "In questo sito nessun utente ce l'ha, perché è impostato DISALLOW_UNFILTERED_HTML."
 
-#: src/js/simebv-menu-items.js:9
-msgid "Ctrl+F"
-msgstr "Ctrl+F"
+#: includes/simebv-notices.php:88
+msgid "In a multisite network, only Super Admins have it by default."
+msgstr "In una rete multisite, solo i Super Admin ce l'hanno di default."
 
-#: src/js/simebv-menu-items.js:66
-msgid "First page"
-msgstr "Prima pagina"
+#: includes/simebv-notices.php:90
+msgid "By default, only Administrators and Editors have it."
+msgstr "Di default, solo gli Amministratori e gli Editor ce l'hanno."
 
-#: src/js/simebv-menu-items.js:69
-msgid "Left"
-msgstr "Sinistra"
+#. translators: 1: allow-js="true", 2: unfiltered_html
+#: includes/simebv-notices.php:95
+#, php-format
+msgid "The shortcode attribute %1$s now works only in posts and pages whose author has the %2$s capability. Elsewhere it is ignored, and scripts inside the ebooks don't run."
+msgstr "L'attributo %1$s dello shortcode ora funziona solo negli articoli e nelle pagine il cui autore abbia la capacità %2$s. Altrove viene ignorato, e gli script all'interno degli epub non vengono eseguiti."
 
-#: src/js/simebv-menu-items.js:70
-msgid "Right"
-msgstr "Destra"
+#. translators: %s: unfiltered_html
+#: includes/simebv-notices.php:100
+#, php-format
+msgid "Only users with the %s capability can upload FB2 files, because browsers can run scripts embedded in XML files. FB2 files already in the Media Library are not affected. AZW and AZW3 files are now checked against their content before allowing their upload."
+msgstr "Solo gli utenti con la capacità %s possono caricare file FB2, perché i browser possono eseguire script all'interno di file XML. I file FB2 già all'interno della Libreria Media non subiscono modifiche. Il contenuto dei file AZW e AZW3 è ora controllato prima di permetterne il caricamento."
 
-#: src/js/simebv-menu-items.js:87
-msgid "Page direction"
-msgstr "Direzione pagine"
+#. translators: 1: allow-remote-resources="true", 2: example shortcode
+#: includes/simebv-notices.php:105
+#, php-format
+msgid "Ebooks can no longer load images, fonts, stylesheets, scripts or other resources from external servers by default. If an ebook needs them, add %1$s to its shortcode, e.g. %2$s. Ebooks with allow-js that load scripts from external servers need it too."
+msgstr "Di default gli ebook non possono più caricare immagini, font, fogli stile, script o altre risorse da server esterni. Se per un ebook è necessario, aggiungi %1$s al suo shortcode, e.g. %2$s. Anche ebook con allow-js che caricano gli script da server esterni ne hanno bisogno."
 
-#: src/js/simebv-menu-items.js:91
-msgid "Left To Right"
-msgstr "Da sinistra a destra"
+#. translators: %s: plugin name
+#: includes/simebv-notices.php:115
+#, php-format
+msgid "%s: changes that may affect your ebooks"
+msgstr "%s: modifiche che potrebbero riguardare i tuoi ebook"
 
-#: src/js/simebv-menu-items.js:92
-msgid "Right To Left"
-msgstr "Da destra a sinistra"
+#: includes/simebv-notices.php:117
+msgid "This version of the plugin limits what ebooks can do, to better protect your site and your visitors:"
+msgstr "Questa versione del plugin limita ciò che gli ebook possono fare, per meglio proteggere il tuo sito e i tuoi visitatori:"
 
-#: src/js/simebv-menu-items.js:177
-msgid "Text Alignment"
-msgstr "Allineamento testo"
+#: includes/simebv-notices.php:123
+msgid "Remember that the plugin does its best to prevent scripts inside ebooks from running, but it can't guarantee complete safety: don't display ebooks from untrusted sources, and check your ebooks before uploading them."
+msgstr "Ricorda che il plugin fa il suo meglio per prevenire l'esecuzione di script all'interno degli ebook, ma non può garantire una completa sicurezza: non pubblicare ebook provenienti da fonti inaffidabili, e controlla gli ebook prima di caricarli."
 
-#: src/js/simebv-menu-items.js:181
-msgctxt "Text alignment"
-msgid "Left"
-msgstr "Sinistra"
+#. translators: 1: opening link tag, 2: closing link tag
+#: includes/simebv-notices.php:128
+#, php-format
+msgid "This version also brings new features and improvements: %1$scheck out the complete list%2$s."
+msgstr "Questa versione introduce anche nuove funzionalità e miglioramenti: %1$sconsulta la lista completa%2$s."
 
-#: src/js/simebv-menu-items.js:182
-msgctxt "Text alignment"
-msgid "Center"
-msgstr "Centrato"
+#: includes/simebv-notices.php:135
+msgid "Don't show this message again"
+msgstr "Non mostrare di nuovo questo messaggio"
 
-#: src/js/simebv-menu-items.js:183
-msgctxt "Text alignment"
-msgid "Right"
-msgstr "Destra"
+#: dist/assets/simebv-viewer.js:1
+msgid "Show bookmarks and notes (there are bookmarks on this page)"
+msgstr "Mostra segnalibri e note (ci sono segnalibri in questa pagina)"
 
-#: src/js/simebv-menu-items.js:184
-msgctxt "Text alignment"
-msgid "Justified"
-msgstr "Giustificato"
+#: dist/assets/simebv-viewer.js:1
+msgid "Show bookmarks and notes"
+msgstr "Mostra segnalibri e note"
 
-#: src/js/simebv-menu-items.js:196
-msgid "Line Spacing"
-msgstr "Interlinea"
+#: dist/assets/simebv-viewer.js:1
+msgid "Bookmark selected text"
+msgstr "Aggiungi un segnalibro al testo selezionato"
 
-#: src/js/simebv-menu-items.js:200
-msgctxt "Line spacing"
-msgid "Tight"
-msgstr "Stretta"
+#: dist/assets/simebv-viewer.js:1
+msgid "Corrupted data"
+msgstr "Dati corrotti"
 
-#: src/js/simebv-menu-items.js:201
-msgctxt "Line spacing"
-msgid "Normal"
-msgstr "Normale"
+#: dist/assets/simebv-viewer.js:1
+msgid "Your saved bookmarks and reading positions for this site couldn't be read. You can download a copy before deleting them. Until then, new bookmarks and reading positions won't be saved."
+msgstr "I segnalibri e le posizioni di lettura salvati in questo sito non sono leggibili. Puoi scaricare una copia prima di cancellarli. Fino ad allora, non potrai salvare nuovi segnalibri o posizioni di lettura."
 
-#: src/js/simebv-menu-items.js:202
-msgctxt "Line spacing"
-msgid "Loose"
-msgstr "Ampia"
+#: dist/assets/simebv-viewer.js:1
+msgid "Raw data"
+msgstr "Dati grezzi"
 
-#: src/js/simebv-menu-items.js:214
-msgid "Hyphenation"
-msgstr "Sillabazione"
+#: dist/assets/simebv-viewer.js:1
+msgid "Download data"
+msgstr "Scarica i dati"
 
-#: src/js/simebv-menu-items.js:218
-msgid "Yes"
-msgstr "Sì"
+#: dist/assets/simebv-viewer.js:1
+msgid "Copy"
+msgstr "Copia"
 
-#: src/js/simebv-menu-items.js:219
-msgid "No"
-msgstr "No"
+#: dist/assets/simebv-viewer.js:1
+msgid "Copy to the clipboard is not allowed in the current context."
+msgstr "In questo contesto non è consentita la copia negli appunti."
 
-#: src/js/simebv-menu-items.js:333
-msgid "Shift+P"
-msgstr "Maiusc+P"
+#: dist/assets/simebv-viewer.js:1
+msgid "Error while copying the data to the clipboard."
+msgstr "Errore durante la copia dei dati negli appunti."
 
-#: src/js/simebv-menu-items.js:376
-msgid "Zoom out"
-msgstr "Zoom out"
+#: dist/assets/simebv-viewer.js:1
+msgid "Clear data"
+msgstr "Cancella i dati"
 
-#: src/js/simebv-menu-items.js:377
-msgid "Zoom in"
-msgstr "Zoom in "
+#: dist/assets/simebv-viewer.js:1
+msgid "Keep data"
+msgstr "Conserva i dati"
 
-#: src/js/simebv-search-dialog.js:57
-msgid "Search Options"
-msgstr "Opzioni ricerca"
+#: dist/assets/simebv-viewer.js:1
+msgid "Ignore punctuation (and spaces, unless whole words)"
+msgstr "Ignora la punteggiatura (e gli spazi, tranne se parole intere)"
 
-#: src/js/simebv-search-dialog.js:90
-msgid "Case sensitive"
-msgstr "Maiuscole/minuscole"
+#: dist/assets/simebv-viewer.js:1
+msgid "Bookmarks"
+msgstr "Segnalibri"
 
-#: src/js/simebv-search-dialog.js:103
-msgid "Whole words"
-msgstr "Parole intere"
+#: dist/assets/simebv-viewer.js:1
+msgid "Ctrl+B"
+msgstr "Ctrl+B"
 
-#: src/js/simebv-speech-dialog.js:56
-msgid "Go to previous paragraph"
-msgstr "Paragrafo precedente"
+#: dist/assets/simebv-viewer.js:1
+msgid "To bookmark a passage, select some text"
+msgstr "Per segnare un passo, seleziona del testo"
 
-#: src/js/simebv-speech-dialog.js:64
-msgid "Go to next paragraph"
-msgstr "Paragrafo successivo"
+#: dist/assets/simebv-viewer.js:1
+msgid "Bookmark selection"
+msgstr "Aggiungi un segnalibro alla selezione"
 
-#: src/js/simebv-speech-dialog.js:327
-msgid "Highlight: "
-msgstr "Evidenziatura: "
+#: dist/assets/simebv-viewer.js:1
+#: dist/assets/simebv-viewer.js:15
+msgid "Bookmark this page"
+msgstr "Aggiungi un segnalibro alla pagina"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Show bookmarks in page"
+msgstr "Mostra segnalibri in pagina"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "No bookmarks yet"
+msgstr "Niente segnalibri, per ora"
+
+#: dist/assets/simebv-viewer.js:1
+msgid "Deleted"
+msgstr "Cancellato"
+
+#. translators: %1$s: label of the recoverable bookmark
+#: dist/assets/simebv-viewer.js:3
+#, js-format
+msgid "Deleted bookmark '%1$s'"
+msgstr "Cancellato il segnalibro '%1$s'"
+
+#: dist/assets/simebv-viewer.js:3
+msgid "Recover bookmark"
+msgstr "Recupera il segnalibro"
+
+#: dist/assets/simebv-viewer.js:3
+#: dist/assets/simebv-viewer.js:15
+msgid "Edit bookmark"
+msgstr "Modifica il segnalibro"
+
+#: dist/assets/simebv-viewer.js:3
+msgid "Delete bookmark"
+msgstr "Cancella il segnalibro"
+
+#: dist/assets/simebv-viewer.js:3
+msgid "In book: "
+msgstr "Nel libro: "
+
+#: dist/assets/simebv-viewer.js:3
+msgid "Page bookmark"
+msgstr "Segnalibro di pagina"
+
+#: dist/assets/simebv-viewer.js:3
+msgid "User annotation"
+msgstr "Annotazione dell'utente"
+
+#: dist/assets/simebv-viewer.js:3
+msgid "It will be saved on this device and in this browser only. Clearing your browsing data, or not visiting this site for a while, may delete it."
+msgstr "Verrà salvato soltanto in questo dispositivo e in questo browser. Se elimini i tuoi dati di navigazione, o se non visiti questo sito per un po', potrebbe essere cancellato."
+
+#: dist/assets/simebv-viewer.js:3
+msgid "Save"
+msgstr "Salva"
+
+#. translators: %1$s: storage category (localstorage, cookies...)
+#: dist/assets/simebv-viewer.js:5
+#, js-format
+msgid "Bookmarks not saved: error while writing in %1$s."
+msgstr "Segnalibri non salvati: errore durante la scrittura in %1$s."
+
+#: dist/assets/simebv-viewer.js:5
+#, js-format
+msgid "Error name: %1$s"
+msgstr "Nome dell'errore: %1$s"
+
+#. translators: %1$s: data category (functional, preference, marketing...)
+#: dist/assets/simebv-viewer.js:7
+#, js-format
+msgid "Bookmarks not saved: missing permission to save %1$s data in this device"
+msgstr "Segnalibri non salvati: permessi mancanti per salvare %1$s data in questo dispositivo"
+
+#: dist/assets/simebv-viewer.js:7
+msgid "Invalid bookmarks"
+msgstr "Segnalibri non validi"
+
+#: dist/assets/simebv-viewer.js:7
+msgid "I couldn't read some of the saved bookmarks for this ebook, the invalid bookmarks will be removed. If there are notes that you want to keep, you can download a copy of the raw data now before closing this dialog."
+msgstr "Non ho potuto leggere alcuni dei segnalibri salvati in questo ebook, i segnalibri non validi verranno rimossi. Se ci sono delle note the vuoi conservare, puoi scaricare una copia dei dati grezzi ora prima di chiudere questa finestra di dialogo."
+
+#. translators: %1$s: chapter title, %2$s: page number
+#: dist/assets/simebv-viewer.js:9
+#, js-format
+msgid "%1$s - Page %2$s"
+msgstr "%1$s - Pagina %2$s"
+
+#. translators: %1$s: section number, %2$s: page number
+#: dist/assets/simebv-viewer.js:13
+#, js-format
+msgid "Section %1$s - Page %2$s"
+msgstr "Sezione %1$s - Pagina %2$s"
+
+#. translators: %1$s: section number
+#: dist/assets/simebv-viewer.js:15
+#, js-format
+msgid "Section %1$s"
+msgstr "Sezione %1$s"
+
+#: dist/assets/simebv-viewer.js:15
+msgid "Bookmark current selection"
+msgstr "Aggiungi un segnalibro alla selezione corrente"
