@@ -198,11 +198,17 @@ function sanitizePIs(doc, allowRemoteResources) {
     }
 }
 
+const CSS_URLS = /(@namespace\b[^;{}]*)|\burl\(\s*(?:(["'])\s*(?:https?:)?\/\/.*?\2|(?:https?:)?\/\/[^\s)]*)\s*\)/gi
+const CSS_IMPORTS = /(@import\s*)(["'])\s*(?:https?:)?\/\/.*?\2/gi
+const CSS_IMAGE_SETS = /(?:-webkit-)?image-set\((?:[^()"']|"[^"\n]*"|'[^'\n]*'|\([^()]*\))*\)/gi
+const CSS_REMOTE_STRINGS = /(["'])\s*(?:https?:)?\/\/.*?\1/gi
+
 // this isn't foolproof, but it isn't a security issue
 function stripRemoteCSS(css) {
     return css
-        .replace(/url\(\s*(?:https?:)?\/\/[^\s)]+\s*\)/gi, 'url(about:invalid)')
-        .replace(/(["'])\s*(?:https?:)?\/\/[^\s'"]+\s*\1/gi, '$1about:invalid$1')
+        .replace(CSS_URLS, (match, namespace) => namespace ? match : 'url(about:invalid)')
+        .replace(CSS_IMPORTS, '$1$2about:invalid$2')
+        .replace(CSS_IMAGE_SETS, set => set.replace(CSS_REMOTE_STRINGS, '$1about:invalid$1'))
 }
 
 const URL_ATTRIBUTES = ['href', 'src', 'action', 'formaction', 'data', 'poster', 'background']
