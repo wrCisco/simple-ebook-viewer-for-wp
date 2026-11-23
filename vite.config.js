@@ -59,5 +59,6 @@ export default defineConfig({
         commonjsOptions: {
             ignoreDynamicRequires: true,  // required by sre v5.0.0-rc4
         },
+        chunkSizeWarningLimit: 650,
     },
 });
