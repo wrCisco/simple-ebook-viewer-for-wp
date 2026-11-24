@@ -67,7 +67,7 @@ class SIMEBV_Base {
                 'html_name' => 'data-simebv-bgfiltertransparent', 'default' => ''
             ],
             'bg-color-filter' => [
-                'html_name' => 'data-simebv-bgcolors-filter', 'default' => ''
+                'html_name' => 'data-simebv-bgcolorsfilter', 'default' => ''
             ],
             'always-full-viewport' => [
                 'html_name' => 'data-simebv-always-full-viewport', 'default' => 'false'
