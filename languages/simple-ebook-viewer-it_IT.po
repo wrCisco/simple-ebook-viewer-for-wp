@@ -756,13 +756,13 @@ msgstr "L'attributo %1$s dello shortcode ora funziona solo negli articoli e nell
 #: includes/simebv-notices.php:100
 #, php-format
 msgid "Only users with the %s capability can upload FB2 files, because browsers can run scripts embedded in XML files. FB2 files already in the Media Library are not affected. AZW and AZW3 files are now checked against their content before allowing their upload."
-msgstr "Solo gli utenti con la capacità %s possono caricare file FB2, perché i browser possono eseguire script all'interno di file XML. I file FB2 già all'interno della Libreria Media non subiscono modifiche. Il contenuto dei file AZW e AZW3 è ora controllato prima di permetterne il caricamento."
+msgstr "Solo gli utenti con la capacità %s possono caricare file FB2, perché i browser potrebbero eseguire script all'interno di file XML. I file FB2 già all'interno della Libreria Media non subiscono modifiche. Il contenuto dei file AZW e AZW3 è ora controllato prima di permetterne il caricamento."
 
 #. translators: 1: allow-remote-resources="true", 2: example shortcode
 #: includes/simebv-notices.php:105
 #, php-format
 msgid "Ebooks can no longer load images, fonts, stylesheets, scripts or other resources from external servers by default. If an ebook needs them, add %1$s to its shortcode, e.g. %2$s. Ebooks with allow-js that load scripts from external servers need it too."
-msgstr "Di default gli ebook non possono più caricare immagini, font, fogli stile, script o altre risorse da server esterni. Se per un ebook è necessario, aggiungi %1$s al suo shortcode, e.g. %2$s. Anche ebook con allow-js che caricano gli script da server esterni ne hanno bisogno."
+msgstr "Il caricamento da parte degli ebook di immagini, font, fogli stile, script o altre risorse da server esterni è ora bloccato di default. Se per un ebook è necessario, aggiungi %1$s al suo shortcode, e.g. %2$s. Anche ebook con allow-js che carichino gli script da server esterni ne hanno bisogno."
 
 #. translators: %s: plugin name
 #: includes/simebv-notices.php:115
@@ -776,7 +776,7 @@ msgstr "Questa versione del plugin limita ciò che gli ebook possono fare, per m
 
 #: includes/simebv-notices.php:123
 msgid "Remember that the plugin does its best to prevent scripts inside ebooks from running, but it can't guarantee complete safety: don't display ebooks from untrusted sources, and check your ebooks before uploading them."
-msgstr "Ricorda che il plugin fa il suo meglio per prevenire l'esecuzione di script all'interno degli ebook, ma non può garantire una completa sicurezza: non pubblicare ebook provenienti da fonti inaffidabili, e controlla gli ebook prima di caricarli."
+msgstr "Ricorda che il plugin fa del suo meglio per prevenire l'esecuzione di script all'interno degli ebook, ma non può garantire una completa sicurezza: non pubblicare ebook provenienti da fonti inaffidabili, e controlla gli ebook prima di caricarli."
 
 #. translators: 1: opening link tag, 2: closing link tag
 #: includes/simebv-notices.php:128
