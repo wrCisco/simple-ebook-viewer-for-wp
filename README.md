@@ -18,6 +18,8 @@ At the moment, the plugin will let you upload and display the following file typ
 * cbz
 * pdf
 
+Since version 3 of the plugin, fb2 uploads are restricted to users that have the `unfiltered_html` capability (usually Admins and Editors in single sites and Super Admins in multisites).
+
 ### Installation
 
 * download the zip file of the latest release of the plugin;
@@ -57,7 +59,7 @@ Some examples:
 
 You can overwrite the default font family of the Viewer's UI with the CSS variable `--simebv-ui-font-family`:
 ```
-[simebv_viewer book="MY EBOOK_SLUG_HERE" style="--simebv-ui-font-family:monospace;"]
+[simebv_viewer book="MY_EBOOK_SLUG_HERE" style="--simebv-ui-font-family:monospace;"]
 ```
 
 You can also overwrite font family, size and weight of the Ebook's title in the Viewer's header with the CSS variables `--simebv-header-font-family`, `--simebv-header-font-size`, `--simebv-header-font-weight`:
@@ -83,7 +85,7 @@ The plugin sets some reasonable defaults for these preferences, but if you're no
   - accepted values: "**small**", "**medium**", "**large**" (default: **medium**)
 * **`text-align`**
   - accepted values: "**auto**", "**left**", "**center**", "**right**", "**justify**" (default: **auto**)
-* **`line-height`**
+* **`line-spacing`**
   - accepted values: "**auto**", "**tight**", "**medium**", "**ample**" (default: "**auto**")
 * **`hyphenation`**
   - accepted values: "**auto**", "**yes**", "**no**" (default: "**auto**")
@@ -115,6 +117,8 @@ The plugin sets some reasonable defaults for these preferences, but if you're no
   (**3** and **4** are valid only for reflowable ebooks)
 * **`hide-title`**
   - accepted values: **never**, **always**, **first-page** (default: **never**)
+* **`open-at`**
+  - accepted values: a section number in reflowable ebooks, a page number in fixed-layout ebooks, a landmark name (e.g. bodymatter, glossary, index) in epub and mobi (default: the start of the ebook)
 
 
 `Max-pages` is the maximum number of pages (in the "paginated" layout) that the user will be able to see in a single view (if there is enough screen space).
@@ -124,6 +128,8 @@ The plugin sets some reasonable defaults for these preferences, but if you're no
 The `reading-order` sets the page progression of the ebook (ltr -> left-to-right, rtl -> right-to-left), and not the text direction inside the pages.
 
 `Color-scheme`: "auto" means that the Viewer will adapt to the preferred color-scheme set by the user on their device or browser (light or dark).
+
+`Open-at`: sections and pages are simply counted in the order in which they appear in the ebook, the actual page labels or chapter numbers, when they exist, don't count. In order for the landmarks to work, it's obviously necessary that they are correctly set in the ebook.
 
 For most ebooks these preferences should be enough, but sometimes there are ebooks with style rules that don't play well with the styles set by the Viewer, so the users have also the option to apply some filters to the Viewer's colors (with the menu entry "Color filter...").
 
@@ -156,6 +162,9 @@ There are some other settings that the users won't be able to change by themselv
   - accepted values: "**true**", "**false**" (default: **false**)
 * **`allow-js`**
   - accepted values: "**true**", "**false**" (default: **false**)
+    Restricted to users with the `unfiltered_html` capability.
+* **`allow-remote-resources`**
+  - accepted values: "**true**", "**false**" (default: **false**)
 * **`math-styles`**
   - accepted values: "**fonts**", "**styles**", "**all**" (default: '')
 * **`ebook-author`**
@@ -164,14 +173,18 @@ There are some other settings that the users won't be able to change by themselv
   - accepted values: any string, max 260 characters (default: '')
 * **`popup-notes`**
   - accepted values: "**true**", "**false**" (default: **true**)
+* **`bookmarks`**
+  - accepted values: "**true**", "**false**" (default: **true**)
 
 With `always-full-viewport` set to "true", the ebook viewer will automatically cover the entire webpage when it is opened, and the "full screen" icon will be replaced by a "close viewer" icon. `always-full-viewport="true"` requires that also `return-to-url` is present, with a valid URL that indicates the destination of the user when they choose to close the viewer. The URL can be relative (e.g., "/" or "/books-gallery") or absolute. In either case, it must have the same hostname as the webpage containing the ebook viewer (e.g. if the viewer is at https://www.example.com/ebook-viewer, the absolute URL must start with https://www.example.com).
 
 If `real-fullscreen` is set to "true", the ebook viewer will cover the entire screen instead of only the viewport of the webpage when the user clicks on the "full screen" icon. With `real-fullscreen` set to true, `always-full-viewport` is ignored, since the full screen requires an explicit action by the user.
 
-`Allow-js`: normally, the plugin forbids, as far as possible, script execution from inside the ebooks. If you set `allow-js` to true, this restriction is relaxed, and scripts within the ebook can be executed.<br>
+`Allow-js`: normally, the plugin forbids, as far as possible, script execution from inside the ebooks. If you set `allow-js` to true, this restriction is relaxed, and scripts within the ebook can be executed. Since version 3.0.0, `allow-js` is restricted to users that have the `unfiltered_html` capability (they are already able to insert scripts in the web pages).<br>
 **Caveat 1**: you need to be absolutely certain that the code inside the ebook is not malicious, since it can harm your entire webpage.<br>
 **Caveat 2**: the ebook viewer is not strongly equipped to deal with dynamic content created or removed after the ebook opening, so you might encounter errors or inaccuracies when jumping from one ebook location to another in such a circumstance.
+
+`Allow-remote-resources`: for privacy reasons, by default ebooks are forbidden to fetch resources from external servers.
 
 `Math-styles`: in recent years all the major browsers have implemented a good deal of the MathML Core specification, so it is now possible to represent natively many mathematical expressions without the use of third party libraries. However, not all browsers and systems load automatically appropriate fonts. With math-styles set to "fonts" or "all", all the contents of MathML expression will use the Latin Modern font.
 Another shortcoming in the current support of MathML is that only Gecko based browsers (i.e. Firefox) implement a breaking lines algorithm, so long math expressions within small screens usually don't fit entirely. With math-styles set to "styles" or "all", the plugin will use some html+css tricks to try to allow either line breaks or horizontal scrolling.
@@ -179,6 +192,8 @@ Another shortcoming in the current support of MathML is that only Gecko based br
 `Ebook-author` and `ebook-title`: you can use these optional values to override the ones that the ebook viewer retrieves from the ebook metadata in order to display them to the users.
 
 `Popup-notes`: show footnotes and endnotes as popups instead of just links. The notes (and their references) need to be marked with the appropriate epub:type attributes to ensure that they are displayed as popups (the ebook viewer will try to recognize them anyway, but without guarantees).
+
+`Bookmarks`: allow users to bookmark and annotate pages and text excerpts.
 
 ### Development
 
@@ -204,17 +219,17 @@ After the build, the files and folders required for the plugin to work will be:
 
 ### Privacy
 
-This plugin does not track its users. It uses the WordPress REST API to retrieve the url of the ebooks to display, so it uses the technical cookies set by WordPress to assure the correctness and the security of the communication.
+This plugin does not track its users. It can use the WordPress REST API to retrieve the url of the ebooks to display, and in so doing it uses the technical cookies set by WordPress to assure the correctness and the security of the communication.
 
-It can also store in the local storage of the user's browser the ebooks's last viewed page and the preferences about the appearance of the ebooks in the Viewer, as detailed in the previous sections, with the only purpose to provide the best experience to the user.
+It can also store in the local storage of the user's browser the ebooks's last viewed page, the preferences about the appearance of the ebooks in the Viewer and possibly the bookmarks created by the user, as detailed in the previous sections, with the only purpose to provide the best experience to the user.
 
 If the user activates the Text-To-Speech functionality and the chosen voice is remote, the browser will send to the remote service the text to be synthesized, the language and the voice parameters and, as with any network request, the IP address and the browser identifiers.
 
-Since version 2.0.0, the plugin integrates with the [WP Consent API](https://wordpress.org/plugins/wp-consent-api/): if the website implements it, usually through another plugin, the user preferences will be saved only if the user has given consent. The "last viewed page" information is treated as part of the "functional" category, while all the other preferences are in the "preferences" category.
+Since version 2.0.0, the plugin integrates with the [WP Consent API](https://wordpress.org/plugins/wp-consent-api/): if the website implements it, usually through another plugin, the user preferences will be saved only if the user has given consent. The "last viewed page" and the bookmarks are treated as part of the "functional" category, while all the preferences are in the "preferences" category.
 
 ### Warning
 
-Ebooks can contain scripted content that might be executed on your webpage. The plugin does its best to forbid script execution from inside the loaded content, but it can't guarantee 100% safety. Don't display ebooks from untrusted sources and/or check your ebooks before uploading and displaying them. If you can, provide a strict Content Security Policy for your site.
+Ebooks can contain scripted content that might be executed on your webpage. The plugin does its best to forbid script execution from inside the loaded content, but it can't guarantee 100% safety. Don't display ebooks from untrusted sources and check your ebooks before uploading and displaying them. If you can, provide a strict Content Security Policy for your site.
 
 ### Credits
 
