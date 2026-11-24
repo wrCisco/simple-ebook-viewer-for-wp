@@ -119,6 +119,7 @@ class SIMEBV_Viewer extends SIMEBV_Base {
             'post_status' => 'inherit',
             'posts_per_page' => 1,
             'fields' => 'ids',
+            'orderby' => ['date' => 'DESC', 'ID' => 'DESC'],
             'meta_query' => [
                 [
                     'key' => 'simebv_ebook_slug',
@@ -166,16 +167,17 @@ class SIMEBV_Viewer extends SIMEBV_Base {
             $atts,
             'simebv_viewer'
         );
-        // restrict allow-js to users that can already insert js in pages
-        if ($atts['allow-js'] === 'true') {
-            $post = get_post();
-            if (!$post || !user_can($post->post_author, 'unfiltered_html')) {
-                $atts['allow-js'] = 'false';
-            }
-        }
         $ebook_id = self::get_ebook_id($atts['book']);
         if (empty($ebook_id)) {
             return '<p style="color: red;">' . esc_html__("No Web Publication file provided.", 'simple-ebook-viewer') . '</p>';
+        }
+        // restrict allow-js to users that can already insert js in pages
+        if ($atts['allow-js'] === 'true') {
+            $post = get_post();
+            if (!$post || !user_can($post->post_author, 'unfiltered_html')
+                    || !user_can(get_post_field('post_author', $ebook_id), 'unfiltered_html')) {
+                $atts['allow-js'] = 'false';
+            }
         }
         $ebook_url = is_post_publicly_viewable($ebook_id)
             ? wp_get_attachment_url($ebook_id)
