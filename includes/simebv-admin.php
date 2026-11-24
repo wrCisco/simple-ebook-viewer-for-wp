@@ -112,8 +112,7 @@ class SIMEBV_Admin extends SIMEBV_Base {
             $field_id = 'attachments-' . esc_attr($post->ID) . '-simebv_ebook_slug';
             $html = '<div class="simebv-attachment-ebook-slug">';
             $html .= '<input type="text" id="' . esc_attr($field_id) . '"';
-            // the name is used as keys for the $post array in save_media_custom_field
-            $html .= ' name="simebv_ebook_slug"';
+            $html .= ' name="attachments[' . esc_attr($post->ID) . '][simebv_ebook_slug]"';
             $html .= ' value="' . esc_attr($val) . '" ';
             $html .= ' style="width: 100%;" />';
             $html .= '<p>';
@@ -136,8 +135,8 @@ class SIMEBV_Admin extends SIMEBV_Base {
     }
 
     public static function save_media_custom_field($post, $attachment) {
-        if (isset($post['simebv_ebook_slug'])) {
-            $slug = sanitize_text_field($post['simebv_ebook_slug']);
+        if (isset($attachment['simebv_ebook_slug'])) {
+            $slug = sanitize_text_field($attachment['simebv_ebook_slug']);
             if (empty($slug)) {
                 $slug = sanitize_text_field($post['post_name']);
             }
@@ -145,7 +144,7 @@ class SIMEBV_Admin extends SIMEBV_Base {
             update_post_meta(
                 $post['ID'],
                 'simebv_ebook_slug',
-                $slug
+                $slug,
             );
         }
         return $post;
