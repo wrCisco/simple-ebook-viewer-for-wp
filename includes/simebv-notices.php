@@ -37,7 +37,6 @@ class SIMEBV_Notices {
             'posts_per_page' => 1,
             'fields' => 'ids',
             'no_found_rows' => true,
-            'suppress_filters' => true,
             'meta_key' => 'simebv_ebook_slug',
         ])) > 0;
     }

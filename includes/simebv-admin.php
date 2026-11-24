@@ -162,8 +162,8 @@ class SIMEBV_Admin extends SIMEBV_Base {
             'post_mime_type' => $mimetypes,
             'posts_per_page' => 200,
             'paged' => 1,
+            // 'suppress_filters' => true,  // already default in get_posts (not in WP_Query)
             'no_found_rows' => true,
-            'suppress_filters' => true,
             // avoid non-deterministic ordering that, combined with
             // pagination, can result in skipped or repeated records
             // (cfr. https://github.com/WordPress/wordpress-develop/pull/10262)
