@@ -489,7 +489,11 @@ export class PreferencesLoader {
             linespacing: {
                 auto: 0,
                 small: 1,
+                tight: 1,
+                normal: 1.4,
                 medium: 1.4,
+                loose: 2.3,
+                ample: 2.3,
                 large: 2.3,
             },
             activatecolorfilter: {
