@@ -92,7 +92,7 @@ class SIMEBV_Admin extends SIMEBV_Base {
             return;
         }
         if (isset($attachment_post->post_name)) {
-            $slug = sanitize_text_field($attachment_post->post_name);
+            $slug = self::unique_ebook_slug(sanitize_text_field($attachment_post->post_name), $attachment_ID);
             update_post_meta(
                 $attachment_ID,
                 'simebv_ebook_slug',
@@ -140,6 +140,9 @@ class SIMEBV_Admin extends SIMEBV_Base {
             if (empty($slug)) {
                 $slug = sanitize_text_field($post['post_name']);
             }
+            if ($slug !== get_post_meta($post['ID'], 'simebv_ebook_slug', true)) {
+                $slug = self::unique_ebook_slug($slug, $post['ID']);
+            }
             $post['simebv_ebook_slug'] = $slug;
             update_post_meta(
                 $post['ID'],
@@ -148,6 +151,29 @@ class SIMEBV_Admin extends SIMEBV_Base {
             );
         }
         return $post;
+    }
+
+    // Returns $slug, or $slug-2, $slug-3... if another attachment already uses it.
+    private static function unique_ebook_slug($slug, $attachment_ID) {
+        $args = [
+            'post_type' => 'attachment',
+            // trashed attachments too, or restoring them could create duplicates
+            'post_status' => ['inherit', 'trash'],
+            // two results are enough: at most one of them is $attachment_ID itself
+            'posts_per_page' => 2,
+            'fields' => 'ids',
+            'no_found_rows' => true,
+            'cache_results' => false,
+            'meta_query' => [['key' => 'simebv_ebook_slug', 'compare' => '=']],
+        ];
+        $unique = $slug;
+        for ($i = 2; ; $i++) {
+            $args['meta_query'][0]['value'] = $unique;
+            if (count(array_diff(get_posts($args), [$attachment_ID])) === 0) {
+                return $unique;
+            }
+            $unique = $slug . '-' . $i;
+        }
     }
 
     public static function add_ebook_slugs($types = []) {
