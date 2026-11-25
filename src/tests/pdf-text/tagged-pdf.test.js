@@ -12,8 +12,10 @@ const taggedPdfUrl = '/src/tests/pdf-text/fixtures/tagged.pdf'
  * The text of a real tagged pdf, as pdf.js renders it: TTS on the rendered pages,
  * and search on the documents made by createDocument.
  * fixtures/tagged.pdf is fixtures/tagged.html printed by Chrome, which tags the pdf
- * and marks its header (date and title) and footer (url and page number) as artifacts:
- *   chrome --headless=new --export-tagged-pdf --print-to-pdf=tagged.pdf tagged.html
+ * and marks its header (date and title) and footer (url and page number) as artifacts.
+ * Serve tagged.html at http://localhost:8000/tagged.html, so that the footer doesn't
+ * show the path of a local file, then:
+ *   chrome --headless=new --export-tagged-pdf --print-to-pdf=tagged.pdf http://localhost:8000/tagged.html
  * It has two pages, and a paragraph that continues from the first to the second one.
  * vendor/foliate-js/pdf.js needs vitest.config.js to serve the files of pdf.js (see servePdfjs).
  */
@@ -37,7 +39,7 @@ const pages = [
     ],
 ]
 
-const artifactText = /Tagged test book|file:|\d+\/\d+/
+const artifactText = /Tagged test book|localhost|\d+\/\d+/
 
 let book
 
