@@ -121,7 +121,7 @@ foliate-fxl::part(filter) {
     height: 100%;
     top: 0;
 }
-input, button, select {
+input, button, select, textarea {
     font-family: inherit;
     font-size: max(var(--font-size-input), 1rem);
 }

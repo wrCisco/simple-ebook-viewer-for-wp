@@ -112,6 +112,7 @@ template.innerHTML = `
     display: none;
 }
 .simebv-bookmarks-add-textual button {
+    color: CanvasText;
     text-align: start;
     width: 100%;
     padding: 6px;

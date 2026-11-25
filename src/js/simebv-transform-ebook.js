@@ -454,6 +454,7 @@ export const getCSS = (values) => {
         font-size: ${fontSize}px;
         background-color: ${bgColor};
         -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
     }
     ${spacing === '0'
         ? ':where(:root) { line-height: 1.4; }'
