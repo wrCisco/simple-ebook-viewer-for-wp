@@ -1,0 +1,8 @@
+.vitest/
+node_modules/
+releases/
+resources/
+vendor/
+vendor-composer/
+.gitignore
+.gitmodules
